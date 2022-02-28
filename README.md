@@ -1,4 +1,4 @@
-#Bob's Fury
+# Bob's Fury
 
 Bob's Fury is a game project I started back when I was a teenager. This is the Pascal port I've been working
 on since around 1999.
@@ -9,7 +9,7 @@ Qbasic version of the game I wrote as a teenager.
 If you wish to leave feedback contact me on twitter (@Sparcie2) or on my wordpress blog.
 sparcie.wordpress.com
 
-###Requirements
+### Requirements
 
 The game requires about 200-300K of memory (more than 256k recommended) and a graphics card (CGA, EGA, VGA or VESA/SVGA).
 It will run on 8088/8086 machines with best results being on an 8Mhz 8086 or faster. Slower machines
@@ -29,7 +29,7 @@ The game remembers the hardware configuration between sessions, command line swi
 what is currently used.
 
 
-###Trouble shooting Tips
+### Trouble shooting Tips
 
 I have done some testing on real hardware, but since what I have is extremely limited I can't guarantee
 it will work perfectly on your system. Dosbox works quite well with pretty much the default settings. If you
@@ -37,7 +37,7 @@ have a problem please report a bug by posting a comment on my blog.
 
 If you have problems try a different sound device or disable doubling the PIT speed.
 
-###Future
+### Future
 
 I'm obviously still working on this so changes will be made over time, hopefully adding more levels, but
 perhaps also other features as I need them. I'm doing this in my spare time, of which I have very little,
@@ -53,7 +53,7 @@ Some things I don't plan on changing.
  - I'm not going to add digitised Sound blaster sound. I am considering adding CMS support but it's not planned
    at this stage.
 
-###Command Line
+### Command Line
 
     bob /? -e -cga -h -l -n -a -s -c <file.map>
 
@@ -74,7 +74,7 @@ Some things I don't plan on changing.
 
     -c <File.map> = used for loading a level directly.
 
-###License
+### License
 
 Bob's Fury is Freeware. This means you get to play with it for free, but I still own it.
 
