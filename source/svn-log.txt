@@ -1,4 +1,73 @@
 ------------------------------------------------------------------------
+r137 | andrew | 2022-02-09 10:32:13 +1100 (Wed, 09 Feb 2022) | 8 lines
+
+Some more optimisation of CGA.PAS
+
+Image operations now work first on one CGA memory bank, then the other.
+This reduces the amount of calulations required for the ofset between rows.
+But expands the code signifcantly. It has also meant I could remove the
+push cx as I have more register space.
+
+
+------------------------------------------------------------------------
+r136 | andrew | 2022-01-17 00:28:44 +1100 (Mon, 17 Jan 2022) | 3 lines
+
+Added the functionality for CGA palettes, tested on emulation. Hopefully works correctly on real hardware.
+
+
+------------------------------------------------------------------------
+r135 | andrew | 2022-01-15 12:03:32 +1100 (Sat, 15 Jan 2022) | 13 lines
+
+More work on the CGA unit
+- implemented drawing with XOR
+- optimised the standard draw, changed calculations to bit twiddling where I can
+
+Made larger change to image storage, storing 4 copies of the image pre-shifted bitwise to positions
+ready for different x and $3 values.
+Cons:
+   takes up loads more memory 164 versus 34
+Pros:
+   significantly faster
+
+might be a problem on low memory systems, but will make it more likely this will work on an XT.
+
+------------------------------------------------------------------------
+r134 | andrew | 2022-01-12 23:37:54 +1100 (Wed, 12 Jan 2022) | 13 lines
+
+More work on the CGA routines.
+- created the putImage routine in assembly - seems faster than BGI on real hardware (386sx)
+  will test on 86Box for lower spec machines
+
+might not be the optimal way to draw to CGA. I basically shift the buffer to the right pixel at
+draw time which costs time. I could store pre-shifted pixels, but this would quadruple the amount
+of image memory per image.
+for 10x10 image
+BGI memory usage 46
+CGA unit usage now 34
+potential CGA unit usage 164 .... yikes even more than higher resolutions.
+
+
+------------------------------------------------------------------------
+r133 | andrew | 2022-01-09 23:38:40 +1100 (Sun, 09 Jan 2022) | 3 lines
+
+working on CGA.PAS - added getimage function. written purely in pascal as it doesn't require high performance.
+
+
+------------------------------------------------------------------------
+r132 | andrew | 2022-01-08 15:21:35 +1100 (Sat, 08 Jan 2022) | 3 lines
+
+Worked on CGA.PAS. Implemented filled boxes using assembly language. Been tested and looking good so far.
+
+
+------------------------------------------------------------------------
+r131 | andrew | 2022-01-03 19:02:50 +1100 (Mon, 03 Jan 2022) | 5 lines
+
+added CGA and VGA units along with their common graphic utility functions.
+VGA is mostly done - One minor bug in circle routine
+CGA is partly implemented.
+
+
+------------------------------------------------------------------------
 r130 | andrew | 2021-11-13 16:49:02 +1100 (Sat, 13 Nov 2021) | 7 lines
 
 Some logic simplification and minor changes - finding it hard to find performance increases!
