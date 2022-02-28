@@ -1,0 +1,728 @@
+------------------------------------------------------------------------
+r130 | andrew | 2021-11-13 16:49:02 +1100 (Sat, 13 Nov 2021) | 7 lines
+
+Some logic simplification and minor changes - finding it hard to find performance increases!
+Now will run ok on a 8086 @ 8Mhz so that's an improvement!
+- added checkTimer so we can check that the timing mechanism is ready before returning/starting to use the game engine.pas
+- minor logic improvement in bobgraph collision code.
+- changed pitdbl to only acknowledge interrupt when not running the old int08 handler (as it would do it and I don't want to double up)
+- removed minor redundant code from map.pas
+- simplified some logic for monster and player movement.
+------------------------------------------------------------------------
+r129 | andrew | 2021-11-06 14:02:28 +1100 (Sat, 06 Nov 2021) | 6 lines
+
+Some bug fixes and optimising/shrinking interrupt code
+- made the keyboard interrupt shorter - but still retained ability to distinguish extended keycodes from normal ones. Will need to think about how I want to go forward with this one.
+- Shortened the fmplayer interrupt and saved some memory (removed waiting buffer, riff funcation and associated code) interrupt is substantially shorter.
+- fixed bug where loading an episode, then loading an episode using a compressed episode file would cause a crash.
+- fixed bug in synthint where an array index could end up out of bounds.
+- fixed range error in quadtree by changing data type.
+------------------------------------------------------------------------
+r128 | andrew | 2021-11-04 00:47:47 +1100 (Thu, 04 Nov 2021) | 3 lines
+
+Some further optimisation to the game logic.
+- projectiles now only call checkmonsters once (much more sensible!)
+- changed the checkpickup function to use a case block as those seem to be a bit better.
+------------------------------------------------------------------------
+r127 | andrew | 2021-11-02 23:30:18 +1100 (Tue, 02 Nov 2021) | 7 lines
+
+made an attempt at optimising for 8086/8088 class machines - have made an improvement, but still needs more work!
+- added detection of 286+ processor - for deciding how to calculate distance in monsterob.move
+- lots of modification to game logic in engine.pas, to use new quadtree unit. Also optimised some un-needed logic out and tidied up.
+- made bobgraph use shl rather than multiplies for correcting for screen mode
+- distance calculation now uses the word sqrt if longints are not required.
+- added quadtree unit, to hopefully make collision detection faster.
+
+------------------------------------------------------------------------
+r126 | andrew | 2021-10-30 17:21:41 +1100 (Sat, 30 Oct 2021) | 10 lines
+
+Made some major changes in an attempt to improve performance for XT class machines.
+* first made it possible to run on XT machines by compiling for 8086 instead of 80286
+* Changed pitdbl to be able to keep time by number of ticks for timing through out the game. Can now select how much faster
+  than standard PIT speed.
+* Modified game engine to use new timing mechanism in pitdbl
+* Modified bconfig to store new timing information (number of ticks * 2)
+* Modified bmenu to use new timing mechanism
+* Removed old time.pas as it's no longer needed.
+
+This improved the performance by more than I was expecting, a turbo XT seems playable with some slow-down where there's a busy area. It's probably not the best experience there, but it does work.
+------------------------------------------------------------------------
+r125 | andrew | 2021-10-29 13:54:27 +1100 (Fri, 29 Oct 2021) | 3 lines
+
+Added a readme to the source directory as basic documentation for the zip.
+
+
+------------------------------------------------------------------------
+r124 | andrew | 2021-10-19 01:20:16 +1100 (Tue, 19 Oct 2021) | 5 lines
+
+* Added mummy creature for the tomb episode from qbasic, which may also be useful in some dungeons of the jungle.
+* imported spider image from tomb for a use as a jungle enemy in future.
+* corrected a missing * from the episode source for the castle.
+* Added features to graphics editor for importing old qbasic graphics, mirroring images and basic rotation. It should get a help screen as well.
+
+------------------------------------------------------------------------
+r123 | andrew | 2021-10-15 16:37:22 +1100 (Fri, 15 Oct 2021) | 1 line
+
+Finished Castl7 and added it to the castle episode. Now to make the last castle map.
+------------------------------------------------------------------------
+r122 | andrew | 2021-05-19 23:43:22 +1000 (Wed, 19 May 2021) | 1 line
+
+completed and tested OPL2LPT support. Updated the interface elements and messages and added information to the readme.
+------------------------------------------------------------------------
+r121 | andrew | 2021-05-19 20:10:32 +1000 (Wed, 19 May 2021) | 1 line
+
+Experimental OPL2LPT and OPL3LPT support added. Need to complete UI work to complete it.
+------------------------------------------------------------------------
+r120 | andrew | 2021-05-18 22:16:47 +1000 (Tue, 18 May 2021) | 1 line
+
+Simplifying and shrinking adlib card support so that in future I can add support for the OPL3LPT and OPL2LPT.
+------------------------------------------------------------------------
+r119 | andrew | 2021-02-21 22:26:43 +1100 (Sun, 21 Feb 2021) | 1 line
+
+re-wrote the joystick interface to work on older 286 machines without the AT BIOS part that does joystick support for you.
+------------------------------------------------------------------------
+r118 | andrew | 2021-02-09 14:00:38 +1100 (Tue, 09 Feb 2021) | 3 lines
+
+removed debug info from the executables to save space now that the crashing bug is fixed.
+
+
+------------------------------------------------------------------------
+r117 | andrew | 2021-02-08 00:22:25 +1100 (Mon, 08 Feb 2021) | 8 lines
+
+Finally found source of the most serious crash on real machines. It was caused by using 8087/80287 instructions during an interrupt with no actual NPU/FPU in the system.
+
+The cure is to remove the 8087/80287 emulation and change the compiler to not generate instructions for the NPU/FPU. Some code where I was using the data type single had to be changed to real, which is ok as I mostly don't use the extra precision. 
+
+This explains why it worked in dosbox (FPU is always enabled) and on more modern hardware (anything with a built in FPU).
+Thanks to 86box for being the tool which enabled me to find this particularly tricky bug!
+
+Now to figure out why I had decided to use the floating point instructions/emulation.
+------------------------------------------------------------------------
+r116 | andrew | 2021-01-02 12:00:40 +1100 (Sat, 02 Jan 2021) | 3 lines
+
+Reorganised some files and deleted some test programs.
+Also did some minor work on castl7.
+
+------------------------------------------------------------------------
+r115 | andrew | 2020-12-30 14:48:30 +1100 (Wed, 30 Dec 2020) | 6 lines
+
+Made some changes to the engine
+- removed head bonking to solve an issue with castl5, this makes navigating levels easier in general.
+- changed distance calculation to use integer square root in the hope it will be faster on machine with no FPU
+  I'm yet to test this, but will test it on the microbyte 386sx.
+
+
+------------------------------------------------------------------------
+r114 | andrew | 2020-06-21 22:26:46 +1000 (Sun, 21 Jun 2020) | 2 lines
+
+some work done on castle 7
+
+------------------------------------------------------------------------
+r113 | andrew | 2020-05-21 21:33:44 +1000 (Thu, 21 May 2020) | 2 lines
+
+added health to castl6 and did more work on castl7. Minor changes to the engine.
+
+------------------------------------------------------------------------
+r112 | andrew | 2020-05-10 15:18:28 +1000 (Sun, 10 May 2020) | 1 line
+
+Changes to the readme before making a binary release
+------------------------------------------------------------------------
+r111 | andrew | 2020-05-09 17:49:06 +1000 (Sat, 09 May 2020) | 5 lines
+
+- changed adlib detection mechanism so it isn't invoked if not needed (like if sound option is set to forces pc speaker or no sound)
+
+- re-enabled the pitdbl unit but added command line switch to disable it.
+
+Did serious amount of testing, still causes crashes, even when running newer dos (6.22). forcing the sound to be turned off still seems to be a cure, and bfleu seems to work with sound mysteriously.
+------------------------------------------------------------------------
+r110 | andrew | 2020-05-09 15:35:26 +1000 (Sat, 09 May 2020) | 2 lines
+
+Fixed a bug in bmenu causing the player to start in an incorrect location
+and reduced stack usage where I could.
+------------------------------------------------------------------------
+r109 | andrew | 2020-05-08 00:25:52 +1000 (Fri, 08 May 2020) | 5 lines
+
+Made the default stack size smaller, and reduced the footprint some functions have on the stack.
+Also found that the far call model is not needed for interrupt procedures, so moved all force far call model directives to
+procedures that require it.
+
+Found bfleu.exe works on the 386 machine, so hopefully we can use that to determine the problem.
+------------------------------------------------------------------------
+r108 | andrew | 2020-05-06 20:55:26 +1000 (Wed, 06 May 2020) | 2 lines
+
+Refactored the map unit so internal levels are now called tiers to avoid confusion and make it clear which unit is being used when llist is also used.
+
+------------------------------------------------------------------------
+r107 | andrew | 2020-05-04 21:52:06 +1000 (Mon, 04 May 2020) | 4 lines
+
+added debug data to executable whilst using turbo debug
+found bobtest was using getlevel from map unit instead of llist. need to refactor map so that it doesn't share 
+function names with llist
+
+------------------------------------------------------------------------
+r106 | andrew | 2020-05-03 19:10:09 +1000 (Sun, 03 May 2020) | 2 lines
+
+added some range checking to some functions in the map unit to correct some issues flagged by range checking $R+ compile option
+Hopefully this will make it possible to debug it better on real hardware.
+------------------------------------------------------------------------
+r105 | andrew | 2020-03-16 22:14:08 +1100 (Mon, 16 Mar 2020) | 1 line
+
+made some changes to attempt to debug crashing issue on 386sx microbyte machine... no success so far.
+------------------------------------------------------------------------
+r104 | andrew | 2020-01-18 14:35:29 +1100 (Sat, 18 Jan 2020) | 3 lines
+
+more attempts at fixing the problem!
+- changed timing calculations in both fmplayer and music, slightly simpler design that checks with pitdbl.pas what constant to use.
+- changed pitdbl.pas so that it is disabled by default, but can be enabled on demand. (mostly for testing!)
+------------------------------------------------------------------------
+r103 | andrew | 2020-01-16 01:24:57 +1100 (Thu, 16 Jan 2020) | 5 lines
+
+Attempted to fix a bug on actual hardware causing machine lockups.
+- changed the ack to the PIC being before int 1C instead of after
+- changed both music and fmplayer so that they only hook the int 1C after being started (for fmplayer) or used for music.pas
+- modified the bsound to initialise the sound device
+- fixed loading custom maps from the command line.
+------------------------------------------------------------------------
+r102 | andrew | 2020-01-05 19:54:10 +1100 (Sun, 05 Jan 2020) | 3 lines
+
+made some changes to the readme and old levels intro, also some work on castl7
+
+
+------------------------------------------------------------------------
+r101 | andrew | 2019-09-17 15:40:40 +1000 (Tue, 17 Sep 2019) | 5 lines
+
+added some more controls to the music editor.
+- can change channels up and down.
+- can insert and delete notes.
+
+
+------------------------------------------------------------------------
+r100 | andrew | 2019-09-04 16:24:41 +1000 (Wed, 04 Sep 2019) | 2 lines
+
+added some basic features: a status line and playing notes under the cursor.
+
+------------------------------------------------------------------------
+r99 | andrew | 2019-08-12 15:18:06 +1000 (Mon, 12 Aug 2019) | 2 lines
+
+added pageup and pagedown keys to scroll through a channel quickly
+
+------------------------------------------------------------------------
+r98 | andrew | 2019-08-06 14:48:54 +1000 (Tue, 06 Aug 2019) | 2 lines
+
+made a fix in Bmusic to the moveto function, and added a movable cursor. lots more to be done.
+
+------------------------------------------------------------------------
+r97 | andrew | 2019-08-05 08:48:49 +1000 (Mon, 05 Aug 2019) | 2 lines
+
+minor change made before being able to work on my laptop
+
+------------------------------------------------------------------------
+r96 | andrew | 2019-07-30 13:32:49 +1000 (Tue, 30 Jul 2019) | 7 lines
+
+Actually made a better start on a music editor. Decided to go back to text mode as it's easier. Have basic display of channel data but need to following...
+* a movable cursor
+* ability to move between pages.
+* edit a note (and hear it)
+* playback (of a single channel as well as the whole music)
+
+
+------------------------------------------------------------------------
+r95 | andrew | 2019-07-04 15:36:57 +1000 (Thu, 04 Jul 2019) | 2 lines
+
+Some work on the 7th castle level.
+
+------------------------------------------------------------------------
+r94 | andrew | 2019-06-21 14:57:00 +1000 (Fri, 21 Jun 2019) | 3 lines
+
+changed how projectiles are built so that I'll be able to make new types of projectile possibly with the same behaviour as existing ones.
+
+
+------------------------------------------------------------------------
+r93 | andrew | 2019-06-18 10:34:54 +1000 (Tue, 18 Jun 2019) | 2 lines
+
+Started making level 7 for the castle episode, also minor changes to level 6.
+
+------------------------------------------------------------------------
+r92 | andrew | 2018-11-22 14:12:38 +1100 (Thu, 22 Nov 2018) | 2 lines
+
+fixing some indentation.
+
+------------------------------------------------------------------------
+r91 | andrew | 2018-11-21 17:21:10 +1100 (Wed, 21 Nov 2018) | 2 lines
+
+some code tidying and minor optimisation.
+
+------------------------------------------------------------------------
+r90 | andrew | 2018-11-20 15:50:06 +1100 (Tue, 20 Nov 2018) | 3 lines
+
+converted all source using dos2unix to make editing easier, removed some uneeded source files. need to clean up the source.
+
+
+------------------------------------------------------------------------
+r89 | andrew | 2018-11-13 13:31:12 +1100 (Tue, 13 Nov 2018) | 2 lines
+
+More graphical fixes that fix CGA and EGA graphics conversions.
+
+------------------------------------------------------------------------
+r88 | andrew | 2018-11-12 16:52:05 +1100 (Mon, 12 Nov 2018) | 2 lines
+
+Fixed the player images for cga/ega mode. leg colour now doesn't change. Also changed the CGA palette to be a less harsh colour.
+
+------------------------------------------------------------------------
+r87 | andrew | 2018-07-27 15:46:04 +1000 (Fri, 27 Jul 2018) | 3 lines
+
+play tested all the levels and added some health bottles to level 5
+
+
+------------------------------------------------------------------------
+r86 | andrew | 2018-07-23 14:42:20 +1000 (Mon, 23 Jul 2018) | 3 lines
+
+created and tinkered with the readme files.
+
+
+------------------------------------------------------------------------
+r85 | andrew | 2018-07-16 17:34:23 +1000 (Mon, 16 Jul 2018) | 2 lines
+
+castle 6 map added ready for play testing
+
+------------------------------------------------------------------------
+r84 | andrew | 2018-07-11 12:43:23 +1000 (Wed, 11 Jul 2018) | 3 lines
+
+did some more work on the 6th castle level.
+
+
+------------------------------------------------------------------------
+r83 | andrew | 2018-06-14 15:59:26 +1000 (Thu, 14 Jun 2018) | 2 lines
+
+tweaked castl6 and added arrows as decorative tiles to guide the player.
+
+------------------------------------------------------------------------
+r82 | andrew | 2018-06-13 17:44:36 +1000 (Wed, 13 Jun 2018) | 2 lines
+
+did some work on the 6th castle level.
+
+------------------------------------------------------------------------
+r81 | andrew | 2018-05-07 11:54:37 +1000 (Mon, 07 May 2018) | 2 lines
+
+Initial work of the 6th castle level and some other minor changes.
+
+------------------------------------------------------------------------
+r80 | andrew | 2017-04-07 14:01:33 +1000 (Fri, 07 Apr 2017) | 3 lines
+
+added the option for compressing the map list and story text for each episode into one file.
+Also had to make minor fixes to the decoder.
+
+------------------------------------------------------------------------
+r79 | andrew | 2017-03-15 13:41:37 +1100 (Wed, 15 Mar 2017) | 3 lines
+
+minor changes to the readme before updating the Zip file online
+
+
+------------------------------------------------------------------------
+r78 | andrew | 2017-01-10 17:10:06 +1100 (Tue, 10 Jan 2017) | 2 lines
+
+added a unit that increases the PIT speed allowing for shorter notes in the music and fmplayer music systems. Adjusted some sound effects to match.
+
+------------------------------------------------------------------------
+r77 | andrew | 2017-01-09 11:46:33 +1100 (Mon, 09 Jan 2017) | 2 lines
+
+made some minor changes to fire rate and added a cool-down/gap for the pop-up spikes.
+
+------------------------------------------------------------------------
+r76 | andrew | 2017-01-09 11:09:45 +1100 (Mon, 09 Jan 2017) | 3 lines
+
+added check points to levels and added a delay between enemies ability to shoot. Tinkered with the sound system but no changes as of yet.
+
+
+------------------------------------------------------------------------
+r75 | andrew | 2016-10-19 16:06:34 +1100 (Wed, 19 Oct 2016) | 2 lines
+
+added a check point system to the engine and graphically (fairly easy)... need to add check points to existing levels.
+
+------------------------------------------------------------------------
+r74 | andrew | 2015-12-07 16:52:54 +1100 (Mon, 07 Dec 2015) | 2 lines
+
+created and tested compression (huffman coding) library for storing ASCII text.
+
+------------------------------------------------------------------------
+r73 | andrew | 2015-01-15 15:19:22 +1100 (Thu, 15 Jan 2015) | 6 lines
+
+changed the PGS to include the graph initialisation code. Also made it have better error messages when graph doesn't work.
+need to:
+   try out the svga256m.bgi driver for speed, it does both 320x200 and 640x400
+   think about including the litt.chr into the bobgraph unit (build the font into the exe).
+   
+
+------------------------------------------------------------------------
+r72 | andrew | 2015-01-12 14:10:47 +1100 (Mon, 12 Jan 2015) | 2 lines
+
+fixed a small problem in the info screen
+
+------------------------------------------------------------------------
+r71 | andrew | 2014-12-16 18:09:18 +1100 (Tue, 16 Dec 2014) | 2 lines
+
+updated the joystick configuration screen and main configuration screen. Added saving of the joystick configuration to the file.
+
+------------------------------------------------------------------------
+r70 | andrew | 2014-12-03 23:50:38 +1100 (Wed, 03 Dec 2014) | 2 lines
+
+fixed joystick configuration and controls... just need to save the configuration
+
+------------------------------------------------------------------------
+r69 | andrew | 2014-12-02 16:18:35 +1100 (Tue, 02 Dec 2014) | 2 lines
+
+updating the joystick functions to include using 4 buttons and custom controls.
+
+------------------------------------------------------------------------
+r68 | andrew | 2014-11-12 14:43:58 +1100 (Wed, 12 Nov 2014) | 3 lines
+
+added readme file for the sake of the binary release
+
+
+------------------------------------------------------------------------
+r67 | andrew | 2014-11-11 22:50:01 +1100 (Tue, 11 Nov 2014) | 1 line
+
+made a minor comment change to document changes to the pgs.
+------------------------------------------------------------------------
+r66 | andrew | 2014-11-11 14:38:54 +1100 (Tue, 11 Nov 2014) | 2 lines
+
+changed some of the episode text and removed macro hard from the intro sequence. All in preparation for a binary release.
+
+------------------------------------------------------------------------
+r65 | andrew | 2014-09-29 17:15:18 +1000 (Mon, 29 Sep 2014) | 2 lines
+
+changed the sprite test screen to include a very basic benchmark for the number of sprites that can be rendered per second.
+
+------------------------------------------------------------------------
+r64 | andrew | 2014-08-01 15:54:03 +1000 (Fri, 01 Aug 2014) | 3 lines
+
+Created the new packer program for the base graphics data files. repacked the graphics and saved a crap-ton of 
+space. The testpack program is non functional (it hasn't been rebuilt) but everything else is functional.
+
+------------------------------------------------------------------------
+r63 | andrew | 2014-08-01 13:40:58 +1000 (Fri, 01 Aug 2014) | 4 lines
+
+created a unit for creating the graphics files using the RLE compression recently created. Have adapted egaconv 
+and cgaconv to use the new unit and tested the graphics data files that they create. It seems to be effective as 
+it has roughly halved the size of the graphics data on disk.
+
+------------------------------------------------------------------------
+r62 | andrew | 2014-07-31 12:00:16 +1000 (Thu, 31 Jul 2014) | 1 line
+
+Added compression capability to the packed graphics system unit which reads and displays the graphic pack files... now I need to compress the packed graphics files!
+------------------------------------------------------------------------
+r61 | andrew | 2014-07-29 10:43:24 +1000 (Tue, 29 Jul 2014) | 3 lines
+
+Created map compression program (updates the format of map files) and comrpessed all the map files for the game 
+and in the BFLEU folder.
+
+------------------------------------------------------------------------
+r60 | andrew | 2014-07-28 15:43:50 +1000 (Mon, 28 Jul 2014) | 3 lines
+
+Modified the map unit to store level data in RLE format whilst retaining compatibility with the old raw format.
+Saving in RLE format can be turned off at compile time with a define.
+
+------------------------------------------------------------------------
+r59 | andrew | 2014-07-21 23:02:29 +1000 (Mon, 21 Jul 2014) | 2 lines
+
+created the RLEtest program to test the RLE unit.
+
+------------------------------------------------------------------------
+r58 | andrew | 2014-07-21 16:58:21 +1000 (Mon, 21 Jul 2014) | 2 lines
+
+added a Run-Length Encoder/Decoder to the code base. Need to make a program to test it.
+
+------------------------------------------------------------------------
+r57 | andrew | 2014-05-06 15:05:22 +1000 (Tue, 06 May 2014) | 2 lines
+
+saved some more time by creating a quick exit for the pickup function
+
+------------------------------------------------------------------------
+r56 | andrew | 2014-05-06 12:59:54 +1000 (Tue, 06 May 2014) | 4 lines
+
+Added bonus for using all key holes and switches and modified code to be easier 
+to maintain. Moved showscore call in the run function and drastically increased 
+the number of max cycles available. 
+
+------------------------------------------------------------------------
+r55 | andrew | 2014-05-05 14:56:36 +1000 (Mon, 05 May 2014) | 2 lines
+
+modified BFLEU map display to be neater and easier to maintain.
+
+------------------------------------------------------------------------
+r54 | andrew | 2014-05-01 19:45:20 +1000 (Thu, 01 May 2014) | 2 lines
+
+fixed some problems with castl5 and made it a little easier by adding health.
+
+------------------------------------------------------------------------
+r53 | andrew | 2014-04-30 09:52:09 +1000 (Wed, 30 Apr 2014) | 2 lines
+
+fixed bug where lightning bolts and grenades didn't carry over.
+
+------------------------------------------------------------------------
+r52 | andrew | 2014-04-29 15:23:15 +1000 (Tue, 29 Apr 2014) | 6 lines
+
+completed level 5 (castle) ready for testing... I noted that the save system and 
+episode list system working together make a bug where adding a level to an 
+episode doesn't effect saved games. ie. If you saved in the last level after any 
+addition (or removal) it still thinks you're on the last level. not sure if I'll 
+fix that.
+
+------------------------------------------------------------------------
+r51 | andrew | 2014-04-06 18:06:23 +1000 (Sun, 06 Apr 2014) | 3 lines
+
+work on level 5 of the castle episode moved on - main structure, enemies 
+and triggers in place. Requires testing and pick ups added. 
+
+------------------------------------------------------------------------
+r50 | andrew | 2014-03-12 14:57:11 +1100 (Wed, 12 Mar 2014) | 2 lines
+
+Fixed the behaviour of the elevator, it now behaves how I'd expect it to.
+
+------------------------------------------------------------------------
+r49 | andrew | 2014-03-11 13:42:42 +1100 (Tue, 11 Mar 2014) | 3 lines
+
+did some tidying of code by using case in some places in the enging (maybe more places this is a good idea). Added the functionality for the 
+elevator, works, but appears jerky. added triggers left display to the level editor.
+
+------------------------------------------------------------------------
+r48 | andrew | 2014-03-10 15:38:32 +1100 (Mon, 10 Mar 2014) | 2 lines
+
+did some work on 5th castle level, and created the graphics for the up-coming elevator.
+
+------------------------------------------------------------------------
+r47 | andrew | 2014-03-10 13:44:03 +1100 (Mon, 10 Mar 2014) | 3 lines
+
+changed the chennel selection for sound playback. It uses empty channels first, and if they all are busy it clears the least busy and then 
+uses that.
+
+------------------------------------------------------------------------
+r46 | andrew | 2014-01-16 15:36:24 +1100 (Thu, 16 Jan 2014) | 2 lines
+
+made some minor changes to the interface to make it more usable.
+
+------------------------------------------------------------------------
+r45 | andrew | 2014-01-16 13:03:49 +1100 (Thu, 16 Jan 2014) | 4 lines
+
+completed fixing BFLEU problems, it now uses bobgraph and is compiled 
+without adlib support (PC speaker only).
+
+
+------------------------------------------------------------------------
+r44 | andrew | 2014-01-11 22:04:06 +1100 (Sat, 11 Jan 2014) | 4 lines
+
+modified bfleu to use bobgraph instead of raw graph... somehow it's 
+causing a stack overflow.
+
+
+------------------------------------------------------------------------
+r43 | andrew | 2014-01-08 23:44:29 +1100 (Wed, 08 Jan 2014) | 1 line
+
+fixed up the batch files for some new features.
+------------------------------------------------------------------------
+r42 | andrew | 2014-01-08 17:01:36 +1100 (Wed, 08 Jan 2014) | 4 lines
+
+Reduced memory usage in a number of units, mostly by shortening string structs.
+made BFLEU compile with adlib sound off, still need to fix the tester part.
+
+
+------------------------------------------------------------------------
+r41 | andrew | 2014-01-08 00:37:27 +1100 (Wed, 08 Jan 2014) | 1 line
+
+Restructured the sound system to share the FMplayer Note structure. Created sound cache unit and used it to replace the fmmusic unit that was large and slow. Sndgen program created to generate the sound file.
+------------------------------------------------------------------------
+r40 | andrew | 2014-01-07 17:40:39 +1100 (Tue, 07 Jan 2014) | 3 lines
+
+changed bmenu to use the in built move function instead of copymem in bsystem (now commented out)
+changed bobgraph to no longer use bitmap object (saved a little code)
+changed map memory allocation and removed some un-needed checking.
+------------------------------------------------------------------------
+r39 | andrew | 2013-12-29 23:06:38 +1100 (Sun, 29 Dec 2013) | 1 line
+
+Added information about sprite size and memory usage to info screen, found I was using more memory than expected in PGS and corrected it. It's still using more ram, but I have reduced it.
+------------------------------------------------------------------------
+r38 | andrew | 2013-12-29 22:25:26 +1100 (Sun, 29 Dec 2013) | 1 line
+
+Saved some bytes of data segment that were not needed (some moved to stack) and added some comments.
+------------------------------------------------------------------------
+r37 | andrew | 2013-12-29 13:26:52 +1100 (Sun, 29 Dec 2013) | 1 line
+
+added CGA colour translation to the high score display and general UI. also debugged and tweaked the CGA colour sprite converter.
+------------------------------------------------------------------------
+r36 | andrew | 2013-12-28 22:19:55 +1100 (Sat, 28 Dec 2013) | 1 line
+
+Added CGA support! might need to tweak the converter for CGA sprites tho. Changed how the graphics mode is set/stored in bobgraph.
+------------------------------------------------------------------------
+r35 | andrew | 2013-12-22 21:25:11 +1100 (Sun, 22 Dec 2013) | 1 line
+
+reduced the usage of getObjectAt in the Engine unit by using some stack space. Saved about 1000 bytes code! May also be faster?
+------------------------------------------------------------------------
+r34 | andrew | 2013-12-22 01:09:14 +1100 (Sun, 22 Dec 2013) | 1 line
+
+added page flipping and detection to EGA mode. It simply has a page for the game screen and another for menus to make transition between menu and game faster.
+------------------------------------------------------------------------
+r33 | andrew | 2013-12-21 23:27:56 +1100 (Sat, 21 Dec 2013) | 1 line
+
+Made EGA mode preference saved in config, and fixed some issues with the game menu and game area display system. The screen doesn't flicker to the game screen during menu operations such as starting a new game or loading a game.
+------------------------------------------------------------------------
+r32 | andrew | 2013-12-19 17:00:36 +1100 (Thu, 19 Dec 2013) | 3 lines
+
+changed configuration screen to not show memory and sound information, added
+a secret information screen (press I) for information on graphics etc.
+
+------------------------------------------------------------------------
+r31 | andrew | 2013-12-18 11:35:03 +1100 (Wed, 18 Dec 2013) | 3 lines
+
+finished off adding the key cards into the game and made some changes to
+ the engine and bobgraph in the hope of getting a few more cycles.
+
+------------------------------------------------------------------------
+r30 | andrew | 2013-12-17 17:01:55 +1100 (Tue, 17 Dec 2013) | 3 lines
+
+created the artwork for green and red keys, put them in the pack files and
+prepared bfleu for using the new items... just need to update the engine.
+
+------------------------------------------------------------------------
+r29 | andrew | 2013-12-17 15:25:59 +1100 (Tue, 17 Dec 2013) | 4 lines
+
+Made custom buttons for the health, grenades and weapon select work better.
+You now no longer have multiple health bottles or grenades used for short
+keypresses, and selecting weapon is easier.
+
+------------------------------------------------------------------------
+r28 | andrew | 2013-12-17 13:46:04 +1100 (Tue, 17 Dec 2013) | 1 line
+
+Changes made so palette is zeroed whilst loading under VGA and SVGA... will have to investigate similar procedure for EGA?
+------------------------------------------------------------------------
+r27 | andrew | 2013-04-10 21:28:48 +1000 (Wed, 10 Apr 2013) | 1 line
+
+Created default compiler configuration (tpc.cfg) modify for changes that affect all code.
+------------------------------------------------------------------------
+r26 | andrew | 2013-04-10 12:44:14 +1000 (Wed, 10 Apr 2013) | 2 lines
+
+removed some compiler defines that were un-needed.
+
+------------------------------------------------------------------------
+r25 | andrew | 2013-04-10 12:09:52 +1000 (Wed, 10 Apr 2013) | 4 lines
+
+changed the compile options (like 286 instructions) to be in source 
+code.
+
+
+------------------------------------------------------------------------
+r24 | andrew | 2013-04-09 16:54:43 +1000 (Tue, 09 Apr 2013) | 4 lines
+
+Added a copy of the standard VGA palette into the executable so that 
+the colour looks right on cards that do not have the correct palette on 
+board.
+
+------------------------------------------------------------------------
+r23 | andrew | 2013-03-25 14:22:40 +1100 (Mon, 25 Mar 2013) | 3 lines
+
+Added a special unit that does buffered reading on text files, modified 
+important units to incorporate the buffered reader/writer.
+
+------------------------------------------------------------------------
+r22 | andrew | 2012-08-28 15:26:07 +1000 (Tue, 28 Aug 2012) | 2 lines
+
+Added some code to work out the relative (vertical) position of a note
+
+------------------------------------------------------------------------
+r21 | andrew | 2012-08-28 13:04:50 +1000 (Tue, 28 Aug 2012) | 2 lines
+
+In progress of making the functions for drawing the notes!
+
+------------------------------------------------------------------------
+r20 | andrew | 2012-06-25 16:09:00 +1000 (Mon, 25 Jun 2012) | 2 lines
+
+added the procedure for making new BFM files.
+
+------------------------------------------------------------------------
+r19 | andrew | 2012-06-24 17:07:38 +1000 (Sun, 24 Jun 2012) | 1 line
+
+Started on the editor... added some of the important utility functions!
+------------------------------------------------------------------------
+r18 | andrew | 2012-06-23 23:56:06 +1000 (Sat, 23 Jun 2012) | 1 line
+
+created IBK and SBI file reader unit, and created the graphics for a music editor.
+------------------------------------------------------------------------
+r17 | andrew | 2012-03-13 20:49:42 +1100 (Tue, 13 Mar 2012) | 1 line
+
+begun level 5 - the tower - main basic structure created.
+------------------------------------------------------------------------
+r16 | andrew | 2012-02-12 20:35:47 +1100 (Sun, 12 Feb 2012) | 2 lines
+
+Added EGA support to the main game (not the editor that still requires VGA)
+I've created a vga to ega graphics converter that makes ega sprites like that of thexter. 
+------------------------------------------------------------------------
+r15 | andrew | 2011-11-20 16:31:30 +1100 (Sun, 20 Nov 2011) | 3 lines
+
+Added custom key controls to the engine... - no functional but may need some tweaking. esp for keys like drop grenade and change weapon.
+
+
+------------------------------------------------------------------------
+r14 | andrew | 2011-11-18 23:38:18 +1100 (Fri, 18 Nov 2011) | 2 lines
+
+added custom key information to the configuration files - not compatible with old versions
+
+------------------------------------------------------------------------
+r13 | andrew | 2011-11-15 23:33:28 +1100 (Tue, 15 Nov 2011) | 3 lines
+
+Added custom keyboard into the menus - still requires adding to engine and config file.
+
+
+------------------------------------------------------------------------
+r12 | andrew | 2011-10-27 00:04:38 +1100 (Thu, 27 Oct 2011) | 1 line
+
+Finished and debugged keyboard unit - ready for integration into the engine.
+------------------------------------------------------------------------
+r11 | andrew | 2011-10-25 23:49:43 +1100 (Tue, 25 Oct 2011) | 1 line
+
+Begun implementing keyboard handler for alternative and custom controls
+------------------------------------------------------------------------
+r10 | andrew | 2011-10-08 21:14:24 +1100 (Sat, 08 Oct 2011) | 3 lines
+
+Adjusted castl4 (it was too hard)
+
+
+------------------------------------------------------------------------
+r9 | andrew | 2011-10-06 14:36:40 +1100 (Thu, 06 Oct 2011) | 3 lines
+
+Completed castl4 level
+
+
+------------------------------------------------------------------------
+r8 | andrew | 2011-09-26 23:39:03 +1000 (Mon, 26 Sep 2011) | 1 line
+
+castl4 level complete... requires testing (might be too hard)
+------------------------------------------------------------------------
+r7 | andrew | 2011-09-25 23:13:04 +1000 (Sun, 25 Sep 2011) | 1 line
+
+Castl4 level monsters treasure and structure complete ... requires some health bottles added.
+------------------------------------------------------------------------
+r6 | andrew | 2011-09-23 22:21:30 +1000 (Fri, 23 Sep 2011) | 1 line
+
+Fixed a bug with the bomb creatures and the switch trigger when they die (explode) from contacting the player.
+------------------------------------------------------------------------
+r5 | andrew | 2011-09-23 22:05:07 +1000 (Fri, 23 Sep 2011) | 2 lines
+
+level update castl4 (not complete)
+
+------------------------------------------------------------------------
+r4 | andrew | 2011-09-23 16:15:06 +1000 (Fri, 23 Sep 2011) | 2 lines
+
+Continuing build of castl4 level
+
+------------------------------------------------------------------------
+r3 | andrew | 2011-09-22 21:16:17 +1000 (Thu, 22 Sep 2011) | 1 line
+
+Building castl4 level (incomplete) and ignoring tpu files in source directory.
+------------------------------------------------------------------------
+r2 | andrew | 2011-09-01 02:10:21 +1000 (Thu, 01 Sep 2011) | 1 line
+
+
+------------------------------------------------------------------------
+r1 | andrew | 2011-09-01 01:58:45 +1000 (Thu, 01 Sep 2011) | 1 line
+
+Initial svn commit
+------------------------------------------------------------------------

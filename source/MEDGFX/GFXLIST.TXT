@@ -1,0 +1,15 @@
+cursor.gfx
+dot.gfx
+sharp.gfx
+sbrest.gfx
+mmrest.gfx
+ctrest.gfx
+qrrest.gfx
+sqrest.gfx
+dsqrest.gfx
+semibrev.gfx
+minim.gfx
+crotchet.gfx
+quaver.gfx
+sequaver.gfx
+dsq.gfx

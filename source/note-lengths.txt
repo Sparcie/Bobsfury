@@ -1,0 +1,7 @@
+			normal		dot
+whole		4			3
+half      	2			1.5
+quarter 	1			0.75
+8th			0.5			0.375
+16th		0.25		0.1875
+32nd		0.125		0.09525
