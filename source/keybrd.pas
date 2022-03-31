@@ -6,11 +6,16 @@ unit keybrd;
 interface
 
 var
-   scancode : array[1..20] of word;
-   pressed  : array[1..20] of boolean;
+   scancode : array[1..20] of byte;
 
-function keyFace(sc : word):string; {returns the name of the keyface matching the scan code}
-function lastKeyPressed:word;      {returns the scancode of the last keypress}
+function keyFace(sc : byte):string; {returns the name of the keyface matching the scan code}
+function lastKeyPressed:byte;      {returns the scancode of the last keypress}
+
+function pressed(k : byte):boolean;
+procedure clearKey(k : byte);
+
+procedure clearBIOSKeyBuffer;
+
 
 implementation
 
@@ -20,8 +25,10 @@ var
    oldint09    : pointer;
    exitsave    : pointer;
    extended    : boolean;
-   lastPressed : word;
-{   keys	       : array[0..127] of boolean;}
+   lastPressed : byte;
+   keys	       : array[0..255] of boolean; {normal keys 0- 127 extended keys 128 - 255 }
+   head	       : integer absolute $0040:$001A; 
+   tail	       : integer absolute $0040:$001C;
 
 const
    key_faces: array[1..88] of string[12] =
@@ -46,16 +53,33 @@ const
    73   PAGE UP      (NOT KEYPAD)
    }
 
-function lastKeyPressed:word;
+procedure clearBIOSKeyBuffer;
+begin
+   asm cli end;
+   head := tail;
+   asm sti end;
+end;
+
+function lastKeyPressed:byte;
 {returns the last scancode}
 begin
    lastKeyPressed:=lastPressed;
 end; { lastKeyPressed }
 
-function keyFace(sc : word):string;
+function pressed(k : byte):boolean;
+begin
+   pressed := keys[scancode[k]];
+end;
+
+procedure clearKey(k : byte);
+begin
+   keys[scancode[k]] := false;
+end;
+
+function keyFace(sc : byte):string;
 {returns the keyface of a pressed scancode}
 begin
-   if (sc and $E000) = 0 then
+   if (sc and $80) = 0 then
    begin
       if ((sc>0) and (sc<89)) then	 
 	 keyface:= key_faces[sc]
@@ -64,7 +88,7 @@ begin
    end
    else
    begin
-      sc := sc and $00ff;
+      sc := sc and $7f;
       case sc of
 	28  : keyface:='KEYPAD ENTER';
 	29  : keyface:='RIGHT CONTROL';
@@ -89,36 +113,31 @@ begin
    end;
 end; { keyFace }
 
-procedure markKey(c : word;p :boolean);
-{mark a key as being pressed or not, c is the code, and p is the pressed state}
-var
-   i : word; {loop counter}
-begin
-   if p then lastPressed:=c;
-   for i:= 1 to 20 do
-      if scancode[i]=c then pressed[i]:=p;
-end;
-
 procedure keyhandler; interrupt;
 {interrupt for processing the keys}
 var
-   key_in : word;
+   key_in : byte;
+   scode  : byte;
 begin
    key_in:= port[$60]; {grab the current scan code}
+   scode := key_in and $7f;
    if extended then
    begin
-      key_in:=key_in or $e000; {mark it as a extended code}
-      markKey(key_in and $FF7F,(key_in and $80)=0);
+      keys[scode + 128] := key_in < 128;
+      lastpressed := scode + 128;
       extended:=false;
    end
    else
    begin
       if not(key_in=$E0) then
-	 markKey(key_in and $7F,(key_in and $80)=0)
+      begin
+	 keys[scode] := key_in < 128;
+	 lastpressed := scode ;
+      end
       else
 	 extended:=true;
    end;
-
+  
    Inline(                  {call old BIOS handler }
 	  $9C/                   {pushf}
 	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
@@ -139,9 +158,7 @@ begin
    getIntVec($09,oldint09);
    setIntVec($09,@keyhandler);
    extended:=false;
-   for lastPressed:=1 to 20 do
-      pressed[lastPressed]:=false;
-{   for lastPressed:=0 to 127 do
-      keys[lastPressed]:=false;}
+   for lastPressed:=0 to 255 do
+      keys[lastPressed]:=false;
    lastpressed:=0;
 end.

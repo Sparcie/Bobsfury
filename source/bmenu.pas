@@ -17,7 +17,7 @@ procedure leveltitle(title : string);
 
 
 implementation
-uses bobgraph,engine,map,bsound,bsystem,fmplayer,crt,graph,bjoy,keybrd,pgs, pitdbl;
+uses bobgraph,bfont, engine,map,bsound,bsystem,fmplayer,crt,bjoy,keybrd,pgs, pitdbl;
 
 type
 	score=record
@@ -117,32 +117,33 @@ begin
 
    {bricks in the corners with lines for borders}
    pic:= random(8)+1;
-   bobgraph.bar(0,0,319,199,0);
+
+   clearviewport;
    
-   bobgraph.bar(0,0,318,1,15);
-   bobgraph.bar(0,1,318,2,7);
-   bobgraph.bar(0,2,318,3,8);
-   bobgraph.bar(0,3,318,4,0);
+   bobgraph.bar(0,0,319,1,15);
+   bobgraph.bar(0,1,319,2,7);
+   bobgraph.bar(0,2,319,3,8);
+   bobgraph.bar(0,3,319,4,0);
 
-   bobgraph.bar(0,198,318,197,15);
-   bobgraph.bar(0,197,318,196,7);
-   bobgraph.bar(0,196,318,195,8);
-   bobgraph.bar(0,195,318,194,0);
+   bobgraph.bar(0,198,319,199,15);
+   bobgraph.bar(0,197,319,198,7);
+   bobgraph.bar(0,196,319,197,8);
+   bobgraph.bar(0,195,319,196,0);
 
-   bobgraph.bar(0,0,1,198,15);
-   bobgraph.bar(1,0,2,198,7);
-   bobgraph.bar(2,0,3,198,8);
-   bobgraph.bar(3,0,4,198,0);
+   bobgraph.bar(0,0,1,199,15);
+   bobgraph.bar(1,0,2,199,7);
+   bobgraph.bar(2,0,3,199,8);
+   bobgraph.bar(3,0,4,199,0);
    
-   bobgraph.bar(318,0,317,198,15);
-   bobgraph.bar(317,0,316,198,7);
-   bobgraph.bar(316,0,315,198,8);
-   bobgraph.bar(315,0,314,198,0);
-
+   bobgraph.bar(319,0,318,199,15);
+   bobgraph.bar(318,0,317,199,7);
+   bobgraph.bar(317,0,316,199,8);
+   bobgraph.bar(316,0,315,199,0);
+   
    spritedraw(0,0,pic,copyput);
-   spritedraw(0,189,pic,copyput);
-   spritedraw(309,0,pic,copyput);
-   spritedraw(309,189,pic,copyput);
+   spritedraw(0,190,pic,copyput);
+   spritedraw(310,0,pic,copyput);
+   spritedraw(310,190,pic,copyput);
    inc(menuDepth);   
 end;
 
@@ -570,7 +571,7 @@ begin
    {wait for a keypress}
    while not keypressed do checkSongChange;
 
-   pressed[ind]:=false;
+   clearKey(ind);
    scancode[ind]:=lastKeyPressed;
 
    {clear the keys from the buffer}
@@ -710,17 +711,22 @@ begin
       textxy(20,150,4,9,'Joystick found');
    
    {get display information}
-   if graphicsMode=0 then t:='CGA';
-   if graphicsMode=1 then t:='EGAVGA';
-   if graphicsMode=2 then t:='VGA256';
-   if graphicsMode=3 then t:='VESA';
+   if graphicsMode=mCGA then t:='CGA';
+   if graphicsMode=mEGA then t:='EGA';
+   if graphicsMode=mVGA then t:='VGA';
+   if graphicsMode=mVESA then t:='VESA';
    s:= 'Driver :' + t;
    textxy(20,70,4,9,s);
-   h := getGraphMode;
-   str(h,t);
-   s := 'Mode :' + t + ':' + getModeName(h);
+   case graphicsmode of
+     mCGA  : t:= '320x200 4 colours';
+     mVGA  : t:= '320x200 256 colours';
+     mEGA  : t:= '640x200 16 colours';
+     mVESA : t:= '640x400 256 colours';
+   end;
+   s := 'Mode :' + t;
    textxy(20,80,4,9,s);
    {print the maximum mode possible for this driver.}
+   { not relevant with the new graphics library (already displaying it)
    h:= getMaxMode;
    str(h,t);
    s:= 'Max mode :'+ t + ':' + getModeName(h);
@@ -728,7 +734,7 @@ begin
    h := getMaxColor;
    str(h,t);
    s:= 'Max colour:'+t;
-   textxy(20,100,4,9,s);
+   textxy(20,100,4,9,s);}
 
    {display the timing information from the engine.}
    str(maxCycle,t);
@@ -751,7 +757,7 @@ begin
    str(y,t);
    s:=s+t;
    textxy(20,170,4,9,s);
-   h:= imageSize(0,0,h-1,y-1);
+   h:= iSize(h,y);
    tot := h;
    tot := (tot * spriteCount) div 1024;
    str(h,t);

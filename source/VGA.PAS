@@ -25,21 +25,22 @@ interface
 {basic start-up and shutdown}
 procedure init;
 procedure shutdown;
+procedure cls;
 
 {basic drawing stuff - lines and boxes}
-procedure line(x,y,x1,y1 : integer; c : byte);
-procedure filledBox(x,y,x1,y1: integer; c : byte);
-procedure putPixel(x,y : integer; c : byte);
+procedure line(x,y,x1,y1 : word; c : byte);
+procedure filledBox(x,y,x1,y1: word; c : byte);
+procedure putPixel(x,y : word; c : byte);
 
 procedure circle(x,y,radius: word; colour: byte);
 
 {basic blitting stuff - get and put in gwbasic terms}
 {this will tell you how much memory to allocate to a
  pointer for a given screen area}
-function imageSize(sx,sy:integer):integer;
-procedure getImage(x,y,x1,y1 : integer; bitmap : pointer);
-procedure putImage(x,y : integer; bitmap : pointer);
-procedure putImageXOR(x,y : integer; bitmap : pointer);
+function imageSize(sx,sy:word):word;
+procedure getImage(x,y,x1,y1 :word; bitmap : pointer);
+procedure putImage(x,y : word; bitmap : pointer);
+procedure putImageXOR(x,y : word; bitmap : pointer);
 
 {procedures for setting up and using the back buffer}
 function setDrawMode(m : byte):boolean;
@@ -83,6 +84,10 @@ begin
      exitproc := @shutdown;
      fillmem(cardseg,0,0,64000);
 end;
+procedure cls;
+begin
+   fillmem(targseg,targofs,0,64000);
+end;
 
 {$f+}
 {shutdown procedure - return to text mode}
@@ -101,24 +106,27 @@ end;
 
 {basic drawing stuff - lines and boxes}
 
+
 {line drawing routine, using bresenhams line algorithm}
-procedure line(x,y,x1,y1: integer; c: byte);
+procedure line(x,y,x1,y1: word; c: byte);
 var
-   cx,cy,count,xs,ys,xm,ym:integer;
+   count,xs,ys,xm,ym:integer;
+   cx,cy: word;
 begin
     if checkBounds(x,y) then exit;
-    if checkBounds(x1,y1) then exit;
+    if checkBounds(x1,y1) then exit;    
     cx := x; cy := y * 320;
-    xs := x1 - x; ys := y1-y;
+    xs := x1 - x; ys := y1 - y;
 
     xm:= sign(xs); ym := sign(ys) * 320;
     xs := abs(xs); ys := abs(ys);
 
-    putpixel(x,y,c);
+    mem[targseg:targofs + cx + cy] := c;
+    if (x=x1) and (y=y1) then exit;
 
     if xs > ys then
     begin
-        count := -(xs div 2);
+        count := -(xs shr 1);
         while (cx <> x1) do
         begin
             count := count + ys;
@@ -133,7 +141,7 @@ begin
     end
     else
     begin
-         count := -(ys div 2);
+         count := -(ys shr 1);
          y1 := y1 * 320;
          while (cy <> y1) do
          begin
@@ -147,24 +155,20 @@ begin
              mem[targseg: targofs + cx + cy] := c;
          end;
     end;
-end;
+end; 
 
 {filled box routine}
-procedure filledBox(x,y,x1,y1: integer; c : byte);
-var
-   tmp : integer;
-   i,z : integer;
-   ofs : word;
+procedure filledBox(x,y,x1,y1: word; c : byte);
 begin
    if checkBounds(x,y) then exit;
    if checkBounds(x1,y1) then exit;
    if (x>x1) then
    begin
-      swapI(x,x1);
+      swapW(x,x1);
    end;
    if (y>y1) then
    begin
-      swapI(y,y1);
+      swapW(y,y1);
    end;
    asm
        {load the destination pointer}
@@ -217,7 +221,7 @@ begin
 end;
 
 {put pixel routine, not the fastest way to draw}
-procedure putPixel(x,y : integer; c : byte);
+procedure putPixel(x,y : word; c : byte);
 begin
     if checkBounds(x,y) then exit;
     mem[targSeg: targofs + x + (y*320)] := c;
@@ -226,36 +230,40 @@ end;
 {basic blitting stuff - get and put in gwbasic terms}
 {this will tell you how much memory to allocate to a
  pointer for a given screen area}
-function imageSize(sx,sy:integer):integer;
+function imageSize(sx,sy:word):word;
 begin
      imageSize := sx * sy + 4;
 end;
 
 {gets an image and stores it in a chunk of memory, be sure to allocate enough memory}
-procedure getImage(x,y,x1,y1 : integer; bitmap : pointer);
+procedure getImage(x,y,x1,y1 : word; bitmap : pointer);
 var
-   bseg,bofs : word;
-   i : word;
+   bseg,bofs   : word;
+   tseg,tofs   : word;
    sizex,sizey : word;
 begin
      if checkBounds(x,y) then exit;
      if checkBounds(x1,y1) then exit;
      bseg := seg(bitmap^);
      bofs := ofs(bitmap^);
-     sizex := abs(x-x1) + 1;
-     sizey := abs(y-y1) + 1;
+     tseg := targseg;
+     tofs := targofs;
+     if x>x1 then swapw(x,x1);
+     if y>y1 then swapw(y,y1);
+     sizex := (x1-x) + 1;
+     sizey := (y1-y) + 1;
      memw[bseg:bofs] := sizex;
      memw[bseg:bofs+2] := sizey;
-     if y>y1 then y:=y1;
-     if x>x1 then x:=x1;
      {replacing the above with assembly!}
      asm
         push ds
+        {set direction}
+        cld
         {set up the counters for the loop}
         mov cx, sizey
 
         {set up the segment pointers}
-        mov ax, targseg
+        mov ax, tseg
         mov ds, ax
         mov ax, bseg
         mov es, ax
@@ -267,9 +275,10 @@ begin
         mov ax, y
         mov dx, 320
         mul dx
-        add ax, x
-        add ax, targofs
-        mov si, ax
+        mov si, tofs
+        add si, ax
+        add si, x
+
         mov ax, sizex
 
         {start of the loop}
@@ -295,7 +304,7 @@ begin
 end;
 
 {puts an image to the screen, is a direct copy}
-procedure putImage(x,y : integer; bitmap : pointer);
+procedure putImage(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word;
    tseg,tofs   : word;
@@ -318,7 +327,10 @@ begin
      {replaced pascal loop with assembly!}
      asm
         push ds
+        {set direction}
+        cld
         {set up the counters for the loop}
+   
         mov cx, sizey
    
         {set up the segment pointers}
@@ -368,7 +380,7 @@ end;
 
 {puts an image to the screen, XORs it with what's already on screen.}
 { could be easily modified to do AND or NOT as well }
-procedure putImageXOR(x,y : integer; bitmap : pointer);
+procedure putImageXOR(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word;
    tseg,tofs   : word;
@@ -682,4 +694,5 @@ end;
 
 begin
      inited := false;
+     mode :=0;
 end.

@@ -8,7 +8,7 @@ program bob;  {this is almost Bob's fury yah!}
 
 {$M 16384,0,655360} {memory}
 
-uses bobgraph,engine,bsound,bconfig,bmenu,llist,map,pitdbl;
+uses bobgraph, bfont,engine,bsound,bconfig,bmenu,llist,map,pitdbl;
 
 var
    avail,min : longint;
@@ -80,6 +80,8 @@ begin
    writeln('memory:',avail);
    writeln('setting pitdbl:',usepitdbl);
    if usepitdbl then enablePitDbl(2);
+   writeln('loading font');
+   loadfont('litt.chr');
    writeln('starting sound');
    initSound;
    writeln('starting graphics');

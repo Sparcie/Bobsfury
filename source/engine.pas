@@ -1,9 +1,9 @@
-{bob's fury engine A Danson 2000-2014}
+{bob's fury engine A Danson 2000- }
   
 unit engine;
 
  interface
-uses map,bobgraph,graph,crt,bsound,fixed,bjoy,keybrd,pitdbl,bsystem,quadtree;
+uses moveutil,map,bobgraph,bfont,crt,bsound,fixed,bjoy,keybrd,pitdbl,bsystem,quadtree;
 type
    monsterob = object
      x,y,xloc,yloc,power,state:integer;{ on screen location, level location, health level and state machine state variable}
@@ -458,17 +458,17 @@ begin
    begin
       str(oldplay.score,s);
       s:= 'Score '+s;
-      bobgraph.textxy(5,165,4,0,s);
+      textxy(5,165,4,0,s);
       str(player.score,s);
       s:= 'Score '+s;
-      bobgraph.textxy(5,165,4,7,s);
+      textxy(5,165,4,7,s);
    end;
    if (not(oldplay.health=player.health) or
        not(player.invuln div 10 = oldplay.invuln div 10)) then
    begin
       str(oldplay.health,s);
       s:='Health '+s;
-      bobgraph.textxy(5,175,4,0,s);
+      textxy(5,175,4,0,s);
       str(player.health,s);
       s:='Health '+s;
       i:=4;
@@ -485,16 +485,16 @@ begin
 	    i:=31-(10-i);
 	 end;
       end;
-      bobgraph.textxy(5,175,4,i,s);
+      textxy(5,175,4,i,s);
    end;
    if not(oldplay.lives=player.lives) then
    begin
       str(oldplay.lives,s);
       s:='Lives '+s;
-      bobgraph.textxy(5,185,4,0,s);
+      textxy(5,185,4,0,s);
       str(player.lives,s);
       s:='Lives '+s;
-      bobgraph.textxy(5,185,4,7,s);
+      textxy(5,185,4,7,s);
    end;
    spritedraw(155,165,9,copyput);
    spritedraw(155,178,49,copyput);
@@ -502,9 +502,9 @@ begin
    if not(oldplay.fullb=player.fullb) then
    begin
       str(oldplay.fullb,s);
-      bobgraph.textxy(165,165,4,0,s);
+      textxy(165,165,4,0,s);
       str(player.fullb,s);
-      bobgraph.textxy(165,165,4,7,s);
+      textxy(165,165,4,7,s);
    end;
    if (not(oldplay.keys=player.keys)) then
    begin
@@ -517,18 +517,18 @@ begin
    if not(oldplay.gren=player.gren) then
    begin
       str(oldplay.gren,s);
-      bobgraph.textxy(165,175,4,0,s);
+      textxy(165,175,4,0,s);
       str(player.gren,s);
-      bobgraph.textxy(165,175,4,7,s);
+      textxy(165,175,4,7,s);
    end;
    if not(oldplay.lbolt=player.lbolt) then
    begin
       str(oldplay.lbolt,s);
-      bobgraph.textxy(165,185,4,0,s);
+      textxy(165,185,4,0,s);
       str(player.lbolt,s);
-      bobgraph.textxy(165,185,4,7,s);
+      textxy(165,185,4,7,s);
    end;
-   bobgraph.textxy(250,165,4,7,'Weapon');
+   textxy(250,165,4,7,'Weapon');
    if (firelbolt) then
       spritedraw(300,167,50,copyput)
    else
@@ -539,9 +539,9 @@ begin
       if not(oldbossp=bossp) then
       begin
          str(oldbossp,s);
-         bobgraph.textxy(265,180,4,0,s);
+         textxy(265,180,4,0,s);
          str(bossp,s);
-         bobgraph.textxy(265,180,4,7,s);
+         textxy(265,180,4,7,s);
          oldbossp:=bossp;
       end;
    end;
@@ -563,9 +563,11 @@ begin
       freecycle:=0;
       rot:=not(rot);
       {move person and use joystick if available}
-      joystick;
+      if (joyavail and usejoy) then
+	 joystick;
       {use custom keys if needed}
-      processKeys;
+      if useCustomKeys then
+	 processKeys;
       if hcount>0 then hcount:=hcount-1;
       personmove;
       showscore;
@@ -769,22 +771,21 @@ end;
 procedure processKeys;
 {process the custom key presses}
 begin
-   if not (useCustomKeys) then exit;
    mov:=false;
-   if pressed[1] then
+   if pressed(1) then
    begin
       pdr:=0;
       mov:=true;
    end;
-   if pressed[2] then
+   if pressed(2) then
    begin
       pdr:=1;
       mov:=true;
    end;
    if not(player.flyer) then
-      if (pressed[4] and (not(fall))) then juf :=10;
-   if (pressed[4] and player.flyer) then juf:=6;
-   if ((pressed[3]) and (shtt=0)) then
+      if (pressed(4) and (not(fall))) then juf :=10;
+   if (pressed(4) and player.flyer) then juf:=6;
+   if ((pressed(3)) and (shtt=0)) then
    begin
       if player.lbolt=0 then firelbolt:=false;
       if (not(fireLbolt) and (pbul<5))
@@ -795,22 +796,22 @@ begin
 	 player.lbolt:=player.lbolt-1;	 
       end;
    end;
-   if (pressed[5]) then
+   if (pressed(5)) then
    begin
-      pressed[5] := false;
+      clearKey(5);
       firelbolt:=not(firelbolt);
    end;
-   if ((pressed[7]) and (player.gren>0) and not(player.flyer)) then
+   if ((pressed(7)) and (player.gren>0) and not(player.flyer)) then
    begin
-      pressed[7] := false;
+      clearKey(7);
       shoot(player.x,player.y,2,pdr+3,0);
       player.gren:=player.gren-1;
    end;
-   if (pressed[6]) then
+   if (pressed(6)) then
    begin
       if ((player.fullb>0) and (player.health<100)) then
       begin
-	 pressed[6] := false;
+	 clearKey(6);
 	 player.fullb:=player.fullb-1;
 	 player.health:=player.health+10;
 	 if player.health>100 then player.health:=100;
@@ -823,68 +824,65 @@ end; { processKeys }
 procedure joystick;
 var fi,ju,cw,he : boolean;
 begin
-   if (joyavail and usejoy) then
+   update;
+   fi := joypressed(1);
+   ju := joypressed(2);
+   cw := joypressed(3);
+   he := joypressed(4);
+   {movement}
+   if not(xcentred) then
    begin
-      update;
-      fi := joypressed(1);
-      ju := joypressed(2);
-      cw := joypressed(3);
-      he := joypressed(4);
-      {movement}
-      if not(xcentred) then
-      begin
-	 mov:=true;
-	 pdr:=1;
-	 if joy.xaxis<joy.xcentre then pdr:=0;
-      end
-      else
-	 mov:=false;
-      {old jumping method using the y axis
-      if not(player.flyer) then
-	 if (not(ycentred(joy1)) and not(fall)) then juf:=10;
-      if (player.flyer and not(ycentred(joy1))) then juf:=6; }
-      if not(player.flyer) then
-      begin
-	 if (ju and not(fall)) then juf:=10;
-      end
+      mov:=true;
+      pdr:=1;
+      if joy.xaxis<joy.xcentre then pdr:=0;
+   end
+   else
+      mov:=false;
+   {old jumping method using the y axis
+   if not(player.flyer) then
+   if (not(ycentred(joy1)) and not(fall)) then juf:=10;
+   if (player.flyer and not(ycentred(joy1))) then juf:=6; }
+   if not(player.flyer) then
+   begin
+      if (ju and not(fall)) then juf:=10;
+   end
       else if ju then juf:=6;
 
-      {firing your weapon}
-      if ((fi) and (shtt=0) and not(cw)) then
+   {firing your weapon}
+   if ((fi) and (shtt=0) and not(cw)) then
+   begin
+      if player.lbolt=0 then firelbolt:=false;
+      if (not(fireLbolt) and (pbul<5 ) ) then shoot(player.x,player.y,0,pdr,0);
+      if (firelbolt and (player.lbolt>0)) then
       begin
-	 if player.lbolt=0 then firelbolt:=false;
-	 if (not(fireLbolt) and (pbul<5 ) ) then shoot(player.x,player.y,0,pdr,0);
-	 if (firelbolt and (player.lbolt>0)) then
-	 begin
-	    shoot(player.x,player.y,3,pdr,0);
-	    player.lbolt:=player.lbolt-1;	 
-	 end;
+	 shoot(player.x,player.y,3,pdr,0);
+	 player.lbolt:=player.lbolt-1;	 
       end;
-
-      {change weapon}
-      if (cw and (cw xor ocw) and not(fi)) then fireLbolt:=not(fireLbolt);
-      {if both cw and fi are pressed you can fire a grenade}
-      if (cw and (cw xor ocw) and fi and (player.gren>0) and not(player.flyer)) then 
-      begin
-	 shoot(player.x,player.y,2,pdr+3,0);
-	 player.gren:=player.gren-1;
-      end;
-
-      {use health bottle}
-      if (he and (he xor ohe)) then
-      begin
-         if ((player.fullb>0) and (player.health<100)) then
-         begin
-	    player.fullb:=player.fullb-1;
-	    player.health:=player.health+10;
-	    if player.health>100 then player.health:=100;
-	    gethealth;
-         end;
-      end;
-
-      ocw := cw;
-      ohe := he;
    end;
+
+   {change weapon}
+   if (cw and (cw xor ocw) and not(fi)) then fireLbolt:=not(fireLbolt);
+   {if both cw and fi are pressed you can fire a grenade}
+   if (cw and (cw xor ocw) and fi and (player.gren>0) and not(player.flyer)) then 
+   begin
+      shoot(player.x,player.y,2,pdr+3,0);
+      player.gren:=player.gren-1;
+   end;
+   
+   {use health bottle}
+   if (he and (he xor ohe)) then
+   begin
+      if ((player.fullb>0) and (player.health<100)) then
+      begin
+	 player.fullb:=player.fullb-1;
+	 player.health:=player.health+10;
+	 if player.health>100 then player.health:=100;
+	 gethealth;
+      end;
+   end;
+
+   ocw := cw;
+   ohe := he;
 end;
 
 procedure keypress;
@@ -899,6 +897,7 @@ begin
    if useCustomKeys then
    begin
       if a = chr(0) then a:=readkey;
+      clearBIOSKeyBuffer;
       exit;
    end;
    if ( (a='H')) then
@@ -939,6 +938,7 @@ begin
       if a=chr(75) then begin pdr:=0; mov:=true; end;
       if a=chr(77) then begin pdr:=1; mov:=true; end;
    end;
+   clearBIOSKeyBuffer;
 end;
 
 procedure shoot(x,y:integer;t,dir,hurt:byte);
@@ -986,9 +986,10 @@ begin
 end;
 
 function project.move : boolean;
-var mve	: boolean;
-   fr	: word;
-   o1	: byte;
+var mve	 : boolean;
+   fr	 : word;
+   delta : integer;
+   o1    : byte;
 begin
    fr:=0;
    mve:=true;
@@ -1000,21 +1001,19 @@ begin
    spritedraw(x,y,fr,xorput);
    case dir of
      0 : begin
-	    x:=x-5;
-	    o1 := objectat((x+2) div 10,(y+5) div 10);
-	    if ((o1<9) and not(o1=0)) then mve:=false;
+            delta := moveleft(x+2,y+5,5);
+	    x:=x - delta;
+	    if (delta < 5) then mve:=false;
 	 end;
      1 : begin
-	    x:=x+5;
-	    o1 := objectat((x+8) div 10,(y+5) div 10);
-	    if ((o1<9) and not(o1=0)) then mve:=false;
+     	    delta := moveright(x+8,y+5,5);
+	    x:=x + delta;
+	    if (delta < 5) then mve:=false;
 	 end;
      2 : begin
-	    y:=y+5;
-	    o1 := objectat((x+2) div 10,(y+5) div 10);
-	    if ((o1<9) and not(o1=0)) then mve:=false;
-    	    o1 := objectat((x+8) div 10,(y+5) div 10);
-	    if ((o1<9) and not(o1=0)) then mve:=false;
+            delta := movedownw(x+2,y+5,6,5);
+	    y:=y + delta;
+	    if (delta < 5) then mve:=false;
 	 end;
    else
       if dir > 2 then
@@ -1026,15 +1025,17 @@ begin
       end;
      if dir = 3 then
      begin
-	o1 := objectat( (x) div 10, y div 10);
-	if ( ((o1 < 9) and not(o1=0)) or (x=0)) then 
-	   dir:=4 else x:=x-2; 			 
+        delta := moveleft(x,y,2);
+	x := x - delta;
+	if (delta < 2) then 
+	   dir:=4; 			 
      end;
      if dir = 4 then
      begin
-	o1 := objectat( (x+10)div 10, y div 10);
-	if ( ((o1 < 9) and not(o1 = 0)) or (x=300)) then 
-	   dir:=3 else x:=x+2;			 	
+        delta := moveright(x+8,y,2);
+	x := x + delta;
+	if ( delta < 2) then 
+	   dir:=3;			 	
      end;
    end;
    if (typ=2) then 
@@ -1062,10 +1063,10 @@ begin
       {(distance(x,y,player.x,player.y) < 10)}
       if (checkOverlap(x,y,player.x,player.y) and collision(x,y,fr,player.x,player.y,106+newf)) then
       begin
-	 o1:=5;
-	 if typ =2 then o1:=15;
-	 if typ = 3 then o1:=10;
-	 hurtPlayer(o1);
+	 delta:=5;
+	 if typ =2 then delta:=15;
+	 if typ = 3 then delta:=10;
+	 hurtPlayer(delta);
 	 mve:=false;
       end;
    end
@@ -1122,6 +1123,7 @@ var temp    : boolean;
    dist     : word;    {distance from player}			   
    source   : target;  {switch trigger target for the bomb creature if it explodes}
    o1,o2    : byte;    {variables to store objectAt queries to reduce the number of them.}
+   delta    : integer; { delta for working out distance we can travel }
 begin
    {generic first stuff}
    if not((displayed) or (power>0)) then exit;
@@ -1328,16 +1330,12 @@ begin
 		 if ((state=0) and (abs(player.x-x) <30)) then state:=1;
 		 if state=1 then
 		 begin
-		    for c:= 1 to 4 do
+		    delta := movedown(x,y+9,4);
+		    y := y + delta;
+		    if delta<4 then
 		    begin
-		       o1 := objectat(x div 10,(y div 10)+1);
-		       if not( ((o1>0) and (o1<9)) or (y>149) )
-			  then y:=y+1
-		       else
-		       begin
-			  power:=0;
-			  displayed:=false;
-		       end;
+			power:=0;
+			displayed:=false;
 		    end;
 		 end;	
 	      end;
@@ -1361,21 +1359,14 @@ begin
 		 ft:=$FF;
 		 bf:=false;
 		 frame:=0;
-		 for c:= 1 to 2 do
-		 begin
-		    o1 := objectat((x+2) div 10,(y div 10)+1);
-		    o2 := objectat((x+8) div 10,(y div 10)+1);
-		    if not( ((o1>0) and (o1<9)) or
-			   ((o2>0) and (o2<9)) or (y>149) )
-		       then y:=y+1;
-		 end;
-		 for c:=1 to 2 do
-		 begin
-		    o1 := objectat(x div 10,y div 10);
-		    o2 := objectat((x+10) div 10,y div 10);
-		    if ( (x>player.x) and not( (o1>0) and (o1<9) ) and (x>0) ) then x:=x-1;
-		    if ( (x<player.x) and not( (o2>0) and (o2<9) ) and (x<300) ) then x:=x+1;
-		 end;
+		 delta := movedownw(x+2,y+9,6,2);
+		 y := y + delta;
+		 delta := 0;
+		 if (x>player.x) then
+		     delta:= - movelefth(x,y,9,2);
+                 if (x<player.x) then
+                     delta := moverighth(x+9,y,9,2);
+                 x:= x+ delta;
 		 
 		 if ((dist < 20) and (power>0)) then
 		 begin
@@ -1407,46 +1398,30 @@ begin
 		 if state=-2 then
 		 begin
 		    frame:=1;
-		    for c:= 1 to 2 do
-		    begin
-		       o1:= objectat((x+3) div 10,(y div 10)+1);
-		       o2:= objectat((x+7) div 10,(y div 10)+1);
-		       if not( ((o1>0) and (o1<9)) or
-			      ((o2>0) and (o2<9)) or (y>149) )
-			  then y:=y+1 else state:=-1;
-		    end;
-		    for c:=1 to 2 do
-		    begin
-		       o1 := objectat(x div 10,y div 10);
-		       o2 := objectat((x+10) div 10,y div 10);
-		       if ( (x>player.x) and not( (o1>0) and
-			   (o1<9) ) and (x>0) ) then x:=x-1;
-		       if ( (x<player.x) and not( (o2>0) and
-			   (o2<9) ) and (x<300) ) then x:=x+1;
-		    end;
+                    delta := movedownw(x+3,y+9,4,2);
+                    y := y + delta;
+                    if delta < 2 then state := -1;
+                    delta:=0;
+                    if x>player.x then
+                        delta := - movelefth(x,y,9,2);
+                    if x<player.x then
+                        delta := moverighth(x+9,y,9,2);
+                    x:= x + delta;
 		 end;
 		 if state>0 then
 		 begin
 		    frame:=1;
-		    for dir:=1 to state do
-		    begin
-		       o1 := objectat((x+2) div 10,(y div 10));
-		       o2 := objectat((x+8) div 10,(y div 10));
-		       if not( ((o1>0) and (o1<9)) or
-			      ((o2>0) and (o2<9)) or (y<0) )
-			  then y:=y-1 else state:=-2;
-		    end;
+                    delta := moveupw(x+2,y,6,state);
+                    y:= y - delta;
+                    if delta < state then state := -2;
 		    dec(state);
 		    if state<1 then begin state:= -2; frame:=0; end;
-		    for c:=1 to 2 do
-		    begin
-		       o1 := objectat(x div 10,y div 10);
-		       o2 := objectat((x+10) div 10,y div 10);
-		       if ( (x>player.x) and not( (o1>0) and
-			   (o1<9) ) and (x>0) ) then x:=x-1;
-		       if ( (x<player.x) and not( (o2>0) and
-			   (o2<9) ) and (x<300) ) then x:=x+1;
-		    end;
+                    delta := 0;
+                    if x>player.x then
+                        delta := - movelefth(x,y,9,2);
+                    if x<player.x then
+                        delta := moverighth(x+9,y,9,2);
+                    x:= x + delta;
 		 end;
 		 if state=-1 then
 		 begin
@@ -1473,47 +1448,31 @@ begin
 		 begin
 		    prob:=14;
 		    frame:=2;
-		    for c:= 1 to 2 do
-		    begin
-		       o1 := objectat((x+3) div 10,(y div 10)+1);
-		       o2 := objectat((x+7) div 10,(y div 10)+1);
-		       if not( ((o1>0) and (o1<9)) or
-			      ((o2>0) and (o2<9)) or (y>149) )
-			  then y:=y+1 else state:=-1;
-		    end;
-		    for c:=1 to 2 do
-		    begin
-		       o1:= objectat(x div 10,y div 10);
-		       o2:= objectat((x+10) div 10,y div 10);
-		       if ( (x>player.x) and not( (o1>0) and
-			   (o1<9) ) and (x>0) ) then x:=x-1;
-		       if ( (x<player.x) and not( (o2>0) and
-			   (o2<9) ) and (x<300) ) then x:=x+1;
-		    end;
+                    delta := movedownw(x+3,y+9,4,2);
+                    y := y + delta;
+                    if delta<2 then state := -1;
+                    delta:=0;
+                    if x>player.x then
+                        delta := - movelefth(x,y,9,2);
+                    if x<player.x then
+                        delta := moverighth(x+9,y,9,2);
+                    x:= x + delta;
 		 end;
 		 if state>0 then
 		 begin
 		    frame:=2;
 		    prob:=14;
-		    for c:=1 to state do
-		    begin
-		       o1 := objectat((x+2) div 10,(y div 10));
-		       o2 := objectat((x+8) div 10,(y div 10));
-		       if not( ((o1>0) and (o1<9)) or
-			      ((o2>0) and (o2<9)) or (y<0) )
-			  then y:=y-1 else state:=-2;
-		    end;
-		    state:=state-1;
+                    delta := moveupw(x+2,y,6,state);
+                    y:= y - delta;
+                    if delta < state then state := -2;
+		    dec(state);
 		    if state<1 then begin state:= -2; frame:=2; end;
-		    for c:=1 to 2 do
-		    begin
-		       o1 := objectat(x div 10,y div 10);
-		       o2 := objectat((x+10) div 10,y div 10);
-		       if ( (x>player.x) and not( (o1>0) and
-			   (o1<9) ) and (x>0) ) then x:=x-1;
-		       if ( (x<player.x) and not( (o2>0) and
-			   (o2<9) ) and (x<300) ) then x:=x+1;
-		    end;
+		    delta:=0;
+                    if x>player.x then
+                        delta := - movelefth(x,y,9,2);
+                    if x<player.x then
+                        delta := moverighth(x+9,y,9,2);
+                    x:= x + delta;
 		 end;
 		 if state=-1 then
 		 begin
@@ -1542,25 +1501,15 @@ begin
 		 end;
 		 if state=1 then
 		 begin
-		    for c:=1 to 5 do
-		    begin
-		       o1 := objectat((x+10) div 10,(y div 10));
-		       o2 := objectat((x+10) div 10,((y+10) div 10));
-		       if not( ((o1>0) and (o1<9)) or
-			      ( ((o2=0) or (o2>8)) and (y<150)) or (x=300) )
-			  then x:=x+1 else state:=0;
-		    end;
+                    delta := moverightonfloor(x+9,y,5);
+                    x:= x + delta;
+                    if delta <5 then state:=0;
 		 end;
 		 if state=2 then
 		 begin
-		    for c:=1 to 5 do
-		    begin
-		       o1 := objectat(x div 10,(y div 10));
-		       o2 := objectat(x div 10,((y+10) div 10));
-		       if not( ((o1>0) and (o1<9)) or
-			      ( ((o2=0) or (o2>8)) and (y<150)) or (x=0) )
-			  then x:=x-1 else state:=0;
-		    end; 
+                    delta := moveleftonfloor(x,y,5);
+                    x:= x - delta;
+                    if delta <5 then state:=0;
 		 end;
 	      end;
 
@@ -1582,15 +1531,12 @@ begin
 		 begin
 		    if power<15 then prob:=5;
 		    if player.x>x then direction:=true else direction:=false;
-		    for c:=1 to 2 do
-		    begin
-		       o1 := objectat(x div 10,y div 10);
-		       o2 := objectat((x+10) div 10,y div 10);
-		       if ( (x>player.x) and not( (o1>0) and
-			   (o1<9) ) and (x>0)) then x:=x-1;
-		       if ( (x<player.x) and not( (o2>0) and
-			   (o2<9) ) and (x<300) ) then x:=x+1;
-		    end;
+		    delta := 0;
+                    if x>player.x then
+                        delta := - moveleftonfloor(x,y,2);
+                    if x<player.x then
+                        delta := moverightonfloor(x+9,y,2);
+                    x := x + delta;    
 		    dir:=0;
 		 end;
 		 frame:=state;
@@ -1623,23 +1569,17 @@ begin
 		 else
 		    direction:=false;
 		 if state=0 then
-		    for c:= 1 to 2 do
-		    begin
-		       o1 := objectat((x div 10),(y div 10)+1);
-		       if not( ((o1>0) and (o1<9)) or (y>149) )
-			  then y:=y+1
-		       else
-			  state:=1;
-		    end;
-		 if state=1 then
-		    for c:= 1 to 2 do
-		    begin
-		       o1 := objectat((x div 10),(y div 10));
-		       if not( ((o1>0) and (o1<9)) or (y<1) )
-			  then y:=y-1
-		       else
-			  state:=0;
-		    end;
+                 begin
+                    delta := movedown(x,y+9,2);
+                    y := y + delta;
+                    if delta<2 then state := 1;
+                 end
+                 else if state=1 then
+                 begin
+                    delta := moveup(x,y,2);
+                    y := y - delta;
+                    if delta<2 then state :=0;
+                 end;
 	      end;
 
      157     : {Vertical moving elevator - not really an enemy}
@@ -1651,32 +1591,26 @@ begin
 		  bf := false;
 		  prob:=0;
 		  if state=0 then
-		     for c:= 1 to 2 do
-		     begin
-			o1 := objectat((x div 10),((y+2) div 10));
-			if not( ((o1>0) and (o1<9)) or (y>149) )
-			   then y:=y+1
-			else
-			   state:=1;
-		     end else
-		     if state=1 then
-			for c:= 1 to 2 do
-			begin
-			   o1 := objectat((x div 10),((y-1) div 10)-1);
-			   if not( ((o1>0) and (o1<9)) or (y<11) )
-			      then y:=y-1
-			   else
-			      state:=0;
-			end;
-		  {ok check to see if the player is in the correct position to use the elevator}
-		  if ((player.x <= x+4) and (player.x >= x-4) and (player.y >= y-14) and (player.y<= y-4)) then
-		  begin
-		     drawPlayer;
-		     player.y := y-10;
-		     elv := 3;
-		     fall:=false;
-		     drawPlayer;
-		  end;
+                 begin
+                    delta := movedown(x,y+2,2);
+                    y := y + delta;
+                    if delta<2 then state := 1;
+                 end
+		 else if state=1 then
+                 begin
+                    delta := moveup(x,y,2);
+                    y := y - delta;
+                    if delta<2 then state :=0;
+                 end;
+		 {ok check to see if the player is in the correct position to use the elevator}
+		 if ((player.x <= x+4) and (player.x >= x-4) and (player.y >= y-14) and (player.y<= y-4)) then
+		 begin
+		    drawPlayer;
+		    player.y := y-10;
+		    elv := 3;
+		    fall:=false;
+		    drawPlayer;
+		 end;
 	       end;
  
      166     : {mummy that walks back and forth}
@@ -1698,37 +1632,23 @@ begin
       end;
       if yloc = 15 then t:=true;
       if (t) then
-	 for c:=1 to 2 do
-	 begin
-	    if not(direction) then
-	    begin
-	       o1 := objectat((x-1) div 10,y div 10);
-	       if ( not( (o1>0) and (o1<9) ) and (x>0) ) then x:=x-1
-	       else direction:=true;
-	    end;
-	    if direction then
-	    begin
-	       o1:= objectat((x+10) div 10,y div 10);
-	       if ( not( (o1>0) and (o1<9) ) and (x<300) ) then x:=x+1
-	       else direction:=false;
-	    end;
-	 end
+      begin
+        if not(direction) then
+            delta := - moveleft(x,y,2);
+        if direction then
+            delta := moveright(x+9,y,2);
+        x:= x + delta;
+        if abs(delta)<2 then direction := not(direction);
+      end
       else
-	 for c:=1 to 2 do
-	 begin
-	    if (direction) then
-	    begin
-	       o1 := objectat((x+10) div 10,(y div 10));
-	       o2 := objectat((x+10) div 10,((y+10) div 10));    
-	       if not( ((o1>0) and (o1<9)) or ((o2=0) or (o2>8)) ) and (x<300) then x:=x+1 else direction:=false;
-	    end;
-	    if not(direction) then
-	    begin
-	       o1 := objectat((x-1) div 10,(y div 10));
-	       o2 := objectat((x-1) div 10,((y+10) div 10));
-	       if  not( ((o1>0) and (o1<9)) or ((o2=0) or (o2>8))) and (x>0) then x:=x-1 else direction:=true;
-	    end;
-	 end;
+      begin
+        if not(direction) then
+            delta := - moveleftonfloor(x,y,2);
+        if direction then
+            delta := moverightonfloor(x+9,y,2);
+        x:= x + delta;
+        if abs(delta)<2 then direction := not(direction);      
+      end;
    end;
 
    if ft=0 then {pointing monster}
@@ -1914,26 +1834,6 @@ begin
    if typ = 28 then bobhere:=false;
 end;
 
-function pcollide(zx,zy:integer):boolean;
-var ix,iy,tx,ty	: integer;
-    o1,o2	: byte;
-begin
-   pcollide:=false;
-   ix := (zx + 3) div 10;
-   iy := zy div 10;
-   tx := (zx + 6) div 10;
-   ty := iy;
-   if player.flyer then
-   begin
-      ix := (zx+1) div 10;
-      tx := (zx+8) div 10;
-   end;
-   o1 := objectat(ix,iy);
-   o2 := objectat(tx,ty);
-   if ((o1<9) and (o1>0)) then pcollide:=true;
-   if ((o2<9) and (o2>0)) then pcollide:=true;
-end;
-
 procedure drawPlayer;
 begin
    if player.flyer then
@@ -1949,6 +1849,7 @@ var nx,ny,i,ty : integer;
    source,dest : target;
    a	       : char;
    o1,o2       : byte;
+   delta       : integer;
 begin
    nx:=0;ny:=0;
    {spritedraw(player.x,player.y,oldf+106,xorput);}
@@ -1958,50 +1859,47 @@ begin
       if juf>0 then
 	 begin
 	    i:=juf;
-	    dec(juf);
-	    if pcollide(x,y-i) then while pcollide(x,y-i) do dec(i);
-	    if ( ((y-i)<0) and (getTier=0)) then i:= y;
-	    y:=y-i;
-	    if i>9 then y:=y+2;
+	    if juf>8 then
+	       i:=i-2;
 	    if i>8 then
 	    begin
-	       y:=y+3;
-	       if (y mod 2) = 1 then inc(y);
-	    end;
-	    if juf<0 then juf:=0;
+	       delta := moveupw(x+2,y,5,8);
+	       if delta=8 then delta := delta + moveupw(x+2,y,5,i-8);
+	    end
+	    else
+	       delta := moveupw(x+2,y,5,i);
+	    y := y - delta;
+
+	    if (y and 1) = 1 then inc(y);
+	    dec(juf);
+
 	    if (flyer and (juf>6)) then bulex(x,y);
 	 end;
       if mov then 
       begin
-	 if (pdr=0) then nx:=x-2;
-	 if (pdr=1) then nx:=x+2;
-	 if ((nx>300) and not(currentscreen = 4)) then
+	 if ((x=300) and (pdr=1) and not(currentscreen = 4)) then
 	 begin
 	    newscreen(currentscreen+1,getTier);
-	    x:=0;nx:=0;
+	    x:=0;
 	 end;
-	 if ((nx<0) and not(currentscreen = 1)) then
+	 if ((x=0) and (pdr=0) and not(currentscreen = 1)) then
 	  begin
 	     newscreen(currentscreen-1,getTier);
-	     x:=300;nx:=300;
+	     x:=300;
 	  end;
-	 if nx>300 then nx:=x;
-	 if nx<0 then nx:=x;
-	 ty:= y mod 10;
-         if ty>0 then ty:=y+10 else ty:=y;
-	 if (pcollide(nx,y) or pcollide(nx,ty)) then
-	 begin
-	    nx:=x;
-	    if not(flyer) then leg:=not(leg);
-	 end;
-	 if not(flyer) then
+	 delta:=0;
+	 if (pdr=0) then delta := - movelefth(x+2,y,9,2);
+	 if (pdr=1) then delta := moverighth(x+7,y,9,2);
+	 x := x + delta;
+	 if x<0 then x:=0;
+	 
+	 if (not(flyer) and not(delta=0)) then
 	 begin
 	    leg:=not(leg);
 	    newf:=1;
 	    if pdr=0 then newf:=3;
 	    if leg then inc(newf);
 	 end;
-	 x:=nx;
       end;
       
       if flyer then
@@ -2013,24 +1911,13 @@ begin
       
       if elv=0 then
       begin
-	 i:=0;
-	 while (i<2) do
+	 delta := playerFall(x,y,2);
+	 if juf = 0 then y := y + delta;
+	 fall := false;
+	 if (delta>0) then
 	 begin
-	    ny:=y+10;
-	    ty:=x+6;
-	    if x mod 10 = 0 then ty:=x;
-	    if (y<150) then
-	       if (((pcollide(x,ny) or (objectat( (x+3) div 10,ny div 10) =15 )) or (objectat( (ty) div 10,ny div 10) =15 ))) then
-		  fall:=false
-	       else
-	       begin
-		  fall:=true;
-		  if not(flyer) then leg:=false;
-		  if juf=0 then inc(y);
-	       end
-	       else
-	       fall:=false;
-	    inc(i);
+	    fall:=true;
+	    if not(flyer) then leg:=false;
 	 end;
       end
       else
@@ -2052,7 +1939,7 @@ begin
 	       y:=0;
 	    end;	 
 	 end;         
-	 if ((y<0) and (getTier>0)) then
+	 if ((y=0) and (juf>0) and (getTier>0)) then
 	 begin
 	    nx := (x+3) div 10;
 	    ny := (x+6) div 10;
@@ -2066,10 +1953,6 @@ begin
 	    end
 	    else y:=0; {limit the movement so we don't fly offscreen!}
 	 end;      
-      end
-      else
-      begin
-	 if (y<0) then y:=0;
       end;
       
    end;

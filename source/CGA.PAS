@@ -13,6 +13,7 @@ interface
 {basic start-up and shutdown}
 procedure init;
 procedure shutdown;
+procedure cls;
 
 {CGA only function for setting palette }
 { $1  is intensity 
@@ -23,19 +24,18 @@ procedure CGAPalette(pal, backg: byte );
 
 
 {basic drawing stuff - lines and boxes}
-procedure line(x,y,x1,y1 : integer; c : byte);
-procedure filledBox(x,y,x1,y1: integer; c : byte);
-procedure putPixel(x,y : integer; c : byte);
-
+procedure line(x,y,x1,y1 : word; c : byte);
+procedure filledBox(x,y,x1,y1: word; c : byte);
+procedure putPixel(x,y : word; c : byte);
 procedure circle(x,y,radius: word; colour: byte);
 
 {basic blitting stuff - get and put in gwbasic terms}
 {this will tell you how much memory to allocate to a
  pointer for a given screen area}
-function imageSize(sx,sy:integer):integer;
-procedure getImage(x,y,x1,y1 : integer; bitmap : pointer);
-procedure putImage(x,y : integer; bitmap : pointer);
-procedure putImageXOR(x,y : integer; bitmap : pointer);
+function imageSize(sx,sy:word):word;
+procedure getImage(x,y,x1,y1 : word; bitmap : pointer);
+procedure putImage(x,y : word; bitmap : pointer);
+procedure putImageXOR(x,y : word; bitmap : pointer);
 
 {procedures for setting up and using the back buffer}
 function setDrawMode(m : byte):boolean;
@@ -79,6 +79,11 @@ begin
      mode := 0;
      exitSave := exitproc;
      exitproc := @shutdown;
+end;
+
+procedure cls;
+begin
+   fillmem(targseg,targofs, 0, 16384);
 end;
 
 {$f+}
@@ -138,12 +143,14 @@ end;
 {basic drawing stuff - lines and boxes}
 
 {line drawing routine, using bresenhams line algorithm}
-procedure line(x,y,x1,y1: integer; c: byte);
+procedure line(x,y,x1,y1: word; c: byte);
 var
-   cx,cy,count,xs,ys,xm,ym:integer;
+   count,xs,ys,xm,ym : integer;
+   cx,cy             : word;
 begin
     if checkBounds(x,y) then exit;
     if checkBounds(x1,y1) then exit;
+  
     cx := x; cy := y;
     xs := x1 - x; ys := y1-y;
 
@@ -210,26 +217,33 @@ asm
 end;
 
 {filled box routine}
-procedure filledBox(x,y,x1,y1: integer; c : byte);
+procedure filledBox(x,y,x1,y1: word; c : byte);
 var
    rowByte : byte; {byte that would draw all 4 pixels }
    maskS, maskE : byte; { mask for the start and end of the row }
    rowLength : word; {bytes to direct copy between start and end}
-   
+   oByte : byte; {set to $00 to skip to end because there is only one byte to write}
 begin
    if checkBounds(x,y) then exit;
    if checkBounds(x1,y1) then exit;
    if (x>x1) then
-      swapI(x,x1);
+      swapW(x,x1);
    if (y>y1) then
-      swapI(y,y1);
+      swapW(y,y1);
    rowByte := fillbyte(c);
    maskS := startMask[x and $3];
    maskE := endMask[x1 and $3];
    rowLength := (x1 shr 2) - (x shr 2) - 1;
+   oByte := $FF;
+   if rowLength=$FFFF then
+   begin
+      maskS := maskS and maskE;
+      oByte:=0;
+      rowLength := 0;
+   end;
    asm
-       mov cl, 80 
-       {CL will store the value which will determine if 
+       mov cl, 80
+       {CL will store the value which will determine if
        the offset is incremented for the next row (will be moved later)}
        {load segment}
        mov bx, targseg
@@ -258,33 +272,37 @@ begin
        mov bh, maskS  {put the start mask in BH and the end mask in BL}
        mov bl, maskE
        mov dh, rowByte {put the colour byte in DH}
-       
+
    @startRow: {start of drawing rows!}
-              
+
        {draw the pixels in the leading byte}
        mov al, [es:di] {get the pixels}
        mov ah, bh { use mask to keep pixels we need }
-       not ah 
+       not ah
        and al, ah
        mov ah, dh { use mask to draw new pixels }
        and ah, bh
        or al, ah
        mov [es:di], al {write back to screen}
        inc di
-       
+       {check if this is going to be a single byte}
+       mov al, oByte
+       or al,al
+       jz @oneByte
+
        {ok we should be doing the intermediate pixels, whole bytes!}
        mov al, dh
        mov ah, dh
        push cx {we will need cx later}
        mov cx, rowLength
        shr cx, 1
-       
+
        rep stosw
        jnc @skipByte
        stosb
     @skipByte:
        pop cx
-       
+
        {ok now we need to draw the tail pixels for the row}
        mov al, [es:di] {get the pixels}
        mov ah, bl {use mask to keep pixels we need}
@@ -294,8 +312,9 @@ begin
        and ah, bl
        or al, ah
        mov [es:di], al
-       
+
        {ok we should have now completed a row, update the ofset as needed}
+    @oneByte:
        xor dl, 80 { toggle the row increment (because of bank switching }
        xor dh, dh
        add di, dx {adjust offset}
@@ -305,14 +324,15 @@ begin
        mov dh, rowByte {restore this value (had to be erases to inc di)}
 
        loop @startRow {do the next row}
-   
+
    end;
 end;
 
 {put pixel routine, not the fastest way to draw}
-procedure putPixel(x,y : integer; c : byte);
+procedure putPixel(x,y : word; c : byte);
 begin
     if checkBounds(x,y) then exit;
+    c := c and $3;
     asm {assembly implementation}
        {load segment}
        mov bx, targseg
@@ -358,13 +378,13 @@ end;
 {basic blitting stuff - get and put in gwbasic terms}
 {this will tell you how much memory to allocate to a
  pointer for a given screen area}
-function imageSize(sx,sy:integer):integer;
+function imageSize(sx,sy:word):word;
 begin
      imageSize := ((sx div 4) + 2  ) * 4 * sy + 4;
 end;
 
 {gets an image and stores it in a chunk of memory, be sure to allocate enough memory}
-procedure getImage(x,y,x1,y1 : integer; bitmap : pointer);
+procedure getImage(x,y,x1,y1 : word; bitmap : pointer);
 var
    bseg,bofs   : word;
    sseg,sofs   : word;
@@ -379,16 +399,16 @@ begin
    if checkBounds(x1,y1) then exit;
    bseg := seg(bitmap^);
    bofs := ofs(bitmap^);
-   sizex := abs(x-x1) + 1;
-   sizey := abs(y-y1) + 1;
+   if x1<x then swapW(x,x1);
+   if y1<y then swapW(y,y1);
+   sizex := (x1 - x) + 1;
+   sizey := (y1 - y) + 1;
    fillmem(bseg, bofs, 0, imageSize(sizex, sizey));
    rowSize := (sizex div 4) + 1;
    buffwidth := rowSize + 1;
    memw[bseg:bofs] := sizex;
    memw[bseg:bofs+2] := sizey;
    bofs := bofs + 4; {set to begining of buffer}
-   if y>y1 then y:=y1;
-   if x>x1 then x:=x1;
    shift := (x mod 4) * 2;
    {figure out the starting address from the source}
    sseg := targseg;
@@ -503,7 +523,7 @@ begin
 end;
 
 {puts an image to the screen, is a direct copy}
-procedure putImage(x,y : integer; bitmap : pointer);
+procedure putImage(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word;
    tseg,tofs   : word;
@@ -517,7 +537,7 @@ begin
      bofs := ofs(bitmap^);
      tseg := targseg;
      tofs := (x div 4) + (80 * (y shr 1)) + targofs;
-     if y and 1 = 1 then tofs := tofs or $2000; {set the correct bank}
+     if y and 1 = 1 then tofs := tofs + $2000; {set the correct bank}
      sizex := memw[bseg:bofs];
      sizey := memw[bseg:bofs+2];
      bwidth := (sizex shr 2) + 2;
@@ -616,6 +636,11 @@ begin
         mov ax, tofs
         mov di, ax
         xor di, $2000 {switch screen bank}
+        mov ax, y {check for and add a line if we're putting on an odd line}
+        and ax, $1
+        jz @evenline
+        add di, $50   
+      @evenline:
         {ok ofsets and segments are done, load the row counter}
         mov cx, sizey
         shr cx,1
@@ -667,7 +692,7 @@ end;
 
 {puts an image to the screen, XORs it with what's already on screen.}
 { could be easily modified to do AND or NOT as well }
-procedure putImageXOR(x,y : integer; bitmap : pointer);
+procedure putImageXOR(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word;
    tseg,tofs   : word;
@@ -680,7 +705,8 @@ begin
      bofs := ofs(bitmap^);
      tseg := targseg;
      tofs := (x div 4) + (80 * (y shr 1)) + targofs;
-     if y and 1 = 1 then tofs := tofs or $2000; {set the correct bank}     sizex := memw[bseg:bofs];
+     if y and 1 = 1 then tofs := tofs + $2000; {set the correct bank}
+     sizex := memw[bseg:bofs];
      sizey := memw[bseg:bofs+2];
      bwidth := (sizex shr 2) + 2;
      {adjust the ofset of the buffer to the already shifted copy}
@@ -741,6 +767,11 @@ begin
         mov ax, tofs
         mov di, ax
         xor di, $2000 {switch the bank we're drawing to}
+        mov ax, y {check for and add a line if we're putting on an odd line}
+        and ax, $1
+        jz @evenline
+        add di, $50   
+      @evenline:
         {ok ofsets and segments are done, load the row counter and shift count}
         mov dx, sizey
         shr dx, 1
@@ -955,4 +986,5 @@ end;
 
 begin
      inited := false;
+     mode:=0;
 end.

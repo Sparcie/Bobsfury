@@ -12,7 +12,7 @@
 
 program levelmaker;
 
-uses graph,map,crt,dos,bsystem, bobgraph, bsound
+uses map,crt,dos,bsystem, bobgraph, bfont, bsound
 {$ifndef notest},engine
 {$endif};
 
@@ -142,7 +142,6 @@ begin
    else
       graphicsMode:=2;
    bobgraph.startgraphics;
-   setfillstyle(0,0);
 end;
 
 procedure showscreen;
@@ -288,7 +287,7 @@ begin
    begin
       if new then
       begin
-	 bar(0,0,320,200,9);
+	 bar(0,0,319,199,9);
 	 bar(1,1,318,198,1);
       end;
       new:=false;
@@ -310,7 +309,7 @@ begin
 	 if page = 6 then begin page:=5;new:=false; end;
       end;
    end;
-   bar(0,0,320,200,0);
+   clearviewport;
    showscreen;
 end;
 
@@ -459,7 +458,7 @@ begin
    end;
    
    map.load('#btest#.map');
-   clearViewPort;
+   clearviewport;
    showscreen;
    {$endif}
 end;
@@ -693,6 +692,7 @@ end;
 
 begin
    init;
+   loadFont('litt.chr');
    sm:=false;
    dne:=true;
    drawSelection;

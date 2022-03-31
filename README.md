@@ -43,8 +43,8 @@ I'm obviously still working on this so changes will be made over time, hopefully
 perhaps also other features as I need them. I'm doing this in my spare time, of which I have very little,
 so progress is slow. There will be updates, but there may be some significant time between them.
 
-I have released the level editor, but I don't have any plans to release source code.
-This is mostly because it's a bit untidy and much of it was written when I was inexperienced. 
+The next big change is a new graphic library to replace the borland graphics library to improve performance 
+on 8088 and 8086 class machines.
 
 Some things I don't plan on changing.
  - I'm not going to add smooth scrolling. It would be too big a change to the code base and wouldn't be

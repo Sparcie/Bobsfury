@@ -1,4 +1,90 @@
 ------------------------------------------------------------------------
+r147 | andrew | 2022-04-01 00:10:40 +1100 (Fri, 01 Apr 2022) | 4 lines
+
+- Tried to make bfont faster by precomputing some commonly used values.
+- some minor logic changes in engine.pas
+- attempt at solving keybuffer overflow noise on slow machines
+- fixed a bug in VGA get image, where it could end up getting incorrect data.
+------------------------------------------------------------------------
+r146 | andrew | 2022-03-29 22:44:42 +1100 (Tue, 29 Mar 2022) | 3 lines
+
+Simplified the keyboard unit to be smaller and faster.
+- only problem is that on slow systems the buffer can overflow, countermeasures to this (found in swag and from Jim) didn't seem 
+  to help or only caused _worse_ stuff like a stack overflow. Need to figure out what is going on.
+------------------------------------------------------------------------
+r145 | andrew | 2022-03-28 21:42:48 +1100 (Mon, 28 Mar 2022) | 3 lines
+
+Did more game logic simplification
+- simplified the player movement - definitely needed refactoring
+- minor changes to VGA.PAS and bobgraph.pas need to do further optimisations to the graphics systems.
+------------------------------------------------------------------------
+r144 | andrew | 2022-03-27 21:38:06 +1100 (Sun, 27 Mar 2022) | 4 lines
+
+finished porting the enemies and bullets to use the new moveutil functions
+- need to port the player to use it! Which is a little more complicated.
+
+
+------------------------------------------------------------------------
+r143 | andrew | 2022-03-27 13:17:16 +1100 (Sun, 27 Mar 2022) | 3 lines
+
+started work on game logic to make it easier to read and hopefully faster.
+- created new unit to handle code for object movement. Part way through porting code in engine.
+
+------------------------------------------------------------------------
+r142 | andrew | 2022-03-20 12:29:24 +1100 (Sun, 20 Mar 2022) | 14 lines
+
+Massive debug and coding session!
+- added font scaling to bfont - so the title screen looks correct.
+- reverted and modified a change in bmenu, so that future graphics modes (ega,vesa) will look correct
+- fixed a bug with bobgraph where I was using an incorrect coordinate for getimage which caused crashes.
+- after having fixed the serious crashing bugs reinstated turning off stack and range checking.
+- changed many of the parameters in VGA and CGA from integer to word.
+- Fixed serious bugs in CGA.pas
+  - filledBox had a bug where it would fill the entire screen (and more memory) if the box met certain requirements - Fixed
+  - corrected issues with font rendering by masking the colour to $3 so that we don't accidentally draw to other pixels.
+  - removed BGI files as they are no longer needed! Disk space and memory savings hurray!
+
+Game seems to work well in both the CGA and VGA modes now, and I haven't found any more serious bugs.
+- need to re-introduce EGA and VESA graphics modes.
+- might do some conditional define magic to make it possible to compile a version specific to XT machines to save memory.
+------------------------------------------------------------------------
+r141 | andrew | 2022-03-19 13:31:35 +1100 (Sat, 19 Mar 2022) | 12 lines
+
+Initial work on converting graphics code to using new libraries.
+ -Bobgraph, Bfont and pgs form the core that everything else should use.
+ -CGA and VGA are the device specific code for drawing. Will implement EGA and VESA later.
+
+Fixed a some bugs
+- putimage in CGA would draw incorrectly on odd lines. corrected the bank switching to account for this.
+
+Have had numerous bugs to fix, however the editor and the game *mostly* work.
+Bugs remaining.
+- CGA filledBox seems to fill entire screen when a narrow box is specified. probably an overflow error.
+- The code that saves and restores a large screen segment seems to cause crashes, and doesn't draw correctly.
+   I suspect the put/get code doesn't handle larger images well. Will have to fire up a debugger!
+------------------------------------------------------------------------
+r140 | andrew | 2022-03-17 22:43:11 +1100 (Thu, 17 Mar 2022) | 4 lines
+
+changed bmenu to use new font unit and added font loading into the init section of bobtest
+
+Only change required for parity with BGI text drawing is text scaling. I am only typically using sizes 4 and 8.
+The only place where a larger scale is really used is the title screen.
+------------------------------------------------------------------------
+r139 | andrew | 2022-03-16 23:51:42 +1100 (Wed, 16 Mar 2022) | 4 lines
+
+Font unit mostly debugged and working, without font scaling.
+Scaling only really applies to the title screen, so it's not critical ... yet.
+
+bfleu is actually working with the stroked font. Which makes the font a requirement for it now.
+------------------------------------------------------------------------
+r138 | andrew | 2022-03-15 09:58:57 +1100 (Tue, 15 Mar 2022) | 5 lines
+
+Some minor text changes in the README.txt
+
+Also work on creating the font unit that will replace the BGI stroked font drawing.
+It needs debugging and figuring out why it doesn't quite work yet. probably isn't loading the font data correctly at a guess.
+Also drawing code might need work.
+------------------------------------------------------------------------
 r137 | andrew | 2022-02-09 10:32:13 +1100 (Wed, 09 Feb 2022) | 8 lines
 
 Some more optimisation of CGA.PAS

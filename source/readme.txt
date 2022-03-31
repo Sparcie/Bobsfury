@@ -24,6 +24,10 @@ blankmap.pas - creates the blank.map that was needed in some cases.
 bmenu.pas    - The menu interface for the game (includes high scores, save/load, settings and introduction screens)
 bmusic.pas   - unit that stores and manages a peice of music (includes some editing function not used in the game)
 bobgraph.pas - intermediate graphics interface to make sure different resolutions work, also provides the basic animations.
+bfont.pas    - Replacement for BGI stroked font drawing. loads a font and allows writing text to screen.
+gcommon.pas  - common functions for device dependant graphics code.
+CGA.pas      - CGA device dependant code for graphics library.
+VGA.pas      - VGA device dependant code for graphics library.
 bobtest.pas  - Main program for the game - interprets parameters and has main loop.
 bsound.pas   - base sound interface for sound effects and music
 buffer.pas   - a simple buffered file reader/writer for text type files
@@ -65,7 +69,7 @@ scache.PAS   - Sound cache - stores sound effects in a ready to use form (notes 
 
 License
 -------
-I can't imagine why you'd want to use my code, but if you want to for some reason please contact me.
+I can't imagine why you'd want to use my code, but feel free to as long as it's non-comercial.
 The PC speaker Music unit (music.pas) belongs to J. C. Kessels and was a free to use download - I'd suggest crediting him if you use this. The site I got it from is long gone!
 
 

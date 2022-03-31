@@ -4,21 +4,31 @@ unit pgs; {pack graphics system for lrs and hrs files packed using packer.pas
 {modified in 2013 to use the buffered reader.}
 {modified in 2014 to read RLE files}
 {modified in 2015 to be responsible for loading BGI drivers and initialising graph}
+{modified in 2022 to move away from the BGI to my own graphics libraries}
 
 interface
-uses graph,buffer;
+uses buffer,vga, cga;
 
 procedure loadpack(name: string);
-procedure ega;
-procedure cga;
-procedure lowres;
-procedure hires;
+procedure initega;
+procedure initcga;
+procedure initvga;
+procedure initvesa;
 procedure textscreen;
 procedure draw(x,y:integer;puttype:word;image:integer);
 procedure unloadpack;
 function collision(x,y,f,x2,y2,f2 :integer ):boolean;
 function spriteCount:integer;
 procedure spriteSize(var sx,sy : integer);
+
+const
+   mCGA	    = 0; { 320x200 4 colour}
+   mEGA	    = 1; { 640x200 16 colour }
+   mVGA	    = 2; { 320x200 256 colour }
+   mVESA    = 3; { 640x400 256 colour }
+   copyput  = 0;
+   xorput   = 1;
+   transput = 2; {not implemented yet}
 
 implementation
 
@@ -33,8 +43,10 @@ var pic		 : array[1..200] of pointer;
    picsize	 : array[1..200] of word;
    boundbox	 : array[1..200] of boundptr;
    loaded,inited : boolean;
+   graphicsmode	 : byte;
    number	 : integer;
    ssx,ssy	 : integer; {size of the sprites in pixels}
+   
 
    procedure spriteSize(var sx,sy : integer);
    begin
@@ -86,62 +98,51 @@ var pic		 : array[1..200] of pointer;
       end;
    end;
 
-   procedure checkGraphResult(error : string );
-   var
-      gr : integer; {graph result}
-   begin
-     gr := graphresult;
-      if (gr<>grok) then
-      begin
-	 writeln(error);
-	 writeln(grapherrormsg(gr));
-	 halt(1);
-      end;
-   end;
-
-
-   function loadBGIDriver(bgidriver : string):integer;
-   var
-      gr : integer; {graph result}
-   begin
-      loadBGIDriver := installuserdriver(bgidriver, nil);
-      checkGraphResult('Could not load BGI driver');
-   end;
-
-   procedure startGraphics(driver, mode	: integer);
-   begin
-      initgraph(driver,mode,'.');
-      checkGraphResult('Could not start graphics');
-   end;
-
-procedure cga;
+procedure initcga;
 begin
-   startGraphics(1,3);
+   cga.init;
+   inited:=true;
+   graphicsmode := mCGA;
+end;
+
+procedure initega;
+begin
+   writeln('EGA not implemented yet');
+   halt(0);
    inited:=true;
 end;
 
-procedure ega;
+procedure initvga ;
 begin
-   startGraphics(3,0);
+   vga.init;
    inited:=true;
+   graphicsmode := mVGA;
 end;
 
-procedure lowres ;
+procedure initvesa;
 begin
-   startGraphics(loadBGIDriver('vga256'),0);
-   inited:=true;
-end;
-
-procedure hires;
-begin
-   startGraphics(loadBGIDriver('vesa'),1);
+   writeln('VESA not implemented yet');
+   halt(0);
    inited:=true;
 end;
 
 procedure draw(x,y:integer; puttype:word;image:integer);
 begin
-     if (loaded and (image <=number) and (image>0) ) then
-	 putimage(x,y,pic[image]^,puttype);
+   if not(loaded and (image <=number) and (image>0) ) then exit;
+   case graphicsmode of
+     mCGA : begin
+	      case puttype of
+		copyput	: cga.putImage(x,y,pic[image]);
+		xorput	: cga.putImageXor(x,y,pic[image]);
+	      end;
+	   end;
+     mVGA : begin
+	      case puttype of
+		copyput	: vga.putImage(x,y,pic[image]);
+		xorput	: vga.putImageXor(x,y,pic[image]);
+	      end;
+	   end;
+   end;
 end;
 
 procedure loadImageRLE(var r : reader; var box:bounds);
@@ -160,7 +161,10 @@ begin
 	    data := ord(r.readchar);
 	    count := ord(r.readchar);
 	 end;
-	 putpixel(i,c,data);
+	 case graphicsmode of
+	   mCGA : cga.putpixel(i,c,data);
+	   mVGA : vga.putpixel(i,c,data);
+	 end;
 	 if data>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -190,7 +194,11 @@ begin
       begin
 	 if ((i>0) or (c>0)) then
 	    a:= r.readChar;
-	 putpixel(i,c,ord(a));
+	 case graphicsmode of
+	   mCGA : cga.putpixel(i,c,ord(a));
+	   mVGA : vga.putpixel(i,c,ord(a));
+	 end;
+
 	 if ord(a)>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -224,9 +232,18 @@ begin
 	 loadImageRaw(imf,box);
 	 new(boundbox[num]);
 	 boundbox[num]^:=box;
-	 picsize[num] := imagesize(0,0,ssx-1,ssy-1);
-	 getmem(pic[num],picsize[num]);
-	 getimage(0,0,ssx-1,ssy-1,pic[num]^);
+	 case graphicsmode of
+	   mCGA : begin
+		    picsize[num] := cga.imagesize(ssx,ssy);
+		    getmem(pic[num],picsize[num]);
+		    cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
+		 end;
+	   mVGA : begin
+		    picsize[num] := vga.imagesize(ssx,ssy);
+		    getmem(pic[num],picsize[num]);
+		    vga.getimage(0,0,ssx-1,ssy-1,pic[num]);
+		 end;
+	 end;
 	 num:=num+1;
       end;
       imf.close;
@@ -249,7 +266,11 @@ end;
 
 procedure textscreen;
 begin
-   if inited then closegraph;
+   if not(inited) then exit;
+   case graphicsmode of
+     mCGA : cga.shutdown;
+     mVGA : vga.shutdown;
+   end;
 end;
 
 begin

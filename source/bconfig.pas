@@ -73,10 +73,6 @@ begin
       read(conf,a);
       z:=ord(a);
       scancode[i]:= z;
-      scancode[i]:= scancode[i] shl 8;
-      read(conf,a);
-      z:=ord(a);
-      scancode[i]:= scancode[i] or z;
    end;
    {read the joystick button configuration}
    for i:= 1 to 4 do
@@ -128,9 +124,7 @@ begin
    write(conf,a);
    for i:= 1 to 7 do
    begin
-      a := chr(hi(scancode[i]));
-      write(conf,a);
-      a:= chr(lo(scancode[i]));
+      a := chr(scancode[i]);
       write(conf,a);
    end;
    for i:= 1 to 4 do
