@@ -13,7 +13,7 @@ procedure swapI(var a,b:integer);
 {returns 1 or -1 depending on the sign of i}
 function sign(i : integer): integer;
 {check if co-ordinates are on screen}
-function checkBounds(x,y:integer):boolean; {returns true on failure!}
+function checkBounds(x,y: word):boolean; {returns true on failure!}
 {copy memory routine}
 procedure copymem(srcseg,srcofs,destseg,destofs,count:word);
 {fill memory routine}
@@ -77,42 +77,64 @@ end;
 
 
 {swaps the a and b parameters}
-procedure swapW(var a,b:word);
-var
-   x:word;
-begin
-     x:= a;
-     a:= b;
-     b:= x;
+procedure swapW(var a,b:word); assembler;
+asm
+  les di, a
+  mov ax, es:[di]
+  les bx, b 
+  mov dx, es:[bx]
+  mov es:[bx], ax
+  les di, a
+  mov es:[di], dx
 end;
 
 {swaps the a and b parameters}
-procedure swapI(var a,b:integer);
-var
-   x:integer;
-begin
-     x:= a;
-     a:= b;
-     b:= x;
+procedure swapI(var a,b:integer); assembler;
+asm
+  les di, a
+  mov ax, es:[di]
+  les bx, b 
+  mov dx, es:[bx]
+  mov es:[bx], ax
+  les di, a
+  mov es:[di], dx
 end;
 
 
 {returns 1 or -1 depending on the sign of i}
-function sign(i : integer): integer;
-begin
-    sign :=0;
-    if i>0 then sign:=1;
-    if i<0 then sign:=-1;
+function sign(i : integer): integer; assembler;
+asm
+    mov ax, i
+    cmp ax, 0
+    jg @pos
+    jl @neg
+    xor ax, ax
+    mov sp,bp
+    pop bp
+    ret
+@pos:
+    mov ax, 1
+    mov sp,bp
+    pop bp
+    ret
+@neg:
+    mov ax, $FFFF
 end;
 
 {check if co-ordinates are on screen}
-function checkBounds(x,y:integer):boolean; {returns true on failure!}
-begin
-    checkBounds := false;
-    if ((x<0) or (x>319)) then checkBounds := true;
-    if ((y<0) or (y>199)) then checkBounds := true;
+function checkBounds(x,y:word):boolean; assembler; {returns true on failure!}
+asm
+    mov ax, 0
+    mov bx, x
+    mov cx, y
+    cmp bx, 319
+    ja @failed
+    cmp cx, 199
+    ja @failed
+    jmp @done
+@failed:
+    mov al, 1
+@done:
 end;
-
-
 
 end.

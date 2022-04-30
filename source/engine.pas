@@ -82,17 +82,19 @@ procedure joystick; forward;
 procedure showscore; forward;
 procedure processKeys; forward;
    
-var oldplay		 : playerrec;
+var oldplay		 : playerrec; {old player record, used to know what score items to update on status display}
    juf,pdr,pbul,shtt	 : integer;
    {juf= jumping force, pdr = player direction, pbul = player bullet count, shtt = shooting timer }
    creatures		 : array[0..50] of monsterob;
    bullets		 : array[0..50] of project;
    ncreat,nbul		 : integer; {number of creatures and bullets}
-   bobhere		 : boolean; {is bob here}
+   bobhere		 : boolean; {is bob here (is a coss present)}
    firelbolt		 : boolean; {weapon selection between bullets and firebolts}
+   oldflbolt		 : boolean; {old copy of firelbolt, for determining if we should update the status display}
+   drawstaticstatus	 : boolean; { true if we need to draw the static elements of the status bar }
    boss,bossp		 : integer; {boss picture stuff}
    oldbossp		 : integer; {old version of bossp so we know to update the status display}
-   ocw,ohe		 : boolean; {joystick buttons}
+   ocw,ohe		 : boolean; {joystick buttons when last updated (so we can see changes)}
    hcount		 : integer; {player hurt timer (0 means you can be hurt, is a number of game ticks)}
    elv			 : byte; {is the player currently on a elevator -  >0 yes, 0 otherwise.}
    rot,rot2,leg,mov,fall : boolean;
@@ -451,26 +453,34 @@ begin
 end;
 
 procedure showscore;
-var s : string[60];
+var s : string[20];
    i  : integer;
-begin   
+begin
+   if drawstaticstatus then
+   begin
+      drawstaticstatus := false;
+      textxy(5,165,4,7,'Score');
+      textxy(5,185,4,7,'Lives');
+      spritedraw(155,165,9,copyput);
+      spritedraw(155,178,49,copyput);
+      spritedraw(155,188,50,copyput);
+      textxy(250,165,4,7,'Weapon');
+   end;
    if not(oldplay.score=player.score) then
    begin
-      str(oldplay.score,s);
-      s:= 'Score '+s;
-      textxy(5,165,4,0,s);
+      {str(oldplay.score,s);
+      textxy(45,165,4,0,s);}
+      bar(45,165,90,174,0);
       str(player.score,s);
-      s:= 'Score '+s;
-      textxy(5,165,4,7,s);
+      textxy(45,165,4,7,s);
    end;
    if (not(oldplay.health=player.health) or
        not(player.invuln div 10 = oldplay.invuln div 10)) then
    begin
-      str(oldplay.health,s);
-      s:='Health '+s;
-      textxy(5,175,4,0,s);
+      {str(oldplay.health,s);
+      textxy(45,175,4,0,s);}
+      bar(45,175,65,184,0);
       str(player.health,s);
-      s:='Health '+s;
       i:=4;
       if player.health>25 then i:=14;
       if player.health>50 then i:=2;
@@ -485,24 +495,22 @@ begin
 	    i:=31-(10-i);
 	 end;
       end;
-      textxy(5,175,4,i,s);
+      textxy(5,175,4,i,'Health');
+      textxy(45,175,4,i,s);
    end;
    if not(oldplay.lives=player.lives) then
    begin
-      str(oldplay.lives,s);
-      s:='Lives '+s;
-      textxy(5,185,4,0,s);
+      {str(oldplay.lives,s);
+      textxy(45,185,4,0,s);}
+      bar(45,185,50,194,0);
       str(player.lives,s);
-      s:='Lives '+s;
-      textxy(5,185,4,7,s);
+      textxy(45,185,4,7,s);
    end;
-   spritedraw(155,165,9,copyput);
-   spritedraw(155,178,49,copyput);
-   spritedraw(155,188,50,copyput);
    if not(oldplay.fullb=player.fullb) then
    begin
-      str(oldplay.fullb,s);
-      textxy(165,165,4,0,s);
+      {str(oldplay.fullb,s);
+      textxy(165,165,4,0,s);}
+      bar(165,165,180,174,0);
       str(player.fullb,s);
       textxy(165,165,4,7,s);
    end;
@@ -516,30 +524,36 @@ begin
    end;
    if not(oldplay.gren=player.gren) then
    begin
-      str(oldplay.gren,s);
-      textxy(165,175,4,0,s);
+      {str(oldplay.gren,s);
+      textxy(165,175,4,0,s);}
+      bar(165,175,180,184,0);
       str(player.gren,s);
       textxy(165,175,4,7,s);
    end;
    if not(oldplay.lbolt=player.lbolt) then
    begin
-      str(oldplay.lbolt,s);
-      textxy(165,185,4,0,s);
+      {str(oldplay.lbolt,s);
+      textxy(165,185,4,0,s);}
+      bar(165,185,185,194,0);
       str(player.lbolt,s);
       textxy(165,185,4,7,s);
    end;
-   textxy(250,165,4,7,'Weapon');
-   if (firelbolt) then
-      spritedraw(300,167,50,copyput)
-   else
-      spritedraw(300,167,47,copyput);
+   if (oldflbolt xor firelbolt) then 
+   begin
+      oldflbolt := firelbolt;
+      if (firelbolt) then
+	 spritedraw(300,167,50,copyput)
+      else
+	 spritedraw(300,167,47,copyput);
+   end;
    if (boss>0) then
    begin
       spritedraw(250,180,boss,copyput);
       if not(oldbossp=bossp) then
       begin
-         str(oldbossp,s);
-         textxy(265,180,4,0,s);
+         {str(oldbossp,s);
+         textxy(265,180,4,0,s);}
+	 bar(265,180,280,189,0);
          str(bossp,s);
          textxy(265,180,4,7,s);
          oldbossp:=bossp;
@@ -668,6 +682,8 @@ begin
    end;
    oldplay.health:=0; oldplay.lives:=0;oldplay.fullb:=-1;
    oldplay.score:=-1;oldplay.lbolt:=-1;oldplay.gren:=-1;
+   drawstaticstatus := true;
+   oldflbolt := not(firelbolt);   
 end;
 
 procedure clearMonsters;
@@ -700,6 +716,8 @@ begin
    oldplay.health:=0; oldplay.lives:=0;oldplay.fullb:=-1;
    oldplay.score:=-1;oldplay.lbolt:=-1;oldplay.gren:=-1;
    oldplay.keys:=0;
+   oldflbolt := not(firelbolt);
+   drawstaticstatus := true;
    pbul:=0;
    nbul:=0;
    shtt:=0;
@@ -897,7 +915,6 @@ begin
    if useCustomKeys then
    begin
       if a = chr(0) then a:=readkey;
-      clearBIOSKeyBuffer;
       exit;
    end;
    if ( (a='H')) then
@@ -938,7 +955,6 @@ begin
       if a=chr(75) then begin pdr:=0; mov:=true; end;
       if a=chr(77) then begin pdr:=1; mov:=true; end;
    end;
-   clearBIOSKeyBuffer;
 end;
 
 procedure shoot(x,y:integer;t,dir,hurt:byte);
@@ -1038,25 +1054,7 @@ begin
 	   dir:=3;			 	
      end;
    end;
-   if (typ=2) then 
-   begin
-      if (objectat(x div 10,y div 10))=81 then brickexplode(x div 10,y div 10);
-      if (timeout<1) then mve:=false;
-      if not(mve) then
-	 begin
-	    move:=checkmonsters(x,y,dir,fr,typ);
-	    explode(x,y);
-	 end;      
-   end
-   else
-   begin {not the grenade}
-      o1 := objectat(x div 10,y div 10);
-      if o1=14 then brickexplode(x div 10,y div 10);
-      if ( (o1=80) and (typ=3)) then brickexplode(x div 10,y div 10);
-      if ((x<0) or (x>300) or (y>150)) then mve:=false;
-      if not(mve) then bulex(x,y);
-   end; 
-	
+
    {check hit player or monster}
    if hurt then
    begin
@@ -1073,6 +1071,26 @@ begin
    else {check monster}
       if checkmonsters(x,y,dir,fr,typ) then mve:=false;
    
+   if (typ=2) then 
+   begin
+      if (objectat(x div 10,y div 10))=81 then brickexplode(x div 10,y div 10);
+      if (timeout<1) then
+	 mve:=false;
+      if not(mve) then
+	 begin
+	    move:=checkmonsters(x,y,dir,fr,typ);
+	    explode(x,y);
+	 end;      
+   end
+   else
+   begin {not the grenade}
+      o1 := objectat((x+5) div 10,(y+5) div 10);
+      if o1=14 then brickexplode(x div 10,y div 10);
+      if ( (o1=80) and (typ=3)) then brickexplode(x div 10,y div 10);
+      if ((x<0) or (x>300) or (y>150)) then mve:=false;
+      if not(mve) then bulex(x,y);
+   end; 
+	   
    if (mve) then spritedraw(x,y,fr,xorput);
    if (not(mve) and not(hurt)) then pbul:=pbul-1;
    move:=mve;
@@ -1598,7 +1616,7 @@ begin
                  end
 		 else if state=1 then
                  begin
-                    delta := moveup(x,y,2);
+                    delta := moveup(x,y-10,2);
                     y := y - delta;
                     if delta<2 then state :=0;
                  end;

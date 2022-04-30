@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r149 | andrew | 2022-04-06 12:24:01 +1000 (Wed, 06 Apr 2022) | 1 line
+
+Made some minor changes to correct the behaviour of grenades, elevators and the status bar (after exiting the menu)
+------------------------------------------------------------------------
+r148 | andrew | 2022-04-06 00:08:43 +1000 (Wed, 06 Apr 2022) | 6 lines
+
+Significant performance increase on XT machines...
+- mostly due to the status bar update code. It was doing some unnecessary drawing and did some in a slow way.
+  I've improved it's efficiency and performance on slower machines has leapt forward!
+- implemented some code in gcommon in assembly as it is called frequently.
+
+Still need to improve the cga line drawing speed, perhaps also need to tweak the distances in which enemies appear and disappear on low performance machines, and perhaps also the number of bullets. (and shooting conditions)
+------------------------------------------------------------------------
 r147 | andrew | 2022-04-01 00:10:40 +1100 (Fri, 01 Apr 2022) | 4 lines
 
 - Tried to make bfont faster by precomputing some commonly used values.
