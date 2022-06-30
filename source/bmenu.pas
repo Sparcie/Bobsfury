@@ -17,7 +17,11 @@ procedure leveltitle(title : string);
 
 
 implementation
-uses bobgraph,bfont, engine,map,bsound,bsystem,fmplayer,crt,bjoy,keybrd,pgs, pitdbl;
+uses bobgraph,bfont,engine,map,bsound,bsystem,crt,bjoy,keybrd,pgs,pitdbl
+{$ifndef noAdlib}
+ ,fmplayer
+{$endif}
+;
 
 type
 	score=record
@@ -697,6 +701,7 @@ begin
    if is286 then textxy(190,10,4,9,'286+ processor');
 
    { find out what sound is detected and being used }
+   {$ifndef noAdlib}
    t:=' Using ';
    if isBlaster then t:=t+'Adlib/SoundBlaster' else t:=t+'PC Speaker';
    t:=t+' sound';
@@ -704,6 +709,9 @@ begin
    if force=2 then t:= 'forced No Sound';
    if force=3 then t:= 'OPL2LPT on LPT1';
    if force=4 then t:= 'OPL2LPT on LPT2';
+   {$else}
+   t:= ' Using PC Speaker sound';
+   {$endif}
    textxy(20,40,4,9,t);
 
    {display if the joystick is available}
@@ -711,11 +719,15 @@ begin
       textxy(20,150,4,9,'Joystick found');
    
    {get display information}
+   {$ifndef CGA}
    if graphicsMode=mCGA then t:='CGA';
    if graphicsMode=mEGA then t:='EGA';
    if graphicsMode=mVGA then t:='VGA';
    if graphicsMode=mVESA then t:='VESA';
    s:= 'Driver :' + t;
+   {$else}
+   s:= 'Only CGA support';
+   {$endif}
    textxy(20,70,4,9,s);
    case graphicsmode of
      mCGA  : t:= '320x200 4 colours';
@@ -883,6 +895,7 @@ begin
       if diff=1 then t:=t+'Hard';
       if diff=-3 then t:=t+'InSaNe';
       textxy(40,50,4,9,t);
+      {$ifndef noAdlib}
       if (isBlaster) then
       begin
 	 textxy(40,60,4,9,'Volume');
@@ -891,6 +904,9 @@ begin
 	 bobgraph.bar(95+(volume*5),63,105+(volume*5),73,12);
       end
       else textxy(40,60,4,5,'Volume Unavailable');
+      {$else}
+      textxy(40,60,4,5,'Volume Unavailable');
+      {$endif}
       if (joyavail) then
       begin
 	 if (usejoy) then textxy(40,90,4,13,'Joystick Available') else
@@ -941,13 +957,15 @@ begin
 	       joycal;
 	    
 	    if (pos=7) then customkeys;
-	    
+
+	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
 	    begin
 	       volume:=volume-$02;
 	       setfmVol(volume);
 	       shoot;        
 	    end;
+	    {$endif}
 	    if (pos=0) then
 	    begin
 	       if s=6 then s:=1
@@ -968,11 +986,13 @@ begin
 	    
 	    if pos=4 then soundo:=not(soundo);
 	    
+	    {$ifndef noAdlib}
 	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
 	    begin
 	       musico:=not(musico);
 	       if musico then musicOn else musicoff;
 	    end;
+	    {$endif}
 	 end; {left}
 	 {right key}
 	 if (a=chr(77)) then
@@ -984,12 +1004,15 @@ begin
 	    
 	    if (pos=7) then customkeys;
 	    
+	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
 	    begin
 	       volume:=volume+$02;
 	       setfmVol(volume);
 	       shoot;        
 	    end;
+	    {$endif}
+	    
 	    if (pos=0) then
 	    begin
 	       if s=6 then s:=4
@@ -1010,12 +1033,14 @@ begin
 	    end; 
 	    
 	    if pos=4 then soundo:=not(soundo);
-	    
+
+	    {$ifndef noAdlib}
 	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
 	    begin
 	       musico:=not(musico);
 	       if musico then musicOn else musicoff;
 	    end;
+	    {$endif}
 	 end;{right}
 	 
       end;{special key}

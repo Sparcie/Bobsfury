@@ -17,15 +17,21 @@ var
 
 procedure param(s,s2 : String);
 begin
+   {$ifndef CGA}
    if s= '-h' then graphicsMode:=3;
    if s= '-l' then graphicsMode:=2;
+   if s= '-e' then graphicsMode:=1;
+   if s= '-cga' then graphicsMode:=0;
+   {$endif}
+
+   {$ifndef noAdlib}
    if s= '-a' then force:=0;
    if s= '-s' then force:=1;
    if s= '-n' then force:=2;
    if s = 'LPT1' then force:=3;
    if s = 'LPT2' then force:=4;
-   if s= '-e' then graphicsMode:=1;
-   if s= '-cga' then graphicsMode:=0;
+   {$endif}
+   
    if s= '-np' then usepitdbl := false;
    if s= '-c' then
    begin
@@ -35,17 +41,25 @@ begin
    end;
    if ((s= '?') or (s='/?')) then
    begin
-      writeln('Bobs fury by Andrew Danson');
+      {$ifndef XT}
+      writeln('Bobs fury');
+      {$else}
+      writeln('XT Bobs fury');
+      {$endif}
       writeln('command line options:');
+      {$ifndef CGA}
       writeln(' -h     hi resolution mode');
       writeln(' -l     lo resolution mode');
       writeln(' -e     EGA graphics mode');
       writeln(' -cga   CGA graphics mode');
+      {$endif}
+      {$ifndef noAdlib}
       writeln(' -a     autodetect sound');
       writeln(' -s     force sound to use PC speaker');
       writeln(' -n     force sound off');
       writeln(' LPT1   use OPL2LPT on LPT1');
       writeln(' LPT2   use OPL2LPT on LPT2');
+      {$endif}
       writeln(' -np    disable doubling pit speed');
       writeln(' -c <filename.map>  load a custom level');
       writeln;
@@ -130,6 +144,7 @@ begin
    end;
    finish;
    saveconf;
+   disposeFont;
    min:= avail - min;
    if isBlaster then writeln('Adlib/SoundBlaster detected');
    if force=3 then writeln('OPL2LPT on LPT1');

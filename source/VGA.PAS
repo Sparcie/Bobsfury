@@ -66,6 +66,7 @@ var
    targofs    : word;
    backbuffer : pointer;   
    mode	      : byte;
+   lastmode   : byte;
 
 
 {basic start-up and shutdown}
@@ -73,36 +74,45 @@ procedure init;
 begin
      if (inited) then exit;
      asm
-         mov ax, $0013
+        mov ax,$0F00
+        int $10
+        mov lastmode, al
+        mov ax, $0013
         int $10
      end;
      inited := true;
      mode := 0;
      targseg := cardseg;
      targofs := cardofs;
-     exitSave := exitproc;
-     exitproc := @shutdown;
-     fillmem(cardseg,0,0,64000);
+     cls;
 end;
+
 procedure cls;
 begin
    fillmem(targseg,targofs,0,64000);
 end;
 
 {$f+}
+procedure newexitproc;
+begin
+   exitproc := exitsave;
+   if inited then shutdown;
+end;
+{$f-}
+
 {shutdown procedure - return to text mode}
 procedure shutdown;
+var
+   b : boolean;
 begin
-     if not(setDrawMode(0)) then exit;
-     if not(inited) then exit;
+     b:=setDrawMode(0);
      asm  {the small amount of assembler I will use}
-        mov ax, $0003
+        mov ah, $00
+        mov al, lastmode
         int $10
      end;
      inited := false;
-     exitproc := exitsave;
 end;
-{$f-}
 
 {basic drawing stuff - lines and boxes}
 
@@ -116,7 +126,8 @@ begin
     if checkBounds(x,y) then exit;
     if checkBounds(x1,y1) then exit;    
     cx := x; cy := y * 320;
-    xs := x1 - x; ys := y1 - y;
+   xs := x1; ys := y1;
+    xs := xs - x; ys := ys - y;
 
     xm:= sign(xs); ym := sign(ys) * 320;
     xs := abs(xs); ys := abs(ys);
@@ -201,7 +212,7 @@ begin
 
        {loop and copy the data!}
        @row:
-       push cx
+       xchg cx,dx {store row count in dx}
        mov cx, bx
        shr cx, 1 {divide cx by two to copy words}
 
@@ -215,7 +226,7 @@ begin
        {end loop - work out next start point}
        add di, 320
        sub di, bx
-       pop cx
+       xchg cx,dx {get the row count back}
        loop @row
    end;
 end;
@@ -284,7 +295,7 @@ begin
         {start of the loop}
         @startrow:
         {do the transfer}
-        push cx
+        xchg cx,dx
         mov cx,ax
         shr cx, 1
 
@@ -294,7 +305,7 @@ begin
         movsb
         @even:
 
-        pop cx
+        xchg cx,dx
         {update si for next row}
         add si, 320
         sub si, ax
@@ -356,7 +367,7 @@ begin
         {start of the loop}
         @startrow:
         {do the transfer}
-        push cx
+        xchg cx,dx
         mov cx,ax
         shr cx,1
 
@@ -366,7 +377,7 @@ begin
         movsb
         @even:
 
-        pop cx
+        xchg cx,dx
         {update si and di for next row}
         add di, 320
         sub di, ax
@@ -670,7 +681,7 @@ begin
       cld
 
    @row:
-      push cx
+      xchg cx,dx
       mov cx,bx
       shr cx,1
 
@@ -679,7 +690,7 @@ begin
       jnc @even
       movsb
    @even:
-      pop cx
+      xchg cx,dx
       {update the pointers for the next row}
       add si,320
       sub si,bx
@@ -695,4 +706,8 @@ end;
 begin
      inited := false;
      mode :=0;
+   targseg := cardseg;
+   targofs := cardofs;
+   exitSave := exitproc;
+   exitproc := @newexitproc;
 end.

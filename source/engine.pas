@@ -1054,6 +1054,26 @@ begin
 	   dir:=3;			 	
      end;
    end;
+   
+   if (typ=2) then 
+   begin
+      if (objectat((x+5) div 10,(y+5) div 10))=81 then brickexplode((x+5) div 10,(y+5) div 10);
+      if (timeout<1) then
+	 mve:=false;
+      if not(mve) then
+	 begin
+	    move:=checkmonsters(x,y,dir,fr,typ);
+	    explode(x,y);
+	 end;      
+   end
+   else
+   begin {not the grenade}
+      o1 := objectat((x+5) div 10,(y+5) div 10);
+      if o1=14 then brickexplode((x+5) div 10,(y+5) div 10);
+      if ( (o1=80) and (typ=3)) then brickexplode((x+5) div 10,(y+5) div 10);
+      if ((x<0) or (x>300) or (y>150)) then mve:=false;
+      if not(mve) then bulex(x,y);
+   end;
 
    {check hit player or monster}
    if hurt then
@@ -1069,27 +1089,12 @@ begin
       end;
    end
    else {check monster}
-      if checkmonsters(x,y,dir,fr,typ) then mve:=false;
-   
-   if (typ=2) then 
-   begin
-      if (objectat(x div 10,y div 10))=81 then brickexplode(x div 10,y div 10);
-      if (timeout<1) then
+      if checkmonsters(x,y,dir,fr,typ) then
+      begin
 	 mve:=false;
-      if not(mve) then
-	 begin
-	    move:=checkmonsters(x,y,dir,fr,typ);
-	    explode(x,y);
-	 end;      
-   end
-   else
-   begin {not the grenade}
-      o1 := objectat((x+5) div 10,(y+5) div 10);
-      if o1=14 then brickexplode(x div 10,y div 10);
-      if ( (o1=80) and (typ=3)) then brickexplode(x div 10,y div 10);
-      if ((x<0) or (x>300) or (y>150)) then mve:=false;
-      if not(mve) then bulex(x,y);
-   end; 
+	 if typ=2 then explode(x,y);
+      end;
+
 	   
    if (mve) then spritedraw(x,y,fr,xorput);
    if (not(mve) and not(hurt)) then pbul:=pbul-1;
@@ -1861,6 +1866,8 @@ begin
    else
       spritedraw(player.x,player.y,newf+106,xorput);
 end;
+
+
 
 procedure personmove;
 var nx,ny,i,ty : integer;

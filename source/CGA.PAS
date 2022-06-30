@@ -62,6 +62,7 @@ var
    backBuffer	   : pointer;
    targseg,targofs : word;
    mode		   : byte;
+   lastmode	   : byte;
 
 
 {basic start-up and shutdown}
@@ -69,16 +70,17 @@ procedure init;
 begin
      if (inited) then exit;
      asm
-         mov ax, $0004
+        mov ax, $0f00
+        int $10
+        mov lastmode, al
+        mov ax, $0004
         int $10
      end;
-     fillmem(cardseg,cardofs,0,16384);
      targseg := cardseg;
      targofs := cardofs;
      inited := true;
      mode := 0;
-     exitSave := exitproc;
-     exitproc := @shutdown;
+     cls;
 end;
 
 procedure cls;
@@ -87,19 +89,27 @@ begin
 end;
 
 {$f+}
+
+procedure newexitproc;
+begin
+   if inited then shutdown;
+   exitproc := exitsave;
+end;
+{$f-}
+
 {shutdown procedure - return to text mode}
 procedure shutdown;
+var
+   b : boolean;
 begin
-     if not(setDrawMode(0)) then exit;
-     if not(inited) then exit;
+     b := setDrawMode(0);
      asm  {back into text mode}
-        mov ax, $0003
+        mov ah, $00
+        mov al, lastmode
         int $10
      end;
      inited := false;
-     exitproc := exitsave;
 end;
-{$f-}
 
 {CGA only function for setting palette }
 { $1  is intensity 
@@ -904,6 +914,7 @@ var
 begin
    if checkBounds(x,y) then exit;
    if checkBounds(x+sizex-1,y+sizey-1) then exit;
+   if mode=0 then exit;
    if dir then
    begin
       sseg:= cardseg;
@@ -985,6 +996,10 @@ begin
 end;
 
 begin
-     inited := false;
-     mode:=0;
+   inited := false;
+   targseg := cardseg;
+   targofs := cardofs;
+   exitSave := exitproc;
+   exitproc := @newexitproc;
+   mode:=0;
 end.

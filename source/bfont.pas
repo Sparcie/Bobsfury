@@ -13,6 +13,7 @@ interface
 {very simple interface!!}
 procedure loadFont(fontFile : string);
 procedure textxy(x,y,size, colour : integer; s:string);
+procedure disposeFont;
 
 implementation
 
@@ -35,10 +36,16 @@ type
 
 
 var
-   header     : FontHeader;
-   charbuffer : pointer; {pointer to buffer of drawing instructions for each character}
-   charofs    : array[0..255] of word; {list of ofsets for each character in the char buffer}
-   charwidth  : array[0..255] of byte; {list of character widths }
+   header      : FontHeader;
+   charbuffer  : pointer; {pointer to buffer of drawing instructions for each character}
+   charbufflen : word;
+   charofs     : array[0..255] of word; {list of ofsets for each character in the char buffer}
+   charwidth   : array[0..255] of byte; {list of character widths }
+
+procedure disposeFont;
+begin
+   freemem(charbuffer,charbufflen);
+end;
 
 procedure loadFont(fontFile : string);
 var
@@ -63,6 +70,7 @@ begin
    {read the stroke data - should be the rest of the file }
    length := filesize(input) - filepos(input);
    getmem(charbuffer,length+1);
+   charbufflen := length + 1;
    blockread(input,charbuffer^, length, read);
 
    {ok font should be loaded close the file!}

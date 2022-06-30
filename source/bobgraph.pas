@@ -7,7 +7,13 @@
 
 unit bobgraph;
 interface
+
+{$IFNDEF CGA}
+{normal uses}
 uses pgs,map,crt,bsound, cga, vga;
+{$ELSE}
+uses pgs,map,crt,bsound,cga;
+{$ENDIF}
 
 procedure startgraphics;
 procedure clearviewport;
@@ -146,6 +152,7 @@ var
    i	   : integer;
    b       : boolean;
 begin
+   {$IFNDEF CGA}
    paging := false;
    if graphicsMode>3 then graphicsMode:=2;
    if graphicsMode=mCGA then
@@ -182,23 +189,40 @@ begin
       loadpack('gdata.lrp');
       b := vga.setdrawmode(0);
    end;
+   {$ELSE}
+   paging:=false;
+   graphicsMode := mCGA;
+   initcga;
+   CGAPalette(2,0);
+   b := cga.setdrawmode(1);
+   loadpack('gdata.cga');
+   b := cga.setdrawmode(0);   
+   {$ENDIF}
 end;
 
 function iSize(x,y : integer):word;
 begin
+   {$IFNDEF CGA}
    iSize := 0;
    case graphicsmode of
      mCGA : iSize := cga.imagesize(x,y);
      mVGA : iSize := vga.imagesize(x,y);
    end;
+   {$ELSE}
+   isize := cga.imagesize(x,y);
+   {$ENDIF}
 end;
 
 procedure clearviewport;
 begin
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : cga.cls;
      mVGA : vga.cls;
    end;
+   {$ELSE}
+   cga.cls;
+   {$ENDIF}
 end;
 
 procedure showscreen;
@@ -234,7 +258,9 @@ end;
 
 procedure easydraw(c,i:integer);
 begin
+   {$IFNDEF CGA}
    adjustcoords(c,i);
+   {$ENDIF}
    draw(c*10,i*10,0,objectat(c,i));
    if objectat(c,i) = 0 then
    begin
@@ -251,12 +277,15 @@ end;
 
 procedure spritedraw(x,y,ob:integer; putt:word);
 begin
+   {$IFNDEF CGA}
    adjustcoords(x,y);
+   {$ENDIF}
    draw(x,y,putt,ob);
 end;
 
 procedure line(x,y,x2,y2,c:integer);
 begin
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : begin
 	       cgaUIColour(c);
@@ -274,10 +303,15 @@ begin
 		y2 := y2 shl 1;
 	     end;
    end;
+   {$ELSE}
+   cgaUIColour(c);
+   cga.line(x,y,x2,y2,c);
+   {$ENDIF}
 end;
 
 procedure bar(x,y,x2,y2,c:integer);
 begin
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : begin
 	       cgaUIColour(c);
@@ -295,11 +329,16 @@ begin
 		y2 := y2 shl 1;
 	     end;
    end;
+   {$ELSE}
+   cgaUIColour(c);
+   cga.filledBox(x,y,x2,y2,c);
+   {$ENDIF}   
 end;
 
 procedure save(x,y,width,height	: integer);
 begin
    if (isSaved) then freemem(saved, memSize);
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : begin
 	       sx:=x;
@@ -361,15 +400,33 @@ begin
 		{cga.getImage(x,y,(x+width),(y+width), saved);}
 	    end;
    end;
+   {$ELSE}
+   sx:=x;
+   sy:=y;
+   isSaved := true;
+   memSize := cga.imageSize(width+1,height+1);
+   if memsize>maxavail then
+   begin
+      textscreen;
+      writeln('out of memory');
+      halt(0);
+   end;
+   getmem(saved,memSize);
+   cga.getImage(x,y,(x+width),(y+height), saved);
+   {$ENDIF}
 end; { save }
 
 procedure restore;
 begin
    if not(issaved) then exit;
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : cga.putimage(sx,sy,saved);
      mVGA : vga.putimage(sx,sy,saved);
    end;
+   {$ELSE}
+   cga.putimage(sx,sy,saved);
+   {$ENDIF}
    freemem(saved,memSize);
    issaved:=false;
 end; { restore }
@@ -470,6 +527,7 @@ end;
 
 begin
    graphicsMode:=2;
+   paging := false;
    size:=0;
    issaved:=false;
 end.

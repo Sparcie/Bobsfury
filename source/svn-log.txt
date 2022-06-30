@@ -1,4 +1,45 @@
 ------------------------------------------------------------------------
+r154 | andrew | 2022-06-26 01:56:01 +1000 (Sun, 26 Jun 2022) | 6 lines
+
+Fixed a serious bug where the game would cause a crash in the next bit of software run (whatever it is)
+It was caused by incorrectly coding the exit procedures in the graphics libraries. Basically once an exitproc is in the chain it
+should not remove itself before the program termination process, otherwise it will break the chain and some exit procedure won't be run which will cause problems for the next program to run. Especially if interrupts are left in place.
+
+This commit fixes that bug by remaking the exit procedures for CGA, VGA and VESA (even though it's not used yet)
+Some other minor changes are included but aren't significant.
+------------------------------------------------------------------------
+r153 | andrew | 2022-06-21 16:10:18 +1000 (Tue, 21 Jun 2022) | 7 lines
+
+Added compiler conditional definition that can be set to compile for less hardware support.
+XT - changes a message to reflect being compile for a different target (in future will do more)
+CGA - compiles in only CGA graphics support.
+noAdlib - removes the adlib sound support.
+
+add the appropriate /D to the compiler command line for the desired results, probably also a good idea
+to add /B to build all files.
+------------------------------------------------------------------------
+r152 | andrew | 2022-06-13 15:45:50 +1000 (Mon, 13 Jun 2022) | 4 lines
+
+Some work on the VESA unit.
+- rewriting the filled box routine in ASM, seems to have a bug around the vesa granule/window edge.
+
+
+------------------------------------------------------------------------
+r151 | andrew | 2022-06-07 23:44:51 +1000 (Tue, 07 Jun 2022) | 6 lines
+
+Some behaviour correction for projectiles and a minor change to VGA.PAS to reduce stack use.
+Most changes were in VESA.PAS where I've been working on the VESA graphics implementation.
+- most Functions work in some capacity except the XOR image drawing (XOR needs to be implemented)
+- filledBox needs to be re-written in assembly, partly to fix drawing over the window boundaries
+- Line drawing is using putPixel, it needs to be changed to write directly to memory instead for speed.
+It's not yet ready for including as a valid graphics mode, but shouldn't take much longer.
+------------------------------------------------------------------------
+r150 | andrew | 2022-06-05 21:12:41 +1000 (Sun, 05 Jun 2022) | 3 lines
+
+Added VESA unit, which is presently incomplete. Trying to figure out the best way of drawing images to the screen near the borders of the windows to video memory.
+
+
+------------------------------------------------------------------------
 r149 | andrew | 2022-04-06 12:24:01 +1000 (Wed, 06 Apr 2022) | 1 line
 
 Made some minor changes to correct the behaviour of grenades, elevators and the status bar (after exiting the menu)

@@ -7,13 +7,19 @@ unit pgs; {pack graphics system for lrs and hrs files packed using packer.pas
 {modified in 2022 to move away from the BGI to my own graphics libraries}
 
 interface
+{$IFNDEF CGA}
 uses buffer,vga, cga;
+{$ELSE}
+uses buffer,cga;
+{$ENDIF}
 
 procedure loadpack(name: string);
-procedure initega;
 procedure initcga;
+{$IFNDEF CGA}
+procedure initega;
 procedure initvga;
 procedure initvesa;
+{$ENDIF}
 procedure textscreen;
 procedure draw(x,y:integer;puttype:word;image:integer);
 procedure unloadpack;
@@ -105,6 +111,7 @@ begin
    graphicsmode := mCGA;
 end;
 
+{$IFNDEF CGA}
 procedure initega;
 begin
    writeln('EGA not implemented yet');
@@ -125,10 +132,12 @@ begin
    halt(0);
    inited:=true;
 end;
+{$ENDIF}
 
 procedure draw(x,y:integer; puttype:word;image:integer);
 begin
    if not(loaded and (image <=number) and (image>0) ) then exit;
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : begin
 	      case puttype of
@@ -143,6 +152,12 @@ begin
 	      end;
 	   end;
    end;
+   {$ELSE}
+   case puttype of
+     copyput	: cga.putImage(x,y,pic[image]);
+     xorput	: cga.putImageXor(x,y,pic[image]);
+   end;
+   {$ENDIF}
 end;
 
 procedure loadImageRLE(var r : reader; var box:bounds);
@@ -161,10 +176,14 @@ begin
 	    data := ord(r.readchar);
 	    count := ord(r.readchar);
 	 end;
+	 {$IFNDEF CGA}
 	 case graphicsmode of
 	   mCGA : cga.putpixel(i,c,data);
 	   mVGA : vga.putpixel(i,c,data);
 	 end;
+	 {$ELSE}
+	 cga.putpixel(i,c,data);
+	 {$ENDIF}
 	 if data>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -194,11 +213,14 @@ begin
       begin
 	 if ((i>0) or (c>0)) then
 	    a:= r.readChar;
+	 {$IFNDEF CGA}
 	 case graphicsmode of
 	   mCGA : cga.putpixel(i,c,ord(a));
 	   mVGA : vga.putpixel(i,c,ord(a));
 	 end;
-
+	 {$ELSE}
+	 cga.putpixel(i,c,ord(a));
+	 {$ENDIF}
 	 if ord(a)>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -232,6 +254,7 @@ begin
 	 loadImageRaw(imf,box);
 	 new(boundbox[num]);
 	 boundbox[num]^:=box;
+	 {$IFNDEF CGA}
 	 case graphicsmode of
 	   mCGA : begin
 		    picsize[num] := cga.imagesize(ssx,ssy);
@@ -244,6 +267,11 @@ begin
 		    vga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
 	 end;
+	 {$ELSE}
+	 picsize[num] := cga.imagesize(ssx,ssy);
+	 getmem(pic[num],picsize[num]);
+	 cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
+	 {$ENDIF}
 	 num:=num+1;
       end;
       imf.close;
@@ -267,10 +295,14 @@ end;
 procedure textscreen;
 begin
    if not(inited) then exit;
+   {$IFNDEF CGA}
    case graphicsmode of
      mCGA : cga.shutdown;
      mVGA : vga.shutdown;
    end;
+   {$ELSE}
+   cga.shutdown;
+   {$ENDIF}
 end;
 
 begin
