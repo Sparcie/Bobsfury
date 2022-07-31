@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r155 | andrew | 2022-07-31 23:51:38 +1000 (Sun, 31 Jul 2022) | 3 lines
+
+Added a build for the XT executable, so a special download can be made for it.
+
+
+------------------------------------------------------------------------
 r154 | andrew | 2022-06-26 01:56:01 +1000 (Sun, 26 Jun 2022) | 6 lines
 
 Fixed a serious bug where the game would cause a crash in the next bit of software run (whatever it is)
