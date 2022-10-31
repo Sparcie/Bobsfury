@@ -8,7 +8,7 @@ unit pgs; {pack graphics system for lrs and hrs files packed using packer.pas
 
 interface
 {$IFNDEF CGA}
-uses buffer,vga, cga;
+uses buffer,vga, cga, vesa;
 {$ELSE}
 uses buffer,cga;
 {$ENDIF}
@@ -128,8 +128,8 @@ end;
 
 procedure initvesa;
 begin
-   writeln('VESA not implemented yet');
-   halt(0);
+   vesa.init;
+   graphicsmode := mVESA;
    inited:=true;
 end;
 {$ENDIF}
@@ -149,6 +149,12 @@ begin
 	      case puttype of
 		copyput	: vga.putImage(x,y,pic[image]);
 		xorput	: vga.putImageXor(x,y,pic[image]);
+	      end;
+	   end;
+     mVESA : begin
+	       case puttype of
+		 copyput : vesa.putImage(x,y,pic[image]);
+		 xorput	 : vesa.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
    end;
@@ -178,8 +184,9 @@ begin
 	 end;
 	 {$IFNDEF CGA}
 	 case graphicsmode of
-	   mCGA : cga.putpixel(i,c,data);
-	   mVGA : vga.putpixel(i,c,data);
+	   mCGA	 : cga.putpixel(i,c,data);
+	   mVGA	 : vga.putpixel(i,c,data);
+	   mVESA : vesa.putpixel(i,c,data);
 	 end;
 	 {$ELSE}
 	 cga.putpixel(i,c,data);
@@ -217,6 +224,7 @@ begin
 	 case graphicsmode of
 	   mCGA : cga.putpixel(i,c,ord(a));
 	   mVGA : vga.putpixel(i,c,ord(a));
+	   mVESA : vesa.putpixel(i,c,ord(a));
 	 end;
 	 {$ELSE}
 	 cga.putpixel(i,c,ord(a));
@@ -266,6 +274,11 @@ begin
 		    getmem(pic[num],picsize[num]);
 		    vga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   mVESA : begin
+		    picsize[num] := vesa.imagesize(ssx,ssy);
+		    getmem(pic[num],picsize[num]);
+		    vesa.getimage(0,0,ssx-1,ssy-1,pic[num]);
+		 end;
 	 end;
 	 {$ELSE}
 	 picsize[num] := cga.imagesize(ssx,ssy);
@@ -297,8 +310,9 @@ begin
    if not(inited) then exit;
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA : cga.shutdown;
-     mVGA : vga.shutdown;
+     mCGA  : cga.shutdown;
+     mVGA  : vga.shutdown;
+     mVESA : vesa.shutdown;
    end;
    {$ELSE}
    cga.shutdown;

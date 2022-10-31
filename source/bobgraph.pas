@@ -10,7 +10,7 @@ interface
 
 {$IFNDEF CGA}
 {normal uses}
-uses pgs,map,crt,bsound, cga, vga;
+uses pgs,map,crt,bsound, cga, vga, vesa;
 {$ELSE}
 uses pgs,map,crt,bsound,cga;
 {$ENDIF}
@@ -205,8 +205,9 @@ begin
    {$IFNDEF CGA}
    iSize := 0;
    case graphicsmode of
-     mCGA : iSize := cga.imagesize(x,y);
-     mVGA : iSize := vga.imagesize(x,y);
+     mCGA  : iSize := cga.imagesize(x,y);
+     mVGA  : iSize := vga.imagesize(x,y);
+     mVESA : iSize := vesa.imagesize(x,y);
    end;
    {$ELSE}
    isize := cga.imagesize(x,y);
@@ -217,8 +218,9 @@ procedure clearviewport;
 begin
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA : cga.cls;
-     mVGA : vga.cls;
+     mCGA  : cga.cls;
+     mVGA  : vga.cls;
+     mVESA : vesa.cls;
    end;
    {$ELSE}
    cga.cls;
@@ -301,6 +303,7 @@ begin
 		y := y shl 1;
 		x2 := x2 shl 1;
 		y2 := y2 shl 1;
+		vesa.line(x,y,x2,y2,c);
 	     end;
    end;
    {$ELSE}
@@ -327,6 +330,7 @@ begin
 		y := y shl 1;
 		x2 := x2 shl 1;
 		y2 := y2 shl 1;
+		vesa.filledBox(x,y,x2,y2,c);
 	     end;
    end;
    {$ELSE}
@@ -366,7 +370,7 @@ begin
 		  halt(0);
 	       end;
 	       getmem(saved,memSize);
-	       vga.getImage(x,y,(x+width),(y+height), saved);
+	       vga.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
      mEGA : begin
 	       sx:=x shl 1;
@@ -381,7 +385,7 @@ begin
 		  halt(0);
 	       end;
 	       getmem(saved,memSize);
-	       {cga.getImage(x,y,(x+width),(y+width), saved);}
+	       {cga.getImage(sx,sy,(sx+width),(sy+height), saved);}
 	    end;
      mVESA : begin
 		sx:=x shl 1;
@@ -389,7 +393,7 @@ begin
 		width := width shl 1;
 		height := height shl 1;
 		isSaved := true;
-		{memSize := cga.imageSize(width+1,height+1);}
+		memSize := vesa.imageSize(width+1,height+1);
 		if memsize>maxavail then
 		begin
 		   textscreen;
@@ -397,7 +401,7 @@ begin
 		   halt(0);
 		end;
 		getmem(saved,memSize);
-		{cga.getImage(x,y,(x+width),(y+width), saved);}
+		vesa.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
    end;
    {$ELSE}
@@ -421,8 +425,9 @@ begin
    if not(issaved) then exit;
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA : cga.putimage(sx,sy,saved);
-     mVGA : vga.putimage(sx,sy,saved);
+     mCGA  : cga.putimage(sx,sy,saved);
+     mVGA  : vga.putimage(sx,sy,saved);
+     mVESA : vesa.putimage(sx,sy,saved);
    end;
    {$ELSE}
    cga.putimage(sx,sy,saved);

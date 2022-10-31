@@ -17,7 +17,7 @@ will work but with inconsistent performance at normal speed. Setting the game sp
 improve this. Any 286 and faster should work fine.
 
 If you are running on a slow machine and are experiencing slow down, there are a couple of options.
-Some graphics modes are slower than others. The speed of the modes from slowest to fastest is: VESA/SVGA, EGA, VGA, CGA.
+Some graphics modes are slower than others. The speed of the modes from slowest to fastest is: VESA/SVGA, EGA, CGA, VGA.
 Lesser graphics modes also use less memory which is useful on machines with less RAM.
 
 The game supports Adlib, PC speaker and the OPLxLPT devices which you can select with command line options.  
@@ -33,7 +33,7 @@ what is currently used.
 
 I have done some testing on real hardware, but since what I have is extremely limited I can't guarantee
 it will work perfectly on your system. Dosbox works quite well with pretty much the default settings. If you
-have a problem please report a bug by posting a comment on my blog.
+have a problem please report a bug by posting a comment on my blog or raising an issue here.
 
 If you have problems try a different sound device or disable doubling the PIT speed.
 
@@ -48,8 +48,7 @@ on 8088 and 8086 class machines.
 
 Some things I don't plan on changing.
  - I'm not going to add smooth scrolling. It would be too big a change to the code base and wouldn't be
-   faithful to the QBasic original. Although I am now considering re-writing much of the graphics support
-   for better performance.
+   faithful to the QBasic original. I'm currently re-writing the graphics code, just have EGA left to do.
  - I'm not going to add digitised Sound blaster sound. I am considering adding CMS support but it's not planned
    at this stage.
 

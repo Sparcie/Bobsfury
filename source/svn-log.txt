@@ -1,4 +1,32 @@
 ------------------------------------------------------------------------
+r160 | andrew | 2022-10-28 13:21:45 +1100 (Fri, 28 Oct 2022) | 2 lines
+
+Updated the readme a bit to reflect the current state of things.
+
+------------------------------------------------------------------------
+r159 | andrew | 2022-10-28 13:00:11 +1100 (Fri, 28 Oct 2022) | 3 lines
+
+removing un-needed graphics for a music tool I never used or finished and changed the default config to standard vga graphics.
+
+
+------------------------------------------------------------------------
+r158 | andrew | 2022-10-16 15:56:17 +1100 (Sun, 16 Oct 2022) | 1 line
+
+Upgraded to VESA to allow it to function with more graphic cards. It can now handle the window size and granule size being different. There is still some more work to do, and some cards may require a VBE TSR driver such as univbe.
+------------------------------------------------------------------------
+r157 | andrew | 2022-10-14 22:30:43 +1100 (Fri, 14 Oct 2022) | 3 lines
+
+Completion of the XOR drawing in the VESA library. Also fixed some bugs.
+The game seems to play ok in high resolution mode now.
+The level editor has a problem with saving and restoring screen area as it's bigger than a 64k image so I'll need to work around that.
+------------------------------------------------------------------------
+r156 | andrew | 2022-10-07 09:02:09 +1100 (Fri, 07 Oct 2022) | 4 lines
+
+Adding VESA support into the game, it's still experimental and there are some bugs to squish.
+
+image routines don't seem to switch bank correctly when it's required part-way through a row.
+causes issues with drawing in general.
+------------------------------------------------------------------------
 r155 | andrew | 2022-07-31 23:51:38 +1000 (Sun, 31 Jul 2022) | 3 lines
 
 Added a build for the XT executable, so a special download can be made for it.
