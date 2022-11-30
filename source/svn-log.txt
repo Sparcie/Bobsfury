@@ -1,4 +1,8 @@
 ------------------------------------------------------------------------
+r161 | andrew | 2022-11-03 22:30:10 +1100 (Thu, 03 Nov 2022) | 1 line
+
+Fixed exit procedure on Vesa unit, not sure how I missed this one.
+------------------------------------------------------------------------
 r160 | andrew | 2022-10-28 13:21:45 +1100 (Fri, 28 Oct 2022) | 2 lines
 
 Updated the readme a bit to reflect the current state of things.

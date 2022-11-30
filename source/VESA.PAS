@@ -79,6 +79,15 @@ var
    grancount : word;    {the number of granules}
    cgran     : word; {The current granule the window is set to}
 
+
+{$f+}
+procedure newexitproc;
+begin
+   shutdown;
+   exitproc:= exitsave;
+end;
+{$f-}
+
 {code to work out which granule a screen co-ordinate is in.}
 function granule(x,y : word; var ofs: word): word;
 begin
@@ -160,7 +169,7 @@ begin
      end;
      inited := true;
      exitSave := exitproc;
-     exitproc := @shutdown;
+     exitproc := @newexitproc;
 end;
 
 procedure cls;
@@ -191,7 +200,6 @@ end;
 
 {$endif}
 
-{$f+}
 {shutdown procedure - return to text mode}
 procedure shutdown;
 begin
@@ -220,9 +228,8 @@ begin
      {$endif}
 
      inited := false;
-     exitproc := exitsave;
 end;
-{$f-}
+
 
 {basic drawing stuff - lines and boxes}
 
