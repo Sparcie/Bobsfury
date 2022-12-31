@@ -1,4 +1,18 @@
 ------------------------------------------------------------------------
+r163 | andrew | 2022-12-31 14:11:11 +1100 (Sat, 31 Dec 2022) | 4 lines
+
+fixed issue in editing utility. Using cheat menu while testing a level would crash the editor in high resolution mode 
+because it couldn't alocate a large enough space to save the screen area to memory.
+Changed the editor so that it redraws the screen rather than saving the displayed area to the heap. 
+
+------------------------------------------------------------------------
+r162 | andrew | 2022-12-30 16:58:28 +1100 (Fri, 30 Dec 2022) | 4 lines
+
+Modified ega and cga conversion utilities to no longer use the BGI.
+- debug information that was displayed isn't any more - perhaps need to re-add it in a reasonable way.
+
+
+------------------------------------------------------------------------
 r161 | andrew | 2022-11-03 22:30:10 +1100 (Thu, 03 Nov 2022) | 1 line
 
 Fixed exit procedure on Vesa unit, not sure how I missed this one.

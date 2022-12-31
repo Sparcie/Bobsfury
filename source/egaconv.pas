@@ -7,14 +7,19 @@
 
 program egaconv;
 
-uses pgs, palette, graph, gpack;
+uses pgs, palette, vga, gpack;
 
 var
    translation	: array[0..15,0..15] of word;
    sx,sy	: integer;
    num, current	: integer;
    s		: string;
-   
+
+function getPixel(x,y : word):byte;
+begin
+   getPixel := mem[$A000 : x + (y*320)];
+end;
+
 
 procedure clearTranslation;
 var
@@ -164,7 +169,7 @@ begin
       writeln('usage:egaconv infile outfile');
       halt(0);
    end;
-   lowres;
+   initVGA;
    loadpack(paramstr(1));
    clearTranslation;
    num := spriteCount;

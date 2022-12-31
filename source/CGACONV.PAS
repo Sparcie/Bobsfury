@@ -7,7 +7,7 @@
 
 program cgaconv;
 
-uses pgs, palette, graph, crt, gpack;
+uses pgs, palette, vga, gpack;
 
 var
    sx,sy	: integer;
@@ -18,6 +18,11 @@ var
    cgapal	: array[1..3,1..3] of byte;
    cn		: array[0..3] of byte; {colour neighbour counts}
    s		: string;
+
+function getPixel(x,y : word):byte;
+begin
+   getPixel := mem[$A000 : x + (y*320)];
+end;
 
 procedure clearTranslation;
 var
@@ -174,18 +179,14 @@ var
    s	  : string;
    a	  : char;
 begin
-   moveTo(0,80);
-   bar(0,80,319,199); {clear display}
+   filledBox(0,80,319,199,0); {clear display}
    
    {convert the first three colours - if there are three!}
    i:=0;
    c := nextColour;
    while ((c>0) and (i<3)) do
    begin
-      setColor(c);
       translation[c] := nearestCGAColour(c);
-      str(translation[c],s);
-      outtext(s+' ');
       cgaused[translation[c]] := true;
       c:= nextColour;
       inc(i);
@@ -208,9 +209,6 @@ begin
 	    bnc:=i;
 	 end;
       end;
-      setColor(c);
-      str(bnc,s);
-      outtext(s+' ');
       translation[c] := bnc;
       c:=nextColour;
    end;
@@ -247,13 +245,12 @@ begin
    for i:= 1 to 255 do
       if colcount[i]>0 then inc(c);
    if c<4 then exit;
-   setFillStyle(solidfill,0);
    for i:= 1 to 255 do
       for c:= 1 to 255 do
 	 if ((colcount[c]>0) and (colcount[i]>0) and (i<>c)) then
 	 begin
 	    d:= paldistance(c,i);
-	    str(d,s);
+	    {str(d,s);
 	    bar(40,40,300,70);
 	    setColor(3);
 	    outtextxy(40,40,'d:'+s);
@@ -263,7 +260,7 @@ begin
 	    str(c,s);
 	    setColor(c);
 	    outtextxy(40,60,'c:'+s);
-	    {while not(keypressed) do ;
+	    while not(keypressed) do ;
 
             while keypressed do a:=readkey;}
 	    if d<10 then
@@ -343,7 +340,7 @@ begin
       writeln('usage:cgaconv infile outfile');
       halt(0);
    end;
-   lowres;
+   initVGA;
    initCGAPAL;
    loadpack(paramstr(1));
    clearTranslation;

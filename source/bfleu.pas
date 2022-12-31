@@ -1,7 +1,6 @@
 {bob's fury level maker A Danson 2000}
 { math co-pro emulation and use turned off}
 {$R-} {range checking off}
-{$G+} {80286 instructions}
 {$M 16384,0,655360} {memory}
 
 {if you want a slim editor without the tester define notest}
@@ -118,7 +117,6 @@ begin
    bar(0,185,30,195,0);
    str(ob, s);
    textxy(5,185,4,1,s);
-
 end;
 
 procedure easydraw(c,i:integer);
@@ -381,7 +379,9 @@ var
 begin
    while keypressed do
       c:= readkey;
-   bobgraph.save(0,0,260,100);
+   {bobgraph.save(0,0,260,100);}
+   engine.hideMonsters;
+   clearanims;
    {display the list of options for cheating!}
    bar(0,0,260,100,9);
    bar(1,1,259,99,1);
@@ -418,8 +418,12 @@ begin
 	   done:= true;
 	end;
       end;
-   end;   
-   restore;
+   end;
+   clearviewport;
+   bobgraph.showscreen;
+   drawPlayer;
+   drawAllBullets;
+   {restore;}
 end;
 {$endif}
 
