@@ -1,4 +1,22 @@
 ------------------------------------------------------------------------
+r166 | andrew | 2023-01-31 22:53:24 +1100 (Tue, 31 Jan 2023) | 6 lines
+
+Starting work on the EGA code module.
+- Only a few graphics functions are implemented, line drawing, pixels, circles and filled boxes
+- What I have written is in pure pascal and has not been optimised yet - only filled boxes is currently faster than BGI
+- still have image operations left to do.
+
+The BGI code for 16 colour EGA graphics is pretty darn fast! I imagine it will be difficult for me to even achieve speed parity for some operations. Fortunately I believe that my code will eventually be faster for images and filled boxes, but that is yet to be seen. 
+------------------------------------------------------------------------
+r165 | andrew | 2023-01-11 09:04:46 +1100 (Wed, 11 Jan 2023) | 1 line
+
+Fixed bug in progress bar for VGA, the function which copies from the back buffer wasn't disabling itself when the buffer isn't created. Affects machines with low memory and the conversion utilities.
+------------------------------------------------------------------------
+r164 | andrew | 2023-01-10 23:20:27 +1100 (Tue, 10 Jan 2023) | 2 lines
+
+I've added a progress bar for when the game is loading the graphics, this is mostly to provide feedback on machines that are slow
+to load the graphics so you know it has not crashed.
+------------------------------------------------------------------------
 r163 | andrew | 2022-12-31 14:11:11 +1100 (Sat, 31 Dec 2022) | 4 lines
 
 fixed issue in editing utility. Using cheat menu while testing a level would crash the editor in high resolution mode 

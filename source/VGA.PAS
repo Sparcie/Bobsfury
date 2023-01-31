@@ -642,6 +642,7 @@ var
 begin
    if checkBounds(x,y) then exit;
    if checkBounds(x+sizex-1,y+sizey-1) then exit;
+   if mode = 0 then exit;
    if dir then
    begin
       sseg:= cardseg;

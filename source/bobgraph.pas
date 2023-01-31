@@ -177,6 +177,12 @@ begin
 	 zeropal[i,1] :=0;
 	 zeropal[i,2] :=0;
       end;
+      for i:= 0 to 15 do {set some colours so we can draw the progress bar}
+      begin
+	 zeropal[255-i,0] := stdpal[i,0];
+	 zeropal[255-i,1] := stdpal[i,1];
+	 zeropal[255-i,2] := stdpal[i,2];
+      end;
       initvesa;
       setPalette(zeropal);
       loadpack('gdata.hrp');

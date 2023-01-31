@@ -238,7 +238,32 @@ begin
 	 end;
       end;   
 end;
-			 
+
+procedure drawProgressBar(current, total : integer);
+var
+   percent : real;
+begin
+   percent := (current / total) * 320;
+   {$IFNDEF CGA}
+   case graphicsmode of
+     mCGA  : begin
+		cga.filledBox(0,180, trunc(percent), 185, 1);
+		cga.copySegment(0,179,319,6, false);
+	    end;
+     mVGA  : begin
+		vga.filledBox(0,180, trunc(percent), 185, 9);
+		vga.copySegment(0,179,319,6, false);
+	    end;
+     mVESA : begin
+		vesa.filledBox(0,370, trunc(percent * 2), 380, 246);
+	     end;
+   end;
+   {$ELSE}
+   cga.filledBox(0,180, trunc(percent), 185, 1);
+   cga.copySegment(0,179,319,6, false);
+   {$ENDIF}
+end;
+					 
 procedure loadpack(name:string);
        var imf			  : reader;
 	  a			  : char;
@@ -285,6 +310,7 @@ begin
 	 getmem(pic[num],picsize[num]);
 	 cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 	 {$ENDIF}
+	 drawProgressBar(num,number);
 	 num:=num+1;
       end;
       imf.close;
