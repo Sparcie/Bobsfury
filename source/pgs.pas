@@ -8,7 +8,7 @@ unit pgs; {pack graphics system for lrs and hrs files packed using packer.pas
 
 interface
 {$IFNDEF CGA}
-uses buffer,vga, cga, vesa;
+uses buffer,vga, cga, vesa, ega;
 {$ELSE}
 uses buffer,cga;
 {$ENDIF}
@@ -114,9 +114,9 @@ end;
 {$IFNDEF CGA}
 procedure initega;
 begin
-   writeln('EGA not implemented yet');
-   halt(0);
+   ega.init;
    inited:=true;
+   graphicsmode := mEGA;
 end;
 
 procedure initvga ;
@@ -143,6 +143,12 @@ begin
 	      case puttype of
 		copyput	: cga.putImage(x,y,pic[image]);
 		xorput	: cga.putImageXor(x,y,pic[image]);
+	      end;
+	   end;
+     mEGA : begin
+	      case puttype of
+		copyput	: ega.putImage(x,y,pic[image]);
+		xorput	: ega.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
      mVGA : begin
@@ -184,9 +190,10 @@ begin
 	 end;
 	 {$IFNDEF CGA}
 	 case graphicsmode of
-	   mCGA	 : cga.putpixel(i,c,data);
-	   mVGA	 : vga.putpixel(i,c,data);
-	   mVESA : vesa.putpixel(i,c,data);
+	   mCGA	: cga.putpixel(i,c,data);
+	   mEGA	: ega.putpixel(i,c,data);
+	   mVGA	: vga.putpixel(i,c,data);
+	   mVESA: vesa.putpixel(i,c,data);
 	 end;
 	 {$ELSE}
 	 cga.putpixel(i,c,data);
@@ -222,7 +229,8 @@ begin
 	    a:= r.readChar;
 	 {$IFNDEF CGA}
 	 case graphicsmode of
-	   mCGA : cga.putpixel(i,c,ord(a));
+	   mCGA	: cga.putpixel(i,c,ord(a));
+	   mEGA	: ega.putpixel(i,c,ord(a));
 	   mVGA : vga.putpixel(i,c,ord(a));
 	   mVESA : vesa.putpixel(i,c,ord(a));
 	 end;
@@ -249,6 +257,9 @@ begin
      mCGA  : begin
 		cga.filledBox(0,180, trunc(percent), 185, 1);
 		cga.copySegment(0,179,319,6, false);
+	    end;
+     mEGA  : begin
+		ega.filledBox(0,180, trunc(percent), 185, 1);
 	    end;
      mVGA  : begin
 		vga.filledBox(0,180, trunc(percent), 185, 9);
@@ -294,6 +305,11 @@ begin
 		    getmem(pic[num],picsize[num]);
 		    cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   mEGA : begin
+		    picsize[num] := ega.imagesize(ssx,ssy);
+		    getmem(pic[num],picsize[num]);
+		    ega.getimage(0,0,ssx-1,ssy-1,pic[num]);
+		 end;
 	   mVGA : begin
 		    picsize[num] := vga.imagesize(ssx,ssy);
 		    getmem(pic[num],picsize[num]);
@@ -336,9 +352,10 @@ begin
    if not(inited) then exit;
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA  : cga.shutdown;
-     mVGA  : vga.shutdown;
-     mVESA : vesa.shutdown;
+     mCGA : cga.shutdown;
+     mEGA : ega.shutdown;
+     mVGA : vga.shutdown;
+     mVESA: vesa.shutdown;
    end;
    {$ELSE}
    cga.shutdown;

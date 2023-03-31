@@ -1,4 +1,23 @@
 ------------------------------------------------------------------------
+r169 | andrew | 2023-03-24 23:51:16 +1100 (Fri, 24 Mar 2023) | 4 lines
+
+Bug fix for line drawing (missing start pixel under certain conditions)
+and bug fix with trailing byte mask on image drawing.
+
+Still have a bug in the image drawing I have not resolved.
+------------------------------------------------------------------------
+r168 | andrew | 2023-03-17 00:33:27 +1100 (Fri, 17 Mar 2023) | 2 lines
+
+Fixed line drawing where the first co-ordinate is closer to the bottom left than the second co-ord.
+One visual glitch down!
+------------------------------------------------------------------------
+r167 | andrew | 2023-03-16 08:56:22 +1100 (Thu, 16 Mar 2023) | 4 lines
+
+worked on the EGA unit, have added all the functions implemented in pascal. They are still buggy and don't display properly.
+Getting and Drawing images have visual and memory issues (where getting an image slightly overruns the buffer!!! Also display of images misses part of the right hand side.) lines of small length do not draw, and narrow filledboxes don't draw under some circumstances.
+
+This still needs quite a bit more work.
+------------------------------------------------------------------------
 r166 | andrew | 2023-01-31 22:53:24 +1100 (Tue, 31 Jan 2023) | 6 lines
 
 Starting work on the EGA code module.

@@ -10,7 +10,7 @@ interface
 
 {$IFNDEF CGA}
 {normal uses}
-uses pgs,map,crt,bsound, cga, vga, vesa;
+uses pgs,map,crt,bsound, cga, vga, vesa, ega;
 {$ELSE}
 uses pgs,map,crt,bsound,cga;
 {$ENDIF}
@@ -211,9 +211,10 @@ begin
    {$IFNDEF CGA}
    iSize := 0;
    case graphicsmode of
-     mCGA  : iSize := cga.imagesize(x,y);
-     mVGA  : iSize := vga.imagesize(x,y);
-     mVESA : iSize := vesa.imagesize(x,y);
+     mCGA : iSize := cga.imagesize(x,y);
+     mEGA : iSize := ega.imagesize(x,y);
+     mVGA : iSize := vga.imagesize(x,y);
+     mVESA: iSize := vesa.imagesize(x,y);
    end;
    {$ELSE}
    isize := cga.imagesize(x,y);
@@ -224,9 +225,10 @@ procedure clearviewport;
 begin
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA  : cga.cls;
-     mVGA  : vga.cls;
-     mVESA : vesa.cls;
+     mCGA : cga.cls;
+     mEGA : ega.cls;
+     mVGA : vga.cls;
+     mVESA: vesa.cls;
    end;
    {$ELSE}
    cga.cls;
@@ -303,6 +305,7 @@ begin
      mEGA  : begin
 		x := x shl 1;
 		x2 := x2 shl 1;
+		ega.line(x,y,x2,y2,c);
 	     end;
      mVESA : begin
 		x := x shl 1;
@@ -330,6 +333,7 @@ begin
      mEGA  : begin
 		x := x shl 1;
 		x2 := x2 shl 1;
+		ega.filledBox(x,y,x2,y2,c);
 	     end;
      mVESA : begin
 		x := x shl 1;
@@ -383,7 +387,7 @@ begin
 	       sy:=y;
 	       width := width shl 1;
 	       isSaved := true;
-	       {memSize := cga.imageSize(width+1,height+1);}
+	       memSize := ega.imageSize(width+1,height+1);
 	       if memsize>maxavail then
 	       begin
 		  textscreen;
@@ -391,7 +395,7 @@ begin
 		  halt(0);
 	       end;
 	       getmem(saved,memSize);
-	       {cga.getImage(sx,sy,(sx+width),(sy+height), saved);}
+	       ega.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
      mVESA : begin
 		sx:=x shl 1;
@@ -431,9 +435,10 @@ begin
    if not(issaved) then exit;
    {$IFNDEF CGA}
    case graphicsmode of
-     mCGA  : cga.putimage(sx,sy,saved);
-     mVGA  : vga.putimage(sx,sy,saved);
-     mVESA : vesa.putimage(sx,sy,saved);
+     mCGA : cga.putimage(sx,sy,saved);
+     mEGA : ega.putimage(sx,sy,saved); 
+     mVGA : vga.putimage(sx,sy,saved);
+     mVESA: vesa.putimage(sx,sy,saved);
    end;
    {$ELSE}
    cga.putimage(sx,sy,saved);
