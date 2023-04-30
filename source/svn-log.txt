@@ -1,4 +1,18 @@
 ------------------------------------------------------------------------
+r171 | andrew | 2023-04-26 23:45:54 +1000 (Wed, 26 Apr 2023) | 4 lines
+
+Converted the inner most data copy routine to assembly within the putImage and putImageXOR ( copyToScreen )
+
+Seems to have significantly increased performance of image copying, by about 3 times!
+more optimisations to follow!
+------------------------------------------------------------------------
+r170 | andrew | 2023-04-12 23:56:24 +1000 (Wed, 12 Apr 2023) | 4 lines
+
+I think I found the last glitch in the EGA image code. Essentially the trailing byte of pixel data could need to be written over
+two bytes under specific conditions. I didn't take this into account, and some of the pixels could be cut off if there wasn't room in the first byte
+
+This solution isn't elegant there is probably room to make it better.
+------------------------------------------------------------------------
 r169 | andrew | 2023-03-24 23:51:16 +1100 (Fri, 24 Mar 2023) | 4 lines
 
 Bug fix for line drawing (missing start pixel under certain conditions)

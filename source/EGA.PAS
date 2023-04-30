@@ -458,36 +458,67 @@ end;
 
 {copies a monochrome buffer to the screen, use registers to set which plane and bitmasks }
 {written in pascal to be upgraded to assembly}
-procedure copyToScreen(tofs, bseg, bofs, bwidth, rwidth, rows : word);
-var
-   i, c	 : word;
-   dummy : byte;
-begin
-   for c:= 1 to rows do
-   begin
-      for i:= 1 to rwidth do
-      begin
-	 dummy := mem[cardseg:tofs];
-	 mem[cardseg:tofs] := mem[bseg:bofs];
-         dummy := mem[bseg:bofs];
-	 inc(tofs);
-	 inc(bofs);
-      end;
-      tofs := tofs - rwidth + 80; {adjust screen ofset}
-      bofs := bofs - rwidth + bwidth; {adjust buffer ofset}
-   end;
-end;				
+procedure copyToScreen(tofs, bseg, bofs, bwidth, rwidth, rows : word); assembler;
+asm
+{ ES:DI - source data from buffer
+  DS:SI - target on screen
+  AX - dummy read register
+  CX - loop counter - width
+  DX - loop counter - rows}
+   push ds
+   {load segment and index registers}
+   mov ax, bseg
+   mov es, ax
+   mov ax, bofs
+   mov di, ax
+   mov ax, cardseg
+   mov ds, ax
+   mov ax, tofs
+   mov si, ax
+   mov cx, rwidth
+   mov dx, rows
+   {validate the counters (0 is invalid)}
+   cmp cx, 0
+   jz @skip
+   cmp dx, 0
+   jz @skip
+
+@loop:
+   {inner loop - do ega draw for CX bytes}
+   mov al, [ds : si] {dummy read to load latch}
+   mov al, [es : di] {get buffer data}
+   mov [ds : si], al {put buffer data to EGA}
+   inc si
+   inc di
+   loop @loop
+   {outer loop portion - repeat for number of rows}
+   {adjust ofsets for next row}
+   add si, 80
+   sub si, rwidth
+   add di, bwidth
+   sub di, rwidth
+   {reset CX counter}
+   mov cx, rwidth
+   { check outer loop condition}
+   dec dx
+   jnz @loop
+
+@skip:
+   {loop done! restore data segment and return}
+   pop ds
+end;			
 
 {puts an image to the screen, is a direct copy}
 procedure putImage(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word; { buffer pointer}
-   tofs        : word; { target ofset and current ofset}
+   tofs	       : word; { target ofset and current ofset}
    sizex,sizey : word; { sizes}
    bwidth      : word; { width of the buffer }
    bheight     : word; { height of the buffer in pixels}
    rwidth      : word; { width of section to copy }
-   maskS,maskE : byte; { mask for begining and end}
+   maskS       : byte; { mask for begining }
+   maskE       : word; { mask for trailing byte(s) }
    plane       : byte; { the current plane we are drawing to }
 begin
    if checkEBounds(x,y) then exit;
@@ -507,7 +538,7 @@ begin
    setMode(0);  { drawing write mode 0 }
    setDataFunc( x and $7 ); { set up rotate to line up data with where we are drawing }
    maskS := leadmask[ x and $7]; 
-   maskE := trailMask[ (sizex - 1) and $7 ] shr (x and $7);  
+   maskE := swap(trailMask[ (sizex - 1) and $7 ]) shr (x and $7);  
 
    for plane := 0 to 3 do
    begin
@@ -525,12 +556,18 @@ begin
       end;
 
       {draw trailing data if any}
-      if maskE <> 0 then
+      if hi(maskE) <> 0 then
       begin
-	 setBitMask(maskE);
+	 setBitMask(hi(maskE));
 	 copyToScreen( tofs + rwidth , bseg, bofs + rwidth , bwidth, 1, sizey);
       end;
 
+      if lo(maskE) <> 0 then
+      begin
+	 setBitMask(lo(maskE));
+	 copyToScreen( tofs + rwidth + 1 , bseg, bofs + rwidth , bwidth, 1, sizey);
+      end;
+      
       bofs := bofs + ( bwidth * bheight);
    end;
    
@@ -543,12 +580,13 @@ end;
 procedure putImageXOR(x,y : word; bitmap : pointer);
 var
    bseg,bofs   : word; { buffer pointer}
-   tofs        : word; { target ofset and current ofset}
+   tofs	       : word; { target ofset and current ofset}
    sizex,sizey : word; { sizes}
    bwidth      : word; { width of the buffer }
    bheight     : word; { height of the buffer in pixels}
    rwidth      : word; { width of section to copy }
-   maskS,maskE : byte; { mask for begining and end}
+   maskS       : byte; { mask for begining }
+   maskE       : word; { mask for trailing byte(s) }
    plane       : byte; { the current plane we are drawing to }
 begin
    if checkEBounds(x,y) then exit;
@@ -568,7 +606,7 @@ begin
    setMode(0);  { drawing write mode 0 }
    setDataFunc( $18 or (x and $7) ); { set up rotate to line up data with where we are drawing }
    maskS := leadmask[ x and $7]; 
-   maskE := trailMask[ (sizex - 1) and $7 ] shr (x and $7);  
+   maskE := swap(trailMask[ (sizex - 1) and $7 ]) shr (x and $7);  
 
    for plane := 0 to 3 do
    begin
@@ -586,10 +624,16 @@ begin
       end;
 
       {draw trailing data if any}
-      if maskE <> 0 then
+      if hi(maskE) <> 0 then
       begin
-	 setBitMask(maskE);
+	 setBitMask(hi(maskE));
 	 copyToScreen( tofs + rwidth , bseg, bofs + rwidth , bwidth, 1, sizey);
+      end;
+
+      if lo(maskE) <> 0 then
+      begin
+	 setBitMask(lo(maskE));
+	 copyToScreen( tofs + rwidth + 1 , bseg, bofs + rwidth , bwidth, 1, sizey);
       end;
 
       bofs := bofs + ( bwidth * bheight);
