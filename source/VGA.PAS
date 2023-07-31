@@ -120,51 +120,102 @@ end;
 {line drawing routine, using bresenhams line algorithm}
 procedure line(x,y,x1,y1: word; c: byte);
 var
-   count,xs,ys,xm,ym:integer;
-   cx,cy: word;
+   xs,ys,xm,ym:integer;
+   ofs        : word;
 begin
     if checkBounds(x,y) then exit;
-    if checkBounds(x1,y1) then exit;    
-    cx := x; cy := y * 320;
-   xs := x1; ys := y1;
-    xs := xs - x; ys := ys - y;
+    if checkBounds(x1,y1) then exit;
+
+    if (x>x1) then
+    begin
+       swapW(x, x1);
+       swapW(y, y1);
+    end;
+
+    ofs := x + (y *320) + targofs; 
+   
+    xs := x1 - x; ys := y1 - y;
 
     xm:= sign(xs); ym := sign(ys) * 320;
     xs := abs(xs); ys := abs(ys);
 
-    mem[targseg:targofs + cx + cy] := c;
+    mem[targseg: ofs] := c;
+
+    {skip line drawing if it's zero length}
     if (x=x1) and (y=y1) then exit;
 
     if xs > ys then
     begin
-        count := -(xs shr 1);
-        while (cx <> x1) do
-        begin
-            count := count + ys;
-            cx:= cx + xm;
-            if count>0 then
-            begin
-                 cy:=cy+ym;
-                 count := count - xs;
-            end;
-            mem[targseg:targofs + cx + cy] := c;
-        end;
+       { Registers for asm section }
+       { ES:DI - pointer to pixel we're drawing }
+       { AX - bresenham error variable }
+       { BL - colour we are drawing }
+       { CX - number of pixels to draw in the line }
+       asm
+           {set up the various registers}
+           {start with segment/ofset}
+           mov ax,targseg
+           mov es, ax
+           mov di, ofs
+           {load colour register}
+           mov bl, c
+           {load pixel count}
+           mov cx, xs
+           {load error variable}
+           xor ax, ax
+           sub ax, xs
+           sar ax, 1
+
+       @xstart:
+           {move a pixel right (we always go left to right)}
+           inc di
+           {adjust error variable and check if we need to change rows}
+           add ax, ys
+           cmp ax, 0
+           jl @xdrawpixel
+           {update error and change rows}
+           sub ax, xs
+           add di, ym
+       @xdrawpixel:
+           mov [es:di], bl
+           loop @xstart
+       end;
     end
     else
     begin
-         count := -(ys shr 1);
-         y1 := y1 * 320;
-         while (cy <> y1) do
-         begin
-             count := count + xs;
-             cy := cy + ym;
-             if count>0 then
-             begin
-                  cx:=cx + xm;
-                  count := count - ys;
-             end;
-             mem[targseg: targofs + cx + cy] := c;
-         end;
+       {Registers for asm section }
+       { ES:DI - pointer to pixel being drawn }
+       { AX - bresenham error section }
+       { BL - colour to be drawn }
+       { CX - number of pixels to draw }
+       asm
+           { set up registers - starting with segment and ofset }
+           mov ax, targseg
+           mov es, ax
+           mov di, ofs
+           { colour }
+           mov bl, c
+           { pixel count }
+           mov cx, ys
+           { load error register}
+           xor ax, ax
+           sub ax, ys
+           sar ax, 1
+
+       @ystart:
+           { move up/down a row }
+           add di, ym
+           { update error and check if we need to move horizontally }
+           add ax, xs
+           cmp ax, 0
+           jl @ydrawpixel
+           {update error and move horizontally}
+           sub ax, ys
+           add di, xm
+       @ydrawpixel:
+           mov [es:di], bl
+           loop @ystart
+       end;
     end;
 end; 
 

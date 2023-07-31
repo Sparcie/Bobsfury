@@ -1,4 +1,21 @@
 ------------------------------------------------------------------------
+r173 | andrew | 2023-07-12 23:36:47 +1000 (Wed, 12 Jul 2023) | 4 lines
+
+Optimised line drawing in VGA.pas as well, partly because it's an easy win.
+
+VGA should be significantly faster on low end hardware than CGA.
+
+------------------------------------------------------------------------
+r172 | andrew | 2023-07-12 16:27:15 +1000 (Wed, 12 Jul 2023) | 7 lines
+
+I found that line drawing is a slow point in the text drawing for CGA.
+I've re-written the CGA line drawing in pure assembly, with testing it has proved to
+be significantly faster than my old code (unsurprisingly)
+
+This should hopefully improve the game performance on XT machines when any text
+is updated during gameplay.
+
+------------------------------------------------------------------------
 r171 | andrew | 2023-04-26 23:45:54 +1000 (Wed, 26 Apr 2023) | 4 lines
 
 Converted the inner most data copy routine to assembly within the putImage and putImageXOR ( copyToScreen )

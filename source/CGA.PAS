@@ -152,58 +152,6 @@ end;
 
 {basic drawing stuff - lines and boxes}
 
-{line drawing routine, using bresenhams line algorithm}
-procedure line(x,y,x1,y1: word; c: byte);
-var
-   count,xs,ys,xm,ym : integer;
-   cx,cy             : word;
-begin
-    if checkBounds(x,y) then exit;
-    if checkBounds(x1,y1) then exit;
-  
-    cx := x; cy := y;
-    xs := x1 - x; ys := y1-y;
-
-    xm:= sign(xs); ym := sign(ys);
-    xs := abs(xs); ys := abs(ys);
-
-    putpixel(x,y,c);
-
-    if xs > ys then
-    begin
-        count := -(xs div 2);
-        while (cx <> x1) do
-        begin
-            count := count + ys;
-            cx:= cx + xm;
-            if count>0 then
-            begin
-                 cy:=cy+ym;
-                 count := count - xs;
-            end;
-            putpixel(cx,cy,c);
-            {mem[targseg:targofs + cx + cy] := c;}
-        end;
-    end
-    else
-    begin
-         count := -(ys div 2);
-         {y1 := y1 * 320;}
-         while (cy <> y1) do
-         begin
-             count := count + xs;
-             cy := cy + ym;
-             if count>0 then
-             begin
-                  cx:=cx + xm;
-                  count := count - ys;
-             end;
-             {mem[targseg: targofs + cx + cy] := c;}
-             putpixel(cx,cy,c);
-         end;
-    end;
-end;
-
 {this function takes a colour and returns a byte that would draw to all pixels in a byte}
 function fillByte( c: byte):byte; assembler;
 asm
@@ -224,6 +172,223 @@ asm
     or al, ah
  
     xor ah, ah 
+end;
+
+
+{line drawing routine, using bresenhams line algorithm}
+procedure line(x,y,x1,y1: word; c: byte);
+var
+   xs,ys,ym : integer;
+   ofs, nr  : word;
+begin
+    if checkBounds(x,y) then exit;
+    if checkBounds(x1,y1) then exit;
+
+    c := fillByte(c);
+   
+    {make the lines always left to right}
+    if (x1<x) then
+    begin
+       swapW(x,x1);
+       swapW(y,y1);
+    end;
+
+    {determine starting ofset}
+    ofs := (x shr 2) + ((y shr 1) * 80);
+    ofs := ofs + targofs; {add the offset for the target buffer}
+   
+    xs := x1 - x; ys := y1-y;
+
+    ym := sign(ys) * 80;
+    xs := abs(xs); ys := abs(ys);
+
+    {to move up/down a row we need to know whether to increment or decrement or just change bank}
+    { the nr (si register) stores what to do on the next row change, it contains ym or zero to add to the ofset }
+    { after moving a row we just xor ym into the register to know what to do next, but we need to determine}
+    { it's initial state: this next short segment determines it's initial state.} 
+   nr := 0; {initial state for sanity}
+   if (y and 1) = 1 then
+    begin {we're on the odd bank}
+       ofs := ofs + $2000; { we need to add this to the ofset to be in the correct bank}
+       if ym<0 then nr := 0; { going from odd to even (up) doesn't change ofset }
+       if ym>0 then nr := ym; { going from odd to even (down) does change ofset }
+    end
+    else
+    begin {we're on the even bank}
+       if ym<0 then nr := ym; {going from even to odd (up) does change ofset}
+       if ym>0 then nr := 0;  {going from even to odd (down) doesn't change ofset}
+    end;    
+   
+    if xs > ys then
+    begin
+       {assembly replacement of the line drawing segment.}
+       { ES:DI pointer to current draw location }
+       { SI - stores the amount we need to increment for the next row }
+       { AX - contains the error variable for bresenham }
+       { BH contains masking for the current pixel we're working on }
+       { CX contains current horizontal location }
+       { DL stores the current graphic byte from CGA memory }
+       { DH stores a copy of the colour (filling all pixels)}
+       asm
+           {set up the registers
+            first load the segment/offset }
+           mov ax, targseg
+           mov es, ax
+           mov di, ofs
+           {load our next row data}
+           mov si, nr
+           {initialise the mask for the current pixel location }
+           mov bh, $C0
+           mov cx, x
+           and cx, $3
+           jz @xskipshift
+       @xshift:
+           shr bh,1
+           shr bh,1
+           loop @xshift
+       @xskipshift:
+           {load the colour byte and byte from CGA }
+           mov dl,[ES:DI]
+           mov dh,c
+           {draw the first pixel into the byte loaded}
+           not bh      {invert the mask}
+           and dl, bh  {so we can mask out the pixel to draw into}
+           not bh      {restore the mask}
+           mov bl, dh  {load bl with the colour}
+           and bl, bh  {mask of the pixels we aren't drawing}
+           or dl, bl   {put the pixel data into the register storing the current byte}
+           { the byte won't be written back to the CGA until we change rows, finish the byte or the line }
+           { put the number of line pixels to draw in cx }
+           mov cx, xs
+           or cx, cx {check if the count is zero!}
+           jz @xskipline {skip line drawing if there are zero pixels to draw}
+           {initialise the count variable (it stores the error for the bresenham algorithm.)}
+           xor ax, ax
+           sub ax, xs
+           sar ax, 1
+
+           {the drawing loop }
+       @xstart:
+           {shift to the next pixel}
+           shr bh, 1 
+           shr bh, 1
+           {check if we've completed a byte}
+           jnz @xcheckrow {if we're part way through go to the row check}
+           {byte complete - write it back to the CGA and set up for the next byte}
+           mov [es:di], dl
+           inc di
+           mov dl, [es:di]
+           mov bh, $C0       
+       @xcheckrow:
+           {now we need to check if we need to move up/down a row}
+           add ax, ys
+           cmp ax, 0
+           jl @xaddpixel
+           {ok we need to move up/down a row}
+           mov [es:di], dl {write graphics byte back to cga}
+           {update ax (error number)}
+           sub ax, xs
+           {add enough bytes for a row}
+           add di, si {add the possible ofset change}
+           xor di, $2000 {change bank}
+           xor si, ym  {update the change register for next row (opposite of what it is now, either 0 or ym)}
+           mov dl, [es:di] {get the next graphics byte to update}
+       @xaddpixel:
+           {add a pixel to the byte stored in dl}
+           not bh      {invert the mask}
+           and dl, bh  {so we can mask out the pixel to draw to}
+           not bh      {restore the mask}
+           mov bl, dh  {load bl with the colour byte}
+           and bl, bh  {mask of pixels we aren't drawing}
+           or dl, bl   {put the pixel data into the register}
+           {figure out if we're finished.}
+           loop @xstart
+       @xskipline:
+           mov [ES:DI], dl {write the graphic byte in case it wasn't written}
+       end;
+    end
+    else
+    begin
+       {assembly replacement of mostly vertical line drawing}
+       { ES:DI pointer to current draw location}
+       { SI - stores the amount we need to increment for the next row }
+       { AX - contains the error variable for bresenham }
+       { BH - contains masking for the current pixel }
+       { CX - contains the count of pixels vertically to draw }
+       { DL - stores the current graphic byte from CGA memory  }
+       { DH - stores a copy of the colour (filling all pixels) }
+       asm
+            {set up registers}
+            {load colour byte}
+            mov dh, c
+            {load pointer to first pixel}
+            mov ax, targseg
+            mov es, ax
+            mov di, ofs
+            {load the si register from nr}
+            mov si, nr
+            {initialise mask for current pixel location}
+            mov bh, $C0       
+            mov cx, x
+            and cx, $3
+            jz @yskipshift
+       @yshift:
+            shr bh, 1
+            shr bh, 1
+            loop @yshift
+       @yskipshift:
+            {initialise the ax error variable}
+            xor ax,ax
+            sub ax, ys
+            sar ax, 1
+            {load the count vertical pixels}
+            mov cx, ys
+            {draw the first pixel}
+            mov dl, [es:di] {load the data}
+            not bh          {invert mask}
+            and dl, bh      {mask pixels we aren't drawing}
+            not bh          {restore mask}
+            mov bl, dh      {copy the colour byte}
+            and bl, bh      {mask the colour byte}
+            or dl, bl       {add colour to pixel we're drawing}
+            mov [es:di], dl {write back to the CGA}
+            {check if the line length is zero (and skip!)}
+            or cx,cx {update flags}
+            jz @yskipline {skip if amount is zero}
+            
+       @ystart:
+            {adjust the error variable}
+            add ax, xs
+            {go to next row up or down}
+            add di, si {adjust ofset if needed}
+            xor di, $2000 {switch bank}
+            xor si, ym {update the change register for next row (opposite of it's current state, either 0 or ym) }
+       
+            {check if we need to move right one pixel}
+            cmp ax,0
+            jl @ydrawpixel
+            {move right a pixel}
+            sub ax, ys {update error value}
+            {shift the mask}
+            shr bh, 1
+            shr bh, 1
+            jnz @ydrawpixel
+            mov bh, $C0 {if we've moved to the next byte}
+            inc di
+       @ydrawpixel:
+            {having updated things draw the pixel.}
+            mov dl, [es:di] {get byte from CGA}
+            not bh          {invert mask}
+            and dl, bh      {mask off pixel to draw}
+            not bh          {restore mask}
+            mov bl, dh      {copy colour byte}
+            and bl, bh      {mask colour data for pixel}
+            or dl, bl       {add colour data to pixel being drawn}
+            mov [es:di], dl {write byte back to CGA}
+            loop @ystart    {loop if we have more to draw}
+       @yskipline:
+       end;
+    end;
 end;
 
 {filled box routine}
