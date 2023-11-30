@@ -8,7 +8,7 @@ program bob;  {this is almost Bob's fury yah!}
 
 {$M 16384,0,655360} {memory}
 
-uses bobgraph, bfont,engine,bsound,bconfig,bmenu,llist,map,pitdbl;
+uses bobgraph, bfont,engine,bsound,bconfig,bmenu,llist,map,pitdbl,bsystem;
 
 var
    avail,min : longint;
@@ -156,4 +156,12 @@ begin
    writeln(min);
    write('Max free cycles ');
    writeln(maxcycle);
+   write('Graphics detected ');
+   case detectGraphics of
+     5 : writeln('VESA');
+     4 : writeln('VGA');
+     3 : writeln('EGA');
+     2 : writeln('CGA');
+     1 : writeln('Hercules');
+   end;
 end.

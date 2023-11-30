@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r175 | andrew | 2023-11-27 22:41:08 +1100 (Mon, 27 Nov 2023) | 1 line
+
+Had a minor problem in the CGA detection code (used incorrect port), this has been fixed and tested under emulation.
+------------------------------------------------------------------------
+r174 | andrew | 2023-11-26 15:41:53 +1100 (Sun, 26 Nov 2023) | 3 lines
+
+Implemented line drawing in VESA mode using x86 assembly - seems to work ok.
+
+and added video card detection - so it doesn't attempt to use graphics mode that doesn't work on the machine.
+------------------------------------------------------------------------
 r173 | andrew | 2023-07-12 23:36:47 +1000 (Wed, 12 Jul 2023) | 4 lines
 
 Optimised line drawing in VGA.pas as well, partly because it's an easy win.

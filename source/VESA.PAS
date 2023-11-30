@@ -12,7 +12,7 @@ This unit works with overflow checking off, there will be errors if it's turned 
  }
 
 {the following define adds debug information on exit}
-{$define vesadebug}
+{ define vesadebug}
 
 unit vesa;
 
@@ -78,7 +78,6 @@ var
    incrate   : word; { the number of granules per window - can be more than one }   
    grancount : word;    {the number of granules}
    cgran     : word; {The current granule the window is set to}
-
 
 {$f+}
 procedure newexitproc;
@@ -225,6 +224,7 @@ begin
      writeln('bank count ',hexify(mode.bankCount));
      writeln('memory model ',hexify(mode.memoryModel));
      writeln('pages ',hexify(mode.pages));
+     writeln('increment rate ', incrate);
      {$endif}
 
      inited := false;
@@ -238,17 +238,23 @@ end;
 procedure line(x,y,x1,y1: word; c: byte);
 var
    count,xs,ys,xm,ym : integer;
-   cx,cy             : word;
    gran, ofs         : word;
 begin
     if checkVBounds(x,y) then exit;
     if checkVBounds(x1,y1) then exit;
+    { ensure that the lines always go from top to bottom }
+    if (y>y1) then
+    begin
+       swapW(x,x1);
+       swapW(y,y1);
+    end;
+  
     gran := granule(x,y,ofs);
     if not(cgran=gran) then setWindow(gran);
-    cx := x; cy := y;
+
     xs := x1 - x; ys := y1 - y;
 
-    xm:= sign(xs); ym := sign(ys);
+    xm:= sign(xs); ym := sign(ys) * 640;
     xs := abs(xs); ys := abs(ys);
 
     mem[cardseg:ofs] := c;
@@ -256,36 +262,183 @@ begin
 
     if xs > ys then
     begin
-	count := -(xs shr 1);
-	while (cx <> x1) do
-	begin
-	    count := count + ys;
-	    cx:= cx + xm;
-	    if count>0 then
-	    begin
-		 cy:=cy+ym;
-		 count := count - xs;
-	    end;
-	    {mem[cardseg:ofs] := c;}
-	    putpixel(cx,cy,c);
-	end;
+       asm
+          {assembly line drawing section }
+          { ES:DI is the pointer to where we are currently drawing }
+          { AX is the count variable for bresenhams alg.}
+          { BL is the colour }
+          { SI delta for the address }
+          { CX is the number of pixels to draw in the line }
+          { DX is the granule boundary (point where granules change) }
+          {load segment/ofset registers}
+          mov ax, cardseg
+          mov es, ax
+          mov di, ofs
+          {load the colour}
+          mov bl, c
+          {load the pixel count}
+          mov cx, xs
+          {load granule edge}
+          mov dx,winsize
+          {load the count variable}
+          xor ax,ax
+          sub ax, xs
+          sar ax, 1
+
+       @xstart:
+          {adjust count variable}
+          add ax, ys
+          {set initial value of delta}
+          mov si, xm
+          {check if count requires changing row}
+          cmp ax, 0
+          jle @xstayrow
+          add si, ym
+          sub ax, xs
+       @xstayrow:      
+          { determine if we need to change granule based on the delta }
+          { it can go either way! up or down! }
+          { the delta will be either greater or smaller than zero, but not zero }
+          cmp si, 0
+          jl @xnegdelta
+          { check the window when our delta is increasing }
+          {add the delta to the address}
+          add di, si
+          {calculate value which if bellow we need to change window}
+          add si, dx
+          cmp di, si      {compare current location}       
+          jae @xdraw       {jump if bank switch not needed}
+          {change windows}
+          push ax
+          push bx
+          push dx
+	  mov ax, $4F05
+	  xor bx, bx
+	  mov dx, gran
+	  add dx, incrate
+	  mov gran, dx
+	  int $10
+          pop dx
+	  pop bx
+	  pop ax
+	  sub di, winsize
+          jmp @xdraw
+       @xnegdelta:
+          {check the window when our delta is decreasing}
+          add di, si
+          add si, dx {calculate value to check against}
+          cmp di, si
+          jbe @xdraw
+          {change windows}
+          push ax
+          push bx
+          push dx
+	  mov ax, $4F05
+	  xor bx, bx
+	  mov dx, gran
+	  sub dx, incrate
+	  mov gran, dx
+	  int $10
+          pop dx
+	  pop bx
+	  pop ax
+	  sub di, winsize
+       @xdraw:
+          { ok we should be right to draw the pixel }
+          mov [es:di], bl {draw the pixel}
+          loop @xstart   {loop for next one}     
+       end;
     end
     else
     begin
-	 count := -(ys shr 1);
-	 while (cy <> y1) do
-	 begin
-	     count := count + xs;
-	     cy := cy + ym;
-	     if count>0 then
-	     begin
-		  cx:=cx + xm;
-		  count := count - ys;
-	     end;
-	     {mem[cardseg:ofs] := c;}
-	     putpixel(cx,cy,c);
-	 end;
+       asm
+          {assembly line drawing section }
+          { ES:DI is the pointer to where we are currently drawing }
+          { AX is the count variable for bresenhams alg.}
+          { BL is the colour }
+          { SI delta for the address }
+          { CX is the number of pixels to draw in the line }
+          { DX is the granule boundary (point where granules change) }
+          {load segment/ofset registers}
+          mov ax, cardseg
+          mov es, ax
+          mov di, ofs
+          {load the colour}
+          mov bl, c
+          {load the pixel count}
+          mov cx, ys
+          {load granule edge}
+          mov dx,winsize
+          {load the count variable}
+          xor ax,ax
+          sub ax, ys
+          sar ax, 1
+
+       @ystart:
+          {adjust count variable}
+          add ax, xs
+          {set initial value of delta}
+          mov si, ym
+          {check if count requires changing row}
+          cmp ax, 0
+          jle @ystayrow
+          add si, xm
+          sub ax, ys
+       @ystayrow:      
+          { determine if we need to change granule based on the delta }
+          { it can go either way! up or down! }
+          { the delta will be either greater or smaller than zero, but not zero }
+          cmp si, 0
+          jl @ynegdelta
+          { check the window when our delta is increasing }
+          {add the delta to the address}
+          add di, si
+          {calculate value which if bellow we need to change window}
+          add si, dx
+          cmp di, si      {compare current location}       
+          jae @ydraw       {jump if bank switch not needed}
+          {change windows}
+          push ax
+          push bx
+          push dx
+	  mov ax, $4F05
+	  xor bx, bx
+	  mov dx, gran
+	  add dx, incrate
+	  mov gran, dx
+	  int $10
+          pop dx
+	  pop bx
+	  pop ax
+	  sub di, winsize
+          jmp @ydraw
+       @ynegdelta:
+          {check the window when our delta is decreasing}
+          add di, si
+          add si, dx {calculate value to check against}
+          cmp di, si
+          jbe @ydraw
+          {change windows}
+          push ax
+          push bx
+          push dx
+	  mov ax, $4F05
+	  xor bx, bx
+	  mov dx, gran
+	  sub dx, incrate
+	  mov gran, dx
+	  int $10
+          pop dx
+	  pop bx
+	  pop ax
+	  sub di, winsize
+       @ydraw:
+          { ok we should be right to draw the pixel }
+          mov [es:di], bl {draw the pixel}
+          loop @ystart   {loop for next one}     
+       end;
     end;
+    cgran := gran
 end; 
 
 {filled box routine}

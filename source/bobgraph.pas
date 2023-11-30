@@ -60,7 +60,7 @@ var
    
 implementation
 
-uses palette, vgapal;
+uses palette, vgapal, bsystem;
 
 type anim = record
    start  : boolean;
@@ -150,13 +150,20 @@ procedure startgraphics;
 var
    zeropal : paltype;
    i	   : integer;
-   b       : boolean;
+   b	   : boolean;
+   gcard   : byte;
 begin
    {$IFNDEF CGA}
+   gcard := detectGraphics;
    paging := false;
    if graphicsMode>3 then graphicsMode:=2;
    if graphicsMode=mCGA then
    begin
+      if gcard<2 then
+      begin
+	 writeln('CGA not supported on this machine');
+	 halt(0);
+      end;
       initcga;
       CGAPalette(2,0);
       b := cga.setdrawmode(1);
@@ -165,12 +172,22 @@ begin
    end;
    if graphicsMode=mEGA then
    begin
+      if gcard<3 then
+      begin
+	 writeln('EGA not supported on this machine');
+	 halt(0);
+      end;
       initega;
       paging := canPage;
       loadpack('gdata.ega');
    end;
    if  graphicsMode=mVESA then
    begin
+      if gcard<5 then
+      begin
+	 writeln('VESA BIOS extension not found');
+	 halt(0);
+      end;
       for i:= 0 to 255 do
       begin
 	 zeropal[i,0] :=0;
@@ -190,12 +207,23 @@ begin
    end;
    if graphicsmode=mVGA then
    begin
+      if gcard<4 then
+      begin
+	 writeln('VGA not supported on this machine');
+	 halt(0);
+      end;
       initvga;
       b := vga.setdrawmode(1);
       loadpack('gdata.lrp');
       b := vga.setdrawmode(0);
    end;
    {$ELSE}
+   gcard := detectGraphics;
+   if gcard<2 then
+   begin
+      writeln('CGA not supported on this machine');
+      halt(0);
+   end;
    paging:=false;
    graphicsMode := mCGA;
    initcga;
