@@ -700,6 +700,26 @@ begin
    {print if we are running on a 286}
    if is286 then textxy(190,10,4,9,'286+ processor');
 
+   s := '';
+   h := detectGraphics;
+   case h of
+     1 : s := 'Hercules';
+     2 : s := 'CGA';
+     3 : begin
+	    s:= 'EGA ';
+	    case EGAmem of
+	      0	: s:= s + '64k';
+	      1	: s:= s + '128k';
+	      2	: s:= s + '192k';
+	      3	: s:= s + '256k';
+	    end;
+	 end;
+     4 : s:= 'VGA';
+     5 : s:= 'VESA';
+   end;
+   s:= 'Graphics card:' + s;
+   textxy(180,20,4,9,s);
+   
    { find out what sound is detected and being used }
    {$ifndef noAdlib}
    t:=' Using ';
@@ -757,7 +777,10 @@ begin
    textxy(20,130,4,9,s);
 
    if paging then
-      textxy(20,140,4,9,'EGA page flipping enabled');
+      if graphicsmode = mEGA then
+	 textxy(20,140,4,9,'EGA page flipping enabled')
+      else
+	 textxy(20,140,4,9,'System memory back-buffer enabled');
 
    {determine the size and number of sprites}
    str(spriteCount,t);

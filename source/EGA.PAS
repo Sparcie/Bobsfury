@@ -29,6 +29,10 @@ procedure getImage(x,y,x1,y1 : word; bitmap : pointer);
 procedure putImage(x,y : word; bitmap : pointer);
 procedure putImageXOR(x,y : word; bitmap : pointer);
 
+{Page swapping/flipping support}
+procedure setVisualPage(p : byte);
+procedure setDrawingPage(p : byte);
+
 implementation
 
 uses fixed,gcommon;
@@ -45,15 +49,29 @@ const
    planes : array[0..3] of byte = ( $01, $02, $04, $08 );
    
 var
-   inited	   : boolean; {have we started the display?}
-   exitSave	   : pointer;
-   lastmode	   : byte;
+   inited   : boolean; {have we started the display?}
+   exitSave : pointer;
+   lastmode : byte;
+   pageofs  : word; {ofset to the current page we are drawing to - you need to be sure a page exists there}
    {this section stores what we've set EGA registers to (only ones I plan on using)}
    datafunc  : byte; {the rotate and alu function selected}
    readplane : byte; {the plane selected for reading data (read mode 0)}
    mode      : byte; {the read and write mode selection register}
    bitmask   : byte; {the bitmask register (selects which pixels to operate on)}
    planemask : byte; {selects which planes are active for writing}
+
+{use EGA BIOS to set the page we are displaying}
+procedure setVisualPage(p : byte); assembler;
+asm
+   mov ah, $05
+   mov al, p
+   int $10
+end;
+
+procedure setDrawingPage(p : byte);
+begin
+   pageofs := 16384 * p;
+end;
 
 {check if co-ordinates are on screen in vesa mode}
 function checkEBounds(x,y:word):boolean; assembler; {returns true on failure!}
@@ -162,7 +180,7 @@ begin
    setBitMask($FF);
    setDataFunc(0);
    setPlaneMask($F);
-   fillmem(cardseg, 0, 0, 16000);   
+   fillmem(cardseg, pageofs, 0, 16000);   
 end;
 
 {$f+}
@@ -205,100 +223,147 @@ begin
    
    xs := x1 - x; ys := y1-y;
 
-   xm:= sign(xs); ym := sign(ys) ;
+   xm:= sign(xs); ym := sign(ys) * 80 ;
    xs := abs(xs); ys := abs(ys);
 
    ofs := (x shr 3) + y * 80;
+   ofs := ofs + pageofs;
    mask := pixel[x and $7];
 
-   if xs >= ys then
+   {check for zero length lines}
+   if ((xs = 0) and (ys=0)) then
    begin
-      if xm < 0 then
-      begin
-	 {swap the co-ords so we draw left to right}
-	 swapW(x,x1);
-	 swapW(y,y1);
-	 ym := sign( y1 -y );
-         ofs := (x shr 3) + y * 80;
-	 mask := pixel[x and $7];
-      end;
       setbitMask(mask);
       dummy := mem[cardseg:ofs];
       mem[cardseg:ofs] := c;
-      cx := x; cy := y;
-      count := -(xs div 2);
-      while (cx < x1) do
-      begin
-	 count := count + ys;
-	 inc(cx);
-	 if count>0 then
-	 begin
-	    setBitmask(mask);
-	    dummy := mem[cardseg:ofs];
-	    mem[cardseg:ofs] := c;
-	    mask := 0;
-	    
-	    cy:=cy+ym;
-	    if ym>0 then
-	       ofs := ofs + 80
-	    else
-	       ofs := ofs - 80;
-	    count := count - xs;
-	 end;
-	 
-	 mask := mask or pixel[cx and $7];
-	 
-	 if (cx and 7) = 7 then
-	 begin
-	    setBitmask(mask);
-	    dummy := mem[cardseg:ofs];
-	    mem[cardseg:ofs] := c;
-	    mask := 0;
-	    inc(ofs);
-	 end;
+      exit;
+   end;
+
+   if xm < 0 then
+   begin
+      {swap the co-ords so we draw left to right}
+      swapW(x,x1);
+      swapW(y,y1);
+      ys := y1 -y;
+      ym := sign(ys) * 80;
+      ys := abs(ys);
+      xs := x1 - x;
+      xm := sign(xs);
+      xs := abs(xs);
+      ofs := (x shr 3) + y * 80;
+      ofs := ofs + pageofs;
+      mask := pixel[x and $7];
+   end;
+   
+   if xs >= ys then
+   begin
+      { register assignments for drawing lines ...
+      ES:DI - location of memory to modify
+      AH - current bitmask
+      AL - current bit for current pixel.
+      BX - error variable for drawing lines
+      CX - count of number of pixels
+      DX - $3CE for writing the bit mask }
+      asm
+         mov ax, cardseg
+         mov es, ax
+         mov di, ofs
+         mov ah, mask
+         mov al, ah
+         xor bx,bx
+         sub bx, xs
+         sar bx, 1
+         mov cx, xs
+         mov dx, $3CE
+
+      @xstart:
+         { add next pixel }
+         shr al, 1
+         jnc @xsamebyte
+         {need to draw the current byte - set bitmask and draw it}
+         mov al, 8
+         out dx, ax
+         mov al, [es:di] {dummy read}
+         mov al, c       {load colour from stack}
+         mov [es:di], al  {write colour}
+         mov ax, $8080    {set new start pixel}
+         inc di          {next byte}
+      @xsamebyte:
+         {check if we need to move up/down a row}
+         add bx, ys
+         cmp bx, 0
+         jl @xsamerow
+         {ok move a row - first draw the byte we have built.}
+         push ax
+         mov al, 8
+         out dx, ax
+         mov al, [es:di] {dummy read}
+         mov al, c       {get colour}
+         mov [es:di], al {write}
+         pop ax
+         mov ah,al       { restart building bitmask}
+         add di, ym      { move pointer }
+         sub bx, xs 
+      @xsamerow:
+         or ah, al {add the current bit to the bitmask we're building}
+         loop @xstart
+         {draw last byte }
+         mov al, 8
+         out dx, ax
+         mov al, [es:di]
+         mov al, c
+         mov [es:di], al
       end;
-      setBitmask(mask);
-      dummy := mem[cardseg:ofs];
-      mem[cardseg:ofs] := c;	 
    end
    else
    begin
-      if ym < 0 then
-      begin
-	 {swap the co-ords so we draw left to right}
-	 swapW(x,x1);
-	 swapW(y,y1);
-	 xm := sign( x1 - x);
-	 ofs := (x shr 3) + y * 80;
-	 mask := pixel[x and $7];
-      end;
-      setbitMask(mask);
-      dummy := mem[cardseg:ofs];
-      mem[cardseg:ofs] := c;
-      count := -(ys div 2);
-      cx := x; cy := y;
-      {y1 := y1 * 320;}
-      while (cy < y1) do
-      begin
-	 count := count + xs;
-	 inc(cy);
-	 ofs := ofs + 80;
-	 if count>0 then
-	 begin
-	    cx:=cx + xm;
-	    mask := pixel[cx and 7];
-	    setBitmask(mask);
-	    if ((xm<0) and ((cx and 7)=0)) then
-	       dec(ofs);
-	    if ((xm>0) and ((cx and 7)=7)) then
-	       inc(ofs);
-	    count := count - ys;
-	 end;
-	 
-	 dummy := mem[cardseg:ofs];
-	 mem[cardseg:ofs] := c;	 
+      { register assignments for vertical line drawing
+      ES:DI - pointer to where we are working
+        AH - current bit
+        BX - error variable for bresenhams
+        CX - count of number of pixels
+        DX - $3CE for writing bit mask to card }
+      asm
+         mov ax, cardseg
+         mov es, ax
+         mov di, ofs
+         mov ah, mask
+         xor bx,bx
+         sub bx, ys
+         sar bx, 1
+         mov cx, ys
+         mov dx, $3CE
+
+         {draw first pixel}
+         mov al, 8
+         out dx, ax {set bitmask}
+         mov al, [es:di] {dummy read}
+         mov al, c       {get colour}
+         mov [es:di], al {write colour}
+
+      @ystart:
+         {check if we need to move horizontally}
+         add bx, xs
+         cmp bx, 0
+         jl @ysamecolumn
+         {change column we're in}
+         sub bx, ys
+         shr ah, 1
+         jnc @ychangemask
+         inc di
+         mov ah, $80
+      @ychangemask:
+         mov al, 8
+         out dx, ax
+      @ysamecolumn:
+         add di, ym {move pointer to next row for drawing}
+         mov al, [es:di] {dummy read}
+         mov al, c {get colour}
+         mov [es:di], al {write colour}
+         loop @ystart
       end;
    end;
+   setbitMask(0);
 end;
 
 {filled box routine}
@@ -324,7 +389,7 @@ begin
 
    {first we're going to draw all the leading pixels in the box.}
    mask := leadmask[ x and $7 ];
-   ofs := (x shr 3) + y * 80;
+   ofs := (x shr 3) + (y * 80) + pageofs;
    {check if the width of the box is narrow, we might only need to draw using one byte}
    if ((x shr 3) = (x1 shr 3)) then
    begin
@@ -353,7 +418,7 @@ begin
    if (width>0) then
    begin
       setBitMask($FF); { we filling all the pixels in the byte }
-      ofs := ((x shr 3) + y * 80) + 1; {calculate ofset}
+      ofs := ((x shr 3) + y * 80) + 1 + pageofs; {calculate ofset}
       for row := y to y1 do
       begin
 	 for column := 1 to width do
@@ -371,7 +436,7 @@ begin
    mask := trailmask[x1 and $7];
    setBitMask(mask);
    {work out offset (in bytes)}
-   ofs := (x1 shr 3) + y * 80;
+   ofs := (x1 shr 3) + (y * 80) + pageofs;
 
    {draw the trailing edge}
    for row := y to y1 do
@@ -394,7 +459,7 @@ begin
    setBitMask(pixel[x and $7]);
    setDataFunc(0);
    setPlaneMask($F);
-   ofs := (x shr 3) + y * 80;
+   ofs := (x shr 3) + (y * 80) + pageofs;
    dummy := mem[cardseg: ofs]; {dummy read to load latch}
    mem[cardseg:ofs] := c;
 end;
@@ -439,7 +504,7 @@ begin
    for plane := 0 to 3 do
    begin
       setReadPlane(plane);
-      sofs := (x shr 3) + y * 80;
+      sofs := (x shr 3) + (y * 80) + pageofs;
       for c:= y to y1 do
       begin
 	 for i := 1 to rowsize do
@@ -528,7 +593,7 @@ begin
    sizey := memw[bseg:bofs+2];
    bheight := sizey;
    bofs := bofs + 4;
-   tofs := (x shr 3) + (y * 80);
+   tofs := (x shr 3) + (y * 80) + pageofs;
    bwidth := (sizex shr 3) + 1; {buffer width in bytes}
    if (x+sizex>639) then {check we're not going to draw off screen}
       sizex := 640-x;
@@ -596,7 +661,7 @@ begin
    sizey := memw[bseg:bofs+2];
    bheight := sizey;
    bofs := bofs + 4;
-   tofs := (x shr 3) + (y * 80);
+   tofs := (x shr 3) + (y * 80) + pageofs;
    bwidth := (sizex shr 3) + 1; {buffer width in bytes}
    if (x+sizex>639) then {check we're not going to draw off screen}
       sizex := 640-x;
@@ -696,6 +761,7 @@ begin
    exitproc := @newexitproc;
    {set values to something that will cause a port write when needed}
    datafunc := 0;
+   pageofs := 0;
    readplane := $FF;
    mode := $FF;
    bitmask := 0;

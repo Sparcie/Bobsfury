@@ -1,4 +1,15 @@
 ------------------------------------------------------------------------
+r177 | andrew | 2024-01-03 16:55:19 +1100 (Wed, 03 Jan 2024) | 3 lines
+
+I've re-added EGA pages and implemented a similar concept for CGA and VGA using system memory back buffer that's already in the hardware specific units..
+Information for this data is now shown on the secret debug screen 
+
+------------------------------------------------------------------------
+r176 | andrew | 2023-12-24 12:02:09 +1100 (Sun, 24 Dec 2023) | 2 lines
+
+re-wrote EGA line drawing in assembly - seems to work well, will need to do some performance testing.
+
+------------------------------------------------------------------------
 r175 | andrew | 2023-11-27 22:41:08 +1100 (Mon, 27 Nov 2023) | 1 line
 
 Had a minor problem in the CGA detection code (used incorrect port), this has been fixed and tested under emulation.

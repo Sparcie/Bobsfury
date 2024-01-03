@@ -27,7 +27,7 @@ var
    eppath:string;
 
 implementation 
-uses engine,crt,bsystem,buffer,huffdec;
+uses engine,bsystem,buffer,huffdec;
 
 type stringbunch  = array[1..100] of string[80];
    stringbunchptr = ^stringbunch;

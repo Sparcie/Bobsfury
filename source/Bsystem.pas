@@ -113,6 +113,7 @@ end;
 
 begin
    is286:=false;
+   EGAmem := 0;
    asm
      pushf
      pop bx

@@ -10,9 +10,9 @@ interface
 
 {$IFNDEF CGA}
 {normal uses}
-uses pgs,map,crt,bsound, cga, vga, vesa, ega;
+uses pgs,map,bsound, cga, vga, vesa, ega;
 {$ELSE}
-uses pgs,map,crt,bsound,cga;
+uses pgs,map,bsound,cga;
 {$ENDIF}
 
 procedure startgraphics;
@@ -72,6 +72,7 @@ end;
 var	   
    saved   : pointer; {saved bitmap}
    isSaved : boolean; {is the bitmap filled}
+   isPaged : boolean; {is there a copy of the game screen in the back buffer}
    sx,sy   : integer; {location of saved bitmap on screen}
    memSize : integer; {size of saved image}
    anims   : array[0..61] of anim;
@@ -98,18 +99,46 @@ end;
 
 procedure UIPage;
 begin
-   {
-   setActivePage(1);
-   setVisualPage(1);
-   }
+   {$IFNDEF CGA}
+   case graphicsmode of
+     mEGA : begin
+	       ega.setVisualPage(1);
+	       ega.setDrawingPage(1);
+	    end;
+     mCGA : begin
+	       if isPaged then exit;
+	       isPaged:= true;
+	       cga.copyToBuffer;
+	    end;
+     mVGA : begin
+	       if isPaged then exit;
+	       isPaged := true;
+	       vga.copyToBuffer;
+	    end;
+   end;
+   {$ENDIF}
 end; { UIPage }
 
 procedure GamePage;
 begin
-   {
-   setActivePage(0);
-   setVisualPage(0);
-   }
+   {$IFNDEF CGA}
+   case graphicsmode of
+     mEGA : begin
+	       ega.setDrawingPage(0);
+	       ega.setVisualPage(0);
+	    end;
+     mCGA : begin
+	       if not(isPaged) then exit;
+	       isPaged:=false;
+	       cga.copyToScreen;
+	    end;
+     mVGA : begin
+	       if not(isPaged) then exit;
+	       isPaged:=false;
+	       vga.copyToScreen;
+	    end;
+   end;
+   {$ENDIF}
 end; { GamePage }
 
 function collision(x,y,f,x2,y2,f2 :integer ):boolean;
@@ -122,28 +151,6 @@ end;
 function animCount:integer;
 begin
    animcount:=size;
-end;
-
-function canPage:boolean;
-var
-   i : integer;
-   c : byte;
-begin
-   canPage:=false; {haven't implemented EGA yet}
-   {c := random(16);
-   for i:=0 to 3 do
-   begin
-      setActivePage(i);
-      bar(90,90,110,110,c);
-      if not(getPixel(100,100) = c) then
-      begin
-	 canPage:=false;
-	 setActivePage(0);
-	 exit;
-      end;
-      bar(90,90,110,110,0);      
-   end;
-   setActivePage(2);}
 end;
 
 procedure startgraphics;
@@ -169,6 +176,7 @@ begin
       b := cga.setdrawmode(1);
       loadpack('gdata.cga');
       b := cga.setdrawmode(0);
+      if memavail > 59392 then paging := cga.setdrawmode(2);
    end;
    if graphicsMode=mEGA then
    begin
@@ -178,7 +186,8 @@ begin
 	 halt(0);
       end;
       initega;
-      paging := canPage;
+      paging := false;
+      if ((EGAmem>0) or (gcard>3)) then paging := true;
       loadpack('gdata.ega');
    end;
    if  graphicsMode=mVESA then
@@ -216,6 +225,7 @@ begin
       b := vga.setdrawmode(1);
       loadpack('gdata.lrp');
       b := vga.setdrawmode(0);
+      if memavail > 108544 then paging:= vga.setdrawmode(2);
    end;
    {$ELSE}
    gcard := detectGraphics;
@@ -574,4 +584,5 @@ begin
    paging := false;
    size:=0;
    issaved:=false;
+   isPaged:=false;
 end.
