@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r178 | andrew | 2024-01-08 18:45:19 +1100 (Mon, 08 Jan 2024) | 2 lines
+
+update to readme for binary release.
+
+------------------------------------------------------------------------
 r177 | andrew | 2024-01-03 16:55:19 +1100 (Wed, 03 Jan 2024) | 3 lines
 
 I've re-added EGA pages and implemented a similar concept for CGA and VGA using system memory back buffer that's already in the hardware specific units..
