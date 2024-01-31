@@ -4,7 +4,7 @@
 unit synthint;
 
 interface
-uses fmsynth,crt;
+uses fmsynth;
 type
     instrument = record {see adlib docs for details!} {1 is operator 1 and 2 is operator 2}
 		    mult1,mult2	: byte; {frequency multiplier and flags->  AM [7], vibrato [6],

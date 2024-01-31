@@ -1,4 +1,36 @@
 ------------------------------------------------------------------------
+r183 | andrew | 2024-01-21 22:24:11 +1100 (Sun, 21 Jan 2024) | 2 lines
+
+I've added the hardware info screen as a menu item to the settings screen.
+So end users can look at the details such as available memory.
+------------------------------------------------------------------------
+r182 | andrew | 2024-01-21 16:02:56 +1100 (Sun, 21 Jan 2024) | 9 lines
+
+Added functions to keyboard unit to read from the BIOS key buffer to replace those in the CRT unit.
+This was so I could remove the CRT unit from the game and save a small amount of memory.
+
+I still need to address the keyboard buffer overflow that can happen on the slowest of machines
+under some circumstances.
+
+I've also updated the readme a little more.
+
+
+------------------------------------------------------------------------
+r181 | andrew | 2024-01-21 01:30:53 +1100 (Sun, 21 Jan 2024) | 2 lines
+
+Corrected the choice of using a system memory backbuffer so that systems with low memory are more likely to work.
+It is possible to run with just under 200k conventional free (not recommended though)
+------------------------------------------------------------------------
+r180 | andrew | 2024-01-14 22:50:42 +1100 (Sun, 14 Jan 2024) | 3 lines
+
+Corrected behaviour when changing screens down, now it waits until you run out of upwards jump force (in case you were jumping up)
+
+also fixed some graphic issues in the level editor. added a few clearviewport commands where they were missing.
+------------------------------------------------------------------------
+r179 | andrew | 2024-01-10 21:39:30 +1100 (Wed, 10 Jan 2024) | 1 line
+
+Fixed a minor behavioural bug when transitioning up a screen.
+------------------------------------------------------------------------
 r178 | andrew | 2024-01-08 18:45:19 +1100 (Mon, 08 Jan 2024) | 2 lines
 
 update to readme for binary release.

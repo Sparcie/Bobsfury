@@ -17,7 +17,7 @@ procedure leveltitle(title : string);
 
 
 implementation
-uses bobgraph,bfont,engine,map,bsound,bsystem,crt,bjoy,keybrd,pgs,pitdbl
+uses bobgraph,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl
 {$ifndef noAdlib}
  ,fmplayer
 {$endif}
@@ -938,7 +938,8 @@ begin
       else textxy(40,90,4,9,'Joystick Unavailable');
       {textxy(40,100,4,9,'Calirate Joystick');}
       textxy(40,100,4,9,'Keyboard Control');
-      textxy(40,110,4,9,'Done');
+      textxy(40,110,4,9,'Hardware Info');
+      textxy(40,120,4,9,'Done');
       
       while not(keypressed) do checkSongChange;
       a:=readkey;
@@ -955,11 +956,11 @@ begin
 
       if (a=chr(13)) then
       begin
-	 if pos=8 then mdone:=true;
+	 if pos=9 then mdone:=true;
+	 if pos=8 then info;
 	 if pos=7 then customKeys;
 	 if ((pos=6) and joyavail) then joycal;
       end;
-      if (a='I') then info;
       if (a='S') then spriteTest;
       if (a=chr(27)) then mdone:=true;
       if (a=chr(0)) then
@@ -967,8 +968,8 @@ begin
 	 a:=readkey;
 	 if (a=chr(72)) then dec(pos);
 	 if (a=chr(80)) then inc(pos);
-	 if (pos=-1) then pos:=8;
-	 if (pos=9) then pos:=0;
+	 if (pos=-1) then pos:=9;
+	 if (pos=10) then pos:=0;
 	 
 	 {left key}
 	 if (a=chr(75)) then
@@ -1008,6 +1009,7 @@ begin
 	    end; 
 	    
 	    if pos=4 then soundo:=not(soundo);
+	    if pos=8 then info;
 	    
 	    {$ifndef noAdlib}
 	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
@@ -1026,6 +1028,7 @@ begin
 	       joycal;
 	    
 	    if (pos=7) then customkeys;
+	    if pos=8 then info;
 	    
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then

@@ -11,10 +11,14 @@ var
 function keyFace(sc : byte):string; {returns the name of the keyface matching the scan code}
 function lastKeyPressed:byte;      {returns the scancode of the last keypress}
 
-function pressed(k : byte):boolean;
-procedure clearKey(k : byte);
+function pressed(k : byte):boolean; {determines if a key in our scancode list is pressed }
+procedure clearKey(k : byte);       {set the state of a key in the scancode list to not pressed }
 
-procedure clearBIOSKeyBuffer;
+procedure clearBIOSKeyBuffer;  
+
+{replacements for CRT functions}
+function keypressed:boolean; { returns true if there are keys waiting in the BIOS key buffer }
+function readkey:char;       { returns a character from the BIOS key buffer }
 
 
 implementation
@@ -29,6 +33,7 @@ var
    keys	       : array[0..255] of boolean; {normal keys 0- 127 extended keys 128 - 255 }
    head	       : integer absolute $0040:$001A; 
    tail	       : integer absolute $0040:$001C;
+   bscancode   : byte; {BIOS scan code saved when the ascii value is 0}
 
 const
    key_faces: array[1..88] of string[12] =
@@ -52,6 +57,38 @@ const
    72   UP           (NOT KEYPAD)         111   MACRO
    73   PAGE UP      (NOT KEYPAD)
    }
+
+{replacements for CRT functions - from disassembly to behave the same}
+function keypressed:boolean; assembler; { returns true if there are keys waiting in the BIOS key buffer }
+asm
+   cmp bscancode, 0 {check if there was a non-ascii key}
+   jne @key         {return true if there was}
+   mov ah,01
+   int $16
+   mov al, 00
+   je @nokey
+@key:  
+   mov al, 01     
+@nokey:
+end;
+
+function readkey:char; assembler;       { returns a character from the BIOS key buffer }
+asm
+   mov al, bscancode {check if we need to return the value stored (if there was a non-ascii key)}
+   mov bscancode, 0  {clear the non-ascii stored key}
+   or al, al
+   jne @done         {jump to end to return the non-ascii key if there was one}
+   xor ah,ah      
+   int $16          {call keyboard interupt, al will contain the ascii character}  
+   or al, al        {check if there is an ascii code}
+   jne @done        {return the ascii code if there was one (jump to the end)}
+   mov bscancode, ah {save the scancode to be returned next call if the ascii code was $0 }
+   or ah,ah          {check if the scancode was 0}
+   jne @done
+   mov al, 03        {set the output to something else if the scancode was 0}
+@done:
+end;
+
 
 procedure clearBIOSKeyBuffer;
 begin
@@ -121,6 +158,10 @@ var
 begin
    key_in:= port[$60]; {grab the current scan code}
    scode := key_in and $7f;
+   Inline(                  {call old BIOS handler }
+          $9C/                   {pushf}
+	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
+   {now do my processing }
    if extended then
    begin
       keys[scode + 128] := key_in < 128;
@@ -138,9 +179,6 @@ begin
 	 extended:=true;
    end;
   
-   Inline(                  {call old BIOS handler }
-	  $9C/                   {pushf}
-	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
 end;
 
 {$F+}
@@ -161,4 +199,5 @@ begin
    for lastPressed:=0 to 255 do
       keys[lastPressed]:=false;
    lastpressed:=0;
+   bscancode := 0;
 end.

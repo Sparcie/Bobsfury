@@ -3,7 +3,7 @@
 unit engine;
 
  interface
-uses moveutil,map,bobgraph,bfont,crt,bsound,fixed,bjoy,keybrd,pitdbl,bsystem,quadtree;
+uses moveutil,map,bobgraph,bfont,bsound,fixed,bjoy,keybrd,pitdbl,bsystem,quadtree;
 type
    monsterob = object
      x,y,xloc,yloc,power,state:integer;{ on screen location, level location, health level and state machine state variable}
@@ -1951,7 +1951,7 @@ begin
       if (getspecial) then
       begin
 	 i := currentscreen;
-	 if ((y=150) and (getTier<getTierCount-1)) then
+	 if ((y=150) and (getTier<getTierCount-1) and (juf=0)) then
 	 begin
 	    nx := (x+3) div 10;
 	    ny := (x+6) div 10;
@@ -1964,7 +1964,7 @@ begin
 	       y:=0;
 	    end;	 
 	 end;         
-	 if ((y=0) and (juf>0) and (getTier>0)) then
+	 if ((y<=0) and (juf>0) and (getTier>0)) then
 	 begin
 	    nx := (x+3) div 10;
 	    ny := (x+6) div 10;

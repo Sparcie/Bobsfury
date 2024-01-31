@@ -11,7 +11,7 @@
 
 program levelmaker;
 
-uses map,crt,dos,bsystem, bobgraph, bfont, bsound
+uses map,keybrd,dos,bsystem, bobgraph, bfont, bsound
 {$ifndef notest},engine
 {$endif};
 
@@ -146,7 +146,7 @@ procedure showscreen;
 var i,c : integer;
    s,d	   : String[5];
 begin
-   bar(0,0,310,160,0);
+   clearviewport;
    line(0,161,311,161,7);
    line(311,0,311,161,7);
    i:=0;
@@ -307,14 +307,13 @@ begin
 	 if page = 6 then begin page:=5;new:=false; end;
       end;
    end;
-   clearviewport;
    showscreen;
 end;
 
 procedure load;
 var name:string;
 begin
-   bar(0,0,320,200,0);
+   clearviewport;
    textxy(0,0,4,9,'Type in the name of a map to load');
    listfiles;
    name:= ginput(0,8);
@@ -326,7 +325,7 @@ end;
 procedure save;
 var name :string;
 begin
-   bar(0,0,320,200,0);
+   clearviewport;
    textxy(0,0,4,9,'Save this map as...');
    listfiles;
    name:= ginput(0,8);
@@ -462,7 +461,6 @@ begin
    end;
    
    map.load('#btest#.map');
-   clearviewport;
    showscreen;
    {$endif}
 end;

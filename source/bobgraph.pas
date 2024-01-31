@@ -173,10 +173,13 @@ begin
       end;
       initcga;
       CGAPalette(2,0);
-      b := cga.setdrawmode(1);
+      if memavail > 57384 then
+	 b := cga.setdrawmode(1);
       loadpack('gdata.cga');
-      b := cga.setdrawmode(0);
-      if memavail > 59392 then paging := cga.setdrawmode(2);
+      if memavail > 65536 then
+	 paging := cga.setdrawmode(2)
+      else
+	 b := cga.setdrawmode(0);
    end;
    if graphicsMode=mEGA then
    begin
@@ -222,10 +225,13 @@ begin
 	 halt(0);
       end;
       initvga;
-      b := vga.setdrawmode(1);
+      if memavail > 92000 then
+	 b := vga.setdrawmode(1);
       loadpack('gdata.lrp');
-      b := vga.setdrawmode(0);
-      if memavail > 108544 then paging:= vga.setdrawmode(2);
+      if memavail > 65536 then
+	 paging:= vga.setdrawmode(2)
+      else
+	 b := vga.setdrawmode(0);
    end;
    {$ELSE}
    gcard := detectGraphics;
@@ -238,7 +244,8 @@ begin
    graphicsMode := mCGA;
    initcga;
    CGAPalette(2,0);
-   b := cga.setdrawmode(1);
+   if memavail > 57384 then
+      b := cga.setdrawmode(1);
    loadpack('gdata.cga');
    b := cga.setdrawmode(0);   
    {$ENDIF}
