@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r184 | andrew | 2024-03-27 18:20:58 +1100 (Wed, 27 Mar 2024) | 6 lines
+
+I've updated the Github script to copy the svn commit message and to make commits on a daily basis (only if something was commited)
+
+This change fixes the settings screen, it was slow to interact with as it was drawing all the options every time.
+Now a configuration item is only drawn on screen if it is selected or if a refresh flag is set.
+
+This should speed up the settings screen on slow computers.
+------------------------------------------------------------------------
 r183 | andrew | 2024-01-21 22:24:11 +1100 (Sun, 21 Jan 2024) | 2 lines
 
 I've added the hardware info screen as a menu item to the settings screen.

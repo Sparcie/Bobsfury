@@ -874,13 +874,14 @@ end;
 
 procedure Settings;
 var
-    mdone      : boolean;
-    a          : char;
-    s          : byte;
-    extt,astt  : single;
-    t          : string;
-   mem         : longint;
-    pos        : integer;
+    mdone     : boolean;
+    a	      : char;
+    s	      : byte;
+    extt,astt : single;
+    t	      : string;
+   mem	      : longint;
+    pos	      : integer;
+   refresh    : boolean;
 begin
    startmenu;
    pos:=0;
@@ -889,79 +890,112 @@ begin
    t:='Memory Available :'+t;
    textxy(20,170,4,13,t);}
    s:=gap;
+   refresh := true;
    
    mdone:=false;
    while not(mdone) do
    begin
       spritedraw(29,33+((pos)*10),44,copyput);
-      if respawn then textxy(40,40,4,13,'Monster Respawn')
-      else textxy(40,40,4,5,'Monster Respawn');
-      t:='Speed :';
-      if s=1 then t:=t+'Fast';
-      if s=2 then t:=t+'Normal';
-      if s=4 then t:=t+'Slow';
-      if s=6 then t:=t+'Very Slow';
-      textxy(40,30,4,9,t);
-      if soundo then textxy(40,70,4,13,'Sound')
-      else textxy(40,70,4,5,'Sound');
-      if musico then textxy(40,80,4,13,'Music')
-      else textxy(40,80,4,5,'Music');
+      if (refresh or (pos=1)) then
+      begin
+	 if respawn then textxy(40,40,4,13,'Monster Respawn')
+	 else textxy(40,40,4,5,'Monster Respawn');
+      end;
+      if (refresh or (pos=0)) then
+      begin
+	 bar(40,32,200,42,0);
+	 t:='Speed :';
+	 if s=1 then t:=t+'Fast';
+	 if s=2 then t:=t+'Normal';
+	 if s=4 then t:=t+'Slow';
+	 if s=6 then t:=t+'Very Slow';
+	 textxy(40,30,4,9,t);
+      end;
+      if (refresh or (pos = 4)) then
+	 if soundo then textxy(40,70,4,13,'Sound')
+	 else textxy(40,70,4,5,'Sound');
+      if (refresh or (pos = 5)) then
+	 if musico then textxy(40,80,4,13,'Music')
+	 else textxy(40,80,4,5,'Music');
       {t:=' Using ';
       if isBlaster then t:=t+'Adlib/SoundBlaster' else t:=t+'PC Speaker';
       t:=t+' sound';
       if force=1 then t:='forced PC Speaker';
       if force=2 then t:= 'forced No Sound';
       textxy(20,160,4,9,t);}
-      t:='Difficulty :';
-      if diff=5 then t:=t+'Easy';
-      if diff=3 then t:=t+'Medium';
-      if diff=1 then t:=t+'Hard';
-      if diff=-3 then t:=t+'InSaNe';
-      textxy(40,50,4,9,t);
+      if (refresh or (pos = 2)) then
+      begin
+	 bar(40,52,200,62,0);
+	 t:='Difficulty :';
+	 if diff=5 then t:=t+'Easy';
+	 if diff=3 then t:=t+'Medium';
+	 if diff=1 then t:=t+'Hard';
+	 if diff=-3 then t:=t+'InSaNe';
+	 textxy(40,50,4,9,t);
+      end;
       {$ifndef noAdlib}
-      if (isBlaster) then
+      if (refresh or (pos=3)) then
       begin
-	 textxy(40,60,4,9,'Volume');
-	 volume := getfmVol;
-	 bobgraph.bar(100,63,180,73,8);
-	 bobgraph.bar(95+(volume*5),63,105+(volume*5),73,12);
-      end
-      else textxy(40,60,4,5,'Volume Unavailable');
+	 if (isBlaster) then
+	 begin
+	    textxy(40,60,4,9,'Volume');
+	    volume := getfmVol;
+	    bobgraph.bar(100,63,180,73,8);
+	    bobgraph.bar(95+(volume*5),63,105+(volume*5),73,12);
+	 end
+         else textxy(40,60,4,5,'Volume Unavailable');
+      end;
       {$else}
-      textxy(40,60,4,5,'Volume Unavailable');
+      if refresh then 
+	 textxy(40,60,4,5,'Volume Unavailable');
       {$endif}
-      if (joyavail) then
+      if (refresh or (pos = 6)) then
       begin
-	 if (usejoy) then textxy(40,90,4,13,'Joystick Available') else
-	    textxy(40,90,4,5,'Joystick Available');
-      end
-      else textxy(40,90,4,9,'Joystick Unavailable');
+	 if (joyavail) then
+	 begin
+	    if (usejoy) then textxy(40,90,4,13,'Joystick Available') else
+	       textxy(40,90,4,5,'Joystick Available');
+	 end
+         else textxy(40,90,4,9,'Joystick Unavailable');
+      end;
       {textxy(40,100,4,9,'Calirate Joystick');}
-      textxy(40,100,4,9,'Keyboard Control');
-      textxy(40,110,4,9,'Hardware Info');
-      textxy(40,120,4,9,'Done');
+      if refresh then
+      begin
+	 textxy(40,100,4,9,'Keyboard Control');
+	 textxy(40,110,4,9,'Hardware Info');
+	 textxy(40,120,4,9,'Done');
+      end;
+      refresh := false;
       
       while not(keypressed) do checkSongChange;
       a:=readkey;
       spritedraw(29,33+((pos)*10),44,xorput);
-      textxy(40,50,4,0,t);
-      
-      t:='Speed :';
-      if s=1 then t:=t+'Fast';
-      if s=2 then t:=t+'Normal';
-      if s=4 then t:=t+'Slow';
-      if s=6 then t:=t+'Very Slow';
-      textxy(40,30,4,0,t);
-      
+
 
       if (a=chr(13)) then
       begin
 	 if pos=9 then mdone:=true;
-	 if pos=8 then info;
-	 if pos=7 then customKeys;
-	 if ((pos=6) and joyavail) then joycal;
+	 if pos=8 then
+	 begin
+	    info;
+	    refresh := true;
+	 end;
+	 if pos=7 then
+	 begin
+	    customKeys;
+	    refresh := true;
+	 end;
+	 if ((pos=6) and joyavail) then
+	 begin
+	    joycal;
+	    refresh := true;
+	 end;
       end;
-      if (a='S') then spriteTest;
+      if (a='S') then
+      begin
+	 spriteTest;
+	 refresh := true;
+      end;
       if (a=chr(27)) then mdone:=true;
       if (a=chr(0)) then
       begin
@@ -978,9 +1012,16 @@ begin
 	    {if (joyavail and (pos=6)) then
 	       usejoy:=not(usejoy); }       
 	    if (joyavail and (pos=6)) then
+	    begin
 	       joycal;
+	       refresh := true;
+	    end;
 	    
-	    if (pos=7) then customkeys;
+	    if (pos=7) then
+	    begin
+	       customkeys;
+	       refresh := true;
+	    end;
 
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
@@ -1009,7 +1050,11 @@ begin
 	    end; 
 	    
 	    if pos=4 then soundo:=not(soundo);
-	    if pos=8 then info;
+	    if pos=8 then
+	    begin
+	       info;
+	       refresh := true;
+	    end;
 	    
 	    {$ifndef noAdlib}
 	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
@@ -1025,10 +1070,21 @@ begin
 	    {if (joyavail and (pos=6)) then
 	       usejoy:=not(usejoy);}        
 	    if (joyavail and (pos=6)) then
+	    begin
 	       joycal;
+	       refresh := true;
+	    end;
 	    
-	    if (pos=7) then customkeys;
-	    if pos=8 then info;
+	    if (pos=7) then
+	    begin
+	       customkeys;
+	       refresh := true;
+	    end;
+	    if pos=8 then
+	    begin
+	       info;
+	       refresh := true;
+	    end;
 	    
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
