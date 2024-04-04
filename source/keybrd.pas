@@ -14,8 +14,6 @@ function lastKeyPressed:byte;      {returns the scancode of the last keypress}
 function pressed(k : byte):boolean; {determines if a key in our scancode list is pressed }
 procedure clearKey(k : byte);       {set the state of a key in the scancode list to not pressed }
 
-procedure clearBIOSKeyBuffer;  
-
 {replacements for CRT functions}
 function keypressed:boolean; { returns true if there are keys waiting in the BIOS key buffer }
 function readkey:char;       { returns a character from the BIOS key buffer }
@@ -89,14 +87,6 @@ asm
 @done:
 end;
 
-
-procedure clearBIOSKeyBuffer;
-begin
-   asm cli end;
-   head := tail;
-   asm sti end;
-end;
-
 function lastKeyPressed:byte;
 {returns the last scancode}
 begin
@@ -153,8 +143,10 @@ end; { keyFace }
 procedure keyhandler; interrupt;
 {interrupt for processing the keys}
 var
-   key_in : byte;
-   scode  : byte;
+   key_in   : byte;
+   scode    : byte;
+   tempHead : integer;
+   count    : integer;
 begin
    key_in:= port[$60]; {grab the current scan code}
    scode := key_in and $7f;
@@ -178,7 +170,18 @@ begin
       else
 	 extended:=true;
    end;
-  
+   {only allow a couple of keypresses to be stored to prevent buffer overflow}
+   asm cli end;
+   tempHead := head;
+   count := tail - head;
+   if count<0 then count := (62-head) + (tail-30);
+   if (count > 6) then
+   begin
+      head := head + 2;
+      if head>60 then head:=30;
+      if (head=tail) then head:=tempHead;
+   end;
+   asm sti end;
 end;
 
 {$F+}

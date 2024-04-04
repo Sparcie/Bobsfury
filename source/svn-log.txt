@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r185 | andrew | 2024-04-04 23:45:55 +1100 (Thu, 04 Apr 2024) | 2 lines
+
+changed keyboard interrupt to limit the number of entries in the key buffer. This
+should solve the problem with slow machines having keyboard over-runs and pausing to make a noise.
+------------------------------------------------------------------------
 r184 | andrew | 2024-03-27 18:20:58 +1100 (Wed, 27 Mar 2024) | 6 lines
 
 I've updated the Github script to copy the svn commit message and to make commits on a daily basis (only if something was commited)
