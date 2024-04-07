@@ -2,6 +2,8 @@ unit bmenu;
 {bobs fury menu system also added high score system
 A Danson 2002}
 
+{$I defines.pas}
+
 interface
 
 uses llist;
@@ -739,15 +741,11 @@ begin
       textxy(20,150,4,9,'Joystick found');
    
    {get display information}
-   {$ifndef CGA}
    if graphicsMode=mCGA then t:='CGA';
    if graphicsMode=mEGA then t:='EGA';
    if graphicsMode=mVGA then t:='VGA';
    if graphicsMode=mVESA then t:='VESA';
    s:= 'Driver :' + t;
-   {$else}
-   s:= 'Only CGA support';
-   {$endif}
    textxy(20,70,4,9,s);
    case graphicsmode of
      mCGA  : t:= '320x200 4 colours';
@@ -757,16 +755,6 @@ begin
    end;
    s := 'Mode :' + t;
    textxy(20,80,4,9,s);
-   {print the maximum mode possible for this driver.}
-   { not relevant with the new graphics library (already displaying it)
-   h:= getMaxMode;
-   str(h,t);
-   s:= 'Max mode :'+ t + ':' + getModeName(h);
-   textxy(20,90,4,9,s);
-   h := getMaxColor;
-   str(h,t);
-   s:= 'Max colour:'+t;
-   textxy(20,100,4,9,s);}
 
    {display the timing information from the engine.}
    str(maxCycle,t);
@@ -885,10 +873,6 @@ var
 begin
    startmenu;
    pos:=0;
-   {mem := memavail;
-   str(mem,t);
-   t:='Memory Available :'+t;
-   textxy(20,170,4,13,t);}
    s:=gap;
    refresh := true;
    
@@ -917,12 +901,6 @@ begin
       if (refresh or (pos = 5)) then
 	 if musico then textxy(40,80,4,13,'Music')
 	 else textxy(40,80,4,5,'Music');
-      {t:=' Using ';
-      if isBlaster then t:=t+'Adlib/SoundBlaster' else t:=t+'PC Speaker';
-      t:=t+' sound';
-      if force=1 then t:='forced PC Speaker';
-      if force=2 then t:= 'forced No Sound';
-      textxy(20,160,4,9,t);}
       if (refresh or (pos = 2)) then
       begin
 	 bar(40,52,200,62,0);
@@ -958,7 +936,6 @@ begin
 	 end
          else textxy(40,90,4,9,'Joystick Unavailable');
       end;
-      {textxy(40,100,4,9,'Calirate Joystick');}
       if refresh then
       begin
 	 textxy(40,100,4,9,'Keyboard Control');
@@ -1008,9 +985,6 @@ begin
 	 {left key}
 	 if (a=chr(75)) then
 	 begin
-	    
-	    {if (joyavail and (pos=6)) then
-	       usejoy:=not(usejoy); }       
 	    if (joyavail and (pos=6)) then
 	    begin
 	       joycal;

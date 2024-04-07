@@ -1,4 +1,23 @@
 ------------------------------------------------------------------------
+r186 | andrew | 2024-04-07 13:24:49 +1000 (Sun, 07 Apr 2024) | 16 lines
+
+I've restructured the conditional defines system to allow for more flexible build configurations
+
+essentially each graphics mode has it's own define eg. CGA, VGA etc
+
+To avoid having to write a long command line for each hardware configuration I've created
+the new file DEFINES.PAS to store configurations for build types. In that file you'll find build configurations
+for different build types of which there are currently three (XT, editor and general)
+
+DEFINES.PAS is included in files that use conditional defines to configure the hardware support.
+
+Functionally this doesn't change much for the current builds as this change maintains the status quo. Although the executables are very slightly larger.
+
+The upside of this change is that it will be easy to change what hardware support is available in a build, to create new
+configurations, and to add new supported hardware to the different builds. For instance if I add hercules support it will be easy to pick which builds it applies to. Or if I create a tandy build I'll be able to select hardware support for it easier.
+
+This change affects the graphics support mostly, I am considering extending this change to the sound hardware as well. I presently only have pc speaker and adlib, but if I add more in future (such as tandy) I will have the same needs as the graphics support.
+------------------------------------------------------------------------
 r185 | andrew | 2024-04-04 23:45:55 +1100 (Thu, 04 Apr 2024) | 2 lines
 
 changed keyboard interrupt to limit the number of entries in the key buffer. This

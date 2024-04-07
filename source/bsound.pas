@@ -3,6 +3,8 @@
 
 {Define noAdlib to remove adlib/soundblaster support}
 
+{$I defines.pas}
+
 unit bsound;
 
  interface

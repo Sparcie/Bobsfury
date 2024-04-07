@@ -5,15 +5,27 @@
 { updated for more graphics modes and removal of vgavesa 2014}
 { updated in 2022 for removing the BGI library }
 
+{$I defines.pas}
+
 unit bobgraph;
 interface
 
-{$IFNDEF CGA}
 {normal uses}
-uses pgs,map,bsound, cga, vga, vesa, ega;
-{$ELSE}
-uses pgs,map,bsound,cga;
+uses pgs,map,bsound
+{conditional defines for each graphics mode}
+{$ifdef CGA}
+,cga
 {$ENDIF}
+{$ifdef VGA}
+,vga
+{$endif}
+{$ifdef EGA}
+,ega
+{$endif}
+{$ifdef VESA}
+,vesa
+{$endif}
+;
 
 procedure startgraphics;
 procedure clearviewport;
@@ -99,46 +111,54 @@ end;
 
 procedure UIPage;
 begin
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef EGA}
      mEGA : begin
 	       ega.setVisualPage(1);
 	       ega.setDrawingPage(1);
 	    end;
+     {$endif}
+     {$ifdef CGA}
      mCGA : begin
 	       if isPaged then exit;
 	       isPaged:= true;
 	       cga.copyToBuffer;
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : begin
 	       if isPaged then exit;
 	       isPaged := true;
 	       vga.copyToBuffer;
 	    end;
+     {$endif}
    end;
-   {$ENDIF}
 end; { UIPage }
 
 procedure GamePage;
 begin
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef EGA}
      mEGA : begin
 	       ega.setDrawingPage(0);
 	       ega.setVisualPage(0);
 	    end;
+     {$endif}
+     {$ifdef CGA}
      mCGA : begin
 	       if not(isPaged) then exit;
 	       isPaged:=false;
 	       cga.copyToScreen;
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : begin
 	       if not(isPaged) then exit;
 	       isPaged:=false;
 	       vga.copyToScreen;
 	    end;
+     {$endif}
    end;
-   {$ENDIF}
 end; { GamePage }
 
 function collision(x,y,f,x2,y2,f2 :integer ):boolean;
@@ -158,12 +178,14 @@ var
    zeropal : paltype;
    i	   : integer;
    b	   : boolean;
+   inited  : boolean;
    gcard   : byte;
 begin
-   {$IFNDEF CGA}
    gcard := detectGraphics;
    paging := false;
+   inited := false;
    if graphicsMode>3 then graphicsMode:=2;
+   {$ifdef CGA}
    if graphicsMode=mCGA then
    begin
       if gcard<2 then
@@ -180,7 +202,10 @@ begin
 	 paging := cga.setdrawmode(2)
       else
 	 b := cga.setdrawmode(0);
+      inited := true;
    end;
+   {$endif}
+   {$ifdef EGA}
    if graphicsMode=mEGA then
    begin
       if gcard<3 then
@@ -192,7 +217,10 @@ begin
       paging := false;
       if ((EGAmem>0) or (gcard>3)) then paging := true;
       loadpack('gdata.ega');
+      inited := true;
    end;
+   {$endif}
+   {$ifdef VESA}
    if  graphicsMode=mVESA then
    begin
       if gcard<5 then
@@ -216,7 +244,10 @@ begin
       setPalette(zeropal);
       loadpack('gdata.hrp');
       setPalette(stdpal);
+      inited := true;
    end;
+   {$endif}
+   {$ifdef VGA}
    if graphicsmode=mVGA then
    begin
       if gcard<4 then
@@ -232,52 +263,51 @@ begin
 	 paging:= vga.setdrawmode(2)
       else
 	 b := vga.setdrawmode(0);
+      inited:= true;
    end;
-   {$ELSE}
-   gcard := detectGraphics;
-   if gcard<2 then
+   {$endif}
+   if not(inited) then
    begin
-      writeln('CGA not supported on this machine');
+      writeln('Graphics mode not supported');
       halt(0);
    end;
-   paging:=false;
-   graphicsMode := mCGA;
-   initcga;
-   CGAPalette(2,0);
-   if memavail > 57384 then
-      b := cga.setdrawmode(1);
-   loadpack('gdata.cga');
-   b := cga.setdrawmode(0);   
-   {$ENDIF}
 end;
 
 function iSize(x,y : integer):word;
 begin
-   {$IFNDEF CGA}
    iSize := 0;
    case graphicsmode of
+     {$ifdef CGA }
      mCGA : iSize := cga.imagesize(x,y);
+     {$endif}
+     {$ifdef EGA }
      mEGA : iSize := ega.imagesize(x,y);
+     {$endif}
+     {$ifdef VGA}
      mVGA : iSize := vga.imagesize(x,y);
+     {$endif}
+     {$ifdef VESA}
      mVESA: iSize := vesa.imagesize(x,y);
+     {$endif}
    end;
-   {$ELSE}
-   isize := cga.imagesize(x,y);
-   {$ENDIF}
 end;
 
 procedure clearviewport;
 begin
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA }
      mCGA : cga.cls;
+     {$endif}
+     {$ifdef EGA }
      mEGA : ega.cls;
+     {$endif}
+     {$ifdef VGA }
      mVGA : vga.cls;
+     {$endif}
+     {$ifdef VESA }
      mVESA: vesa.cls;
+     {$endif}
    end;
-   {$ELSE}
-   cga.cls;
-   {$ENDIF}
 end;
 
 procedure showscreen;
@@ -313,9 +343,7 @@ end;
 
 procedure easydraw(c,i:integer);
 begin
-   {$IFNDEF CGA}
    adjustcoords(c,i);
-   {$ENDIF}
    draw(c*10,i*10,0,objectat(c,i));
    if objectat(c,i) = 0 then
    begin
@@ -332,26 +360,30 @@ end;
 
 procedure spritedraw(x,y,ob:integer; putt:word);
 begin
-   {$IFNDEF CGA}
    adjustcoords(x,y);
-   {$ENDIF}
    draw(x,y,putt,ob);
 end;
 
 procedure line(x,y,x2,y2,c:integer);
 begin
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : begin
 	       cgaUIColour(c);
 	       cga.line(x,y,x2,y2,c);
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : vga.line(x,y,x2,y2,c);
+     {$endif}
+     {$ifdef EGA}
      mEGA  : begin
 		x := x shl 1;
 		x2 := x2 shl 1;
 		ega.line(x,y,x2,y2,c);
 	     end;
+     {$endif}
+     {$ifdef VESA}
      mVESA : begin
 		x := x shl 1;
 		y := y shl 1;
@@ -359,27 +391,30 @@ begin
 		y2 := y2 shl 1;
 		vesa.line(x,y,x2,y2,c);
 	     end;
+     {$endif}
    end;
-   {$ELSE}
-   cgaUIColour(c);
-   cga.line(x,y,x2,y2,c);
-   {$ENDIF}
 end;
 
 procedure bar(x,y,x2,y2,c:integer);
 begin
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : begin
 	       cgaUIColour(c);
 	       cga.filledBox(x,y,x2,y2,c);
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : vga.filledBox(x,y,x2,y2,c);
+     {$endif}
+     {$ifdef EGA}
      mEGA  : begin
 		x := x shl 1;
 		x2 := x2 shl 1;
 		ega.filledBox(x,y,x2,y2,c);
 	     end;
+     {$endif}
+     {$ifdef VESA}
      mVESA : begin
 		x := x shl 1;
 		y := y shl 1;
@@ -387,18 +422,15 @@ begin
 		y2 := y2 shl 1;
 		vesa.filledBox(x,y,x2,y2,c);
 	     end;
+     {$endif}
    end;
-   {$ELSE}
-   cgaUIColour(c);
-   cga.filledBox(x,y,x2,y2,c);
-   {$ENDIF}   
 end;
 
 procedure save(x,y,width,height	: integer);
 begin
    if (isSaved) then freemem(saved, memSize);
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : begin
 	       sx:=x;
 	       sy:=y;
@@ -413,6 +445,8 @@ begin
 	       getmem(saved,memSize);
 	       cga.getImage(x,y,(x+width),(y+height), saved);
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : begin
 	       sx:=x;
 	       sy:=y;
@@ -427,6 +461,8 @@ begin
 	       getmem(saved,memSize);
 	       vga.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
+     {$endif}
+     {$ifdef EGA}
      mEGA : begin
 	       sx:=x shl 1;
 	       sy:=y;
@@ -442,6 +478,8 @@ begin
 	       getmem(saved,memSize);
 	       ega.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
+     {$endif}
+     {$ifdef VESA}
      mVESA : begin
 		sx:=x shl 1;
 		sy:=y shl 1;
@@ -458,36 +496,27 @@ begin
 		getmem(saved,memSize);
 		vesa.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
+   {$endif}
    end;
-   {$ELSE}
-   sx:=x;
-   sy:=y;
-   isSaved := true;
-   memSize := cga.imageSize(width+1,height+1);
-   if memsize>maxavail then
-   begin
-      textscreen;
-      writeln('out of memory');
-      halt(0);
-   end;
-   getmem(saved,memSize);
-   cga.getImage(x,y,(x+width),(y+height), saved);
-   {$ENDIF}
 end; { save }
 
 procedure restore;
 begin
    if not(issaved) then exit;
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : cga.putimage(sx,sy,saved);
-     mEGA : ega.putimage(sx,sy,saved); 
+     {$endif}
+     {$ifdef EGA}
+     mEGA : ega.putimage(sx,sy,saved);
+     {$endif}
+     {$ifdef VGA}
      mVGA : vga.putimage(sx,sy,saved);
+     {$endif}
+     {$ifdef VESA}
      mVESA: vesa.putimage(sx,sy,saved);
+     {$endif}
    end;
-   {$ELSE}
-   cga.putimage(sx,sy,saved);
-   {$ENDIF}
    freemem(saved,memSize);
    issaved:=false;
 end; { restore }

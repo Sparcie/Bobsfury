@@ -2,9 +2,8 @@ program bob;  {this is almost Bob's fury yah!}
 {compiler directives }
 {$R-} {range checking off}
 {$S-} {stack checking off}
-{ G } {80286 instructions (disabled in hope of getting it to run on an XT }
 
-{ remove using math co-pro as it was causing issues in interrupts.}
+{$I defines.pas}
 
 {$M 16384,0,655360} {memory}
 
@@ -17,10 +16,17 @@ var
 
 procedure param(s,s2 : String);
 begin
-   {$ifndef CGA}
+
+   {$ifdef VESA}
    if s= '-h' then graphicsMode:=3;
+   {$endif}
+   {$ifdef VGA}
    if s= '-l' then graphicsMode:=2;
+   {$endif}
+   {$ifdef EGA}
    if s= '-e' then graphicsMode:=1;
+   {$endif}
+   {$ifdef CGA}
    if s= '-cga' then graphicsMode:=0;
    {$endif}
 
@@ -47,12 +53,20 @@ begin
       writeln('XT Bobs fury');
       {$endif}
       writeln('command line options:');
-      {$ifndef CGA}
+
+      {$ifdef VESA}
       writeln(' -h     hi resolution mode');
+      {$endif}
+      {$ifdef VGA}
       writeln(' -l     lo resolution mode');
+      {$endif}
+      {$ifdef EGA}
       writeln(' -e     EGA graphics mode');
+      {$endif}
+      {$ifdef CGA}
       writeln(' -cga   CGA graphics mode');
       {$endif}
+
       {$ifndef noAdlib}
       writeln(' -a     autodetect sound');
       writeln(' -s     force sound to use PC speaker');
@@ -90,6 +104,11 @@ begin
    param(paramstr(2),paramstr(3));
    param(paramstr(3),paramstr(4));
    param(paramstr(4),paramstr(5));
+
+   {$ifdef XT}
+   {make sure we're using an XT compatible graphics mode}
+   graphicsMode := 0;
+   {$endif}
 
    writeln('memory:',avail);
    writeln('setting pitdbl:',usepitdbl);

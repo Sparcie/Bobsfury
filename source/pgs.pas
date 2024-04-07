@@ -6,18 +6,37 @@ unit pgs; {pack graphics system for lrs and hrs files packed using packer.pas
 {modified in 2015 to be responsible for loading BGI drivers and initialising graph}
 {modified in 2022 to move away from the BGI to my own graphics libraries}
 
+{$I defines.pas}
+
 interface
-{$IFNDEF CGA}
-uses buffer,vga, cga, vesa, ega;
-{$ELSE}
-uses buffer,cga;
+
+uses buffer
+{conditional defines for each graphics mode}
+{$ifdef CGA}
+,cga
 {$ENDIF}
+{$ifdef VGA}
+,vga
+{$endif}
+{$ifdef EGA}
+,ega
+{$endif}
+{$ifdef VESA}
+,vesa
+{$endif}
+;
 
 procedure loadpack(name: string);
+{$ifdef CGA}
 procedure initcga;
-{$IFNDEF CGA}
+{$endif}
+{$IFDEF EGA}
 procedure initega;
+{$endif}
+{$ifdef VGA}
 procedure initvga;
+{$endif}
+{$ifdef VESA}
 procedure initvesa;
 {$ENDIF}
 procedure textscreen;
@@ -104,28 +123,34 @@ var pic		 : array[1..200] of pointer;
       end;
    end;
 
+{$ifdef CGA}
 procedure initcga;
 begin
    cga.init;
    inited:=true;
    graphicsmode := mCGA;
 end;
+{$endif}
 
-{$IFNDEF CGA}
+{$ifdef EGA}
 procedure initega;
 begin
    ega.init;
    inited:=true;
    graphicsmode := mEGA;
 end;
+{$endif}
 
+{$ifdef VGA}
 procedure initvga ;
 begin
    vga.init;
    inited:=true;
    graphicsmode := mVGA;
 end;
+{$endif}
 
+{$ifdef VESA}
 procedure initvesa;
 begin
    vesa.init;
@@ -137,39 +162,40 @@ end;
 procedure draw(x,y:integer; puttype:word;image:integer);
 begin
    if not(loaded and (image <=number) and (image>0) ) then exit;
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : begin
 	      case puttype of
 		copyput	: cga.putImage(x,y,pic[image]);
 		xorput	: cga.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
+     {$endif}
+     {$ifdef EGA}
      mEGA : begin
 	      case puttype of
 		copyput	: ega.putImage(x,y,pic[image]);
 		xorput	: ega.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
+     {$endif}
+     {$ifdef VGA}
      mVGA : begin
 	      case puttype of
 		copyput	: vga.putImage(x,y,pic[image]);
 		xorput	: vga.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
+     {$endif}
+     {$ifdef VESA}
      mVESA : begin
 	       case puttype of
 		 copyput : vesa.putImage(x,y,pic[image]);
 		 xorput	 : vesa.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
+     {$endif}
    end;
-   {$ELSE}
-   case puttype of
-     copyput	: cga.putImage(x,y,pic[image]);
-     xorput	: cga.putImageXor(x,y,pic[image]);
-   end;
-   {$ENDIF}
 end;
 
 procedure loadImageRLE(var r : reader; var box:bounds);
@@ -188,16 +214,20 @@ begin
 	    data := ord(r.readchar);
 	    count := ord(r.readchar);
 	 end;
-	 {$IFNDEF CGA}
 	 case graphicsmode of
+	   {$ifdef CGA}
 	   mCGA	: cga.putpixel(i,c,data);
+	   {$endif}
+	   {$ifdef EGA}
 	   mEGA	: ega.putpixel(i,c,data);
+	   {$endif}
+	   {$ifdef VGA}
 	   mVGA	: vga.putpixel(i,c,data);
+	   {$endif}
+	   {$ifdef VESA}
 	   mVESA: vesa.putpixel(i,c,data);
+	   {$endif}
 	 end;
-	 {$ELSE}
-	 cga.putpixel(i,c,data);
-	 {$ENDIF}
 	 if data>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -227,16 +257,20 @@ begin
       begin
 	 if ((i>0) or (c>0)) then
 	    a:= r.readChar;
-	 {$IFNDEF CGA}
 	 case graphicsmode of
+	   {$ifdef CGA}
 	   mCGA	: cga.putpixel(i,c,ord(a));
+	   {$endif}
+	   {$ifdef EGA}
 	   mEGA	: ega.putpixel(i,c,ord(a));
+	   {$endif}
+	   {$ifdef VGA}
 	   mVGA : vga.putpixel(i,c,ord(a));
+	   {$endif}
+	   {$ifdef VESA}
 	   mVESA : vesa.putpixel(i,c,ord(a));
+	   {$endif}
 	 end;
-	 {$ELSE}
-	 cga.putpixel(i,c,ord(a));
-	 {$ENDIF}
 	 if ord(a)>0 then
 	 begin
 	    if box.maxx<i then box.maxx:=i+1;
@@ -252,27 +286,30 @@ var
    percent : real;
 begin
    percent := (current / total) * 320;
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA  : begin
 		cga.filledBox(0,180, trunc(percent), 185, 1);
 		cga.copySegment(0,179,319,6, false);
 	    end;
+     {$endif}
+     {$ifdef EGA}
      mEGA  : begin
 		ega.filledBox(0,180, trunc(percent), 185, 1);
 	    end;
+     {$endif}
+     {$ifdef VGA}
      mVGA  : begin
 		vga.filledBox(0,180, trunc(percent), 185, 9);
 		vga.copySegment(0,179,319,6, false);
 	    end;
+     {$endif}
+     {$ifdef VESA}
      mVESA : begin
 		vesa.filledBox(0,370, trunc(percent * 2), 380, 246);
 	     end;
+     {$endif}
    end;
-   {$ELSE}
-   cga.filledBox(0,180, trunc(percent), 185, 1);
-   cga.copySegment(0,179,319,6, false);
-   {$ENDIF}
 end;
 					 
 procedure loadpack(name:string);
@@ -298,34 +335,36 @@ begin
 	 loadImageRaw(imf,box);
 	 new(boundbox[num]);
 	 boundbox[num]^:=box;
-	 {$IFNDEF CGA}
 	 case graphicsmode of
+	   {$ifdef CGA}
 	   mCGA : begin
 		    picsize[num] := cga.imagesize(ssx,ssy);
 		    getmem(pic[num],picsize[num]);
 		    cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   {$endif}
+	   {$ifdef EGA}
 	   mEGA : begin
 		    picsize[num] := ega.imagesize(ssx,ssy);
 		    getmem(pic[num],picsize[num]);
 		    ega.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   {$endif}
+	   {$ifdef VGA}
 	   mVGA : begin
 		    picsize[num] := vga.imagesize(ssx,ssy);
 		    getmem(pic[num],picsize[num]);
 		    vga.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   {$endif}
+	   {$ifdef VESA}
 	   mVESA : begin
 		    picsize[num] := vesa.imagesize(ssx,ssy);
 		    getmem(pic[num],picsize[num]);
 		    vesa.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
+	   {$endif}
 	 end;
-	 {$ELSE}
-	 picsize[num] := cga.imagesize(ssx,ssy);
-	 getmem(pic[num],picsize[num]);
-	 cga.getimage(0,0,ssx-1,ssy-1,pic[num]);
-	 {$ENDIF}
 	 drawProgressBar(num,number);
 	 num:=num+1;
       end;
@@ -350,16 +389,20 @@ end;
 procedure textscreen;
 begin
    if not(inited) then exit;
-   {$IFNDEF CGA}
    case graphicsmode of
+     {$ifdef CGA}
      mCGA : cga.shutdown;
+     {$endif}
+     {$ifdef EGA}
      mEGA : ega.shutdown;
+     {$endif}
+     {$ifdef VGA}
      mVGA : vga.shutdown;
+     {$endif}
+     {$ifdef VESA}
      mVESA: vesa.shutdown;
+     {$endif}
    end;
-   {$ELSE}
-   cga.shutdown;
-   {$ENDIF}
 end;
 
 begin

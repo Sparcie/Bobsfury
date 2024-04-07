@@ -6,8 +6,7 @@
 {if you want a slim editor without the tester define notest}
 {define notest}
 
-{ Turn off adlib support! optional if you want a smaller executable}
-{$define noAdlib}
+{$I defines.pas}
 
 program levelmaker;
 

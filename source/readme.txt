@@ -15,6 +15,7 @@ File List
 
 Here's a list of the pascal source files and a brief description
 
+defines.pas  - sets up conditional defines for each build type - primarily for hardware support selection (this file is included rather than used)
 Bjoy.pas     - Joystick hardware interface
 Bsystem.pas  - contained utility functions that have gradually been superseeded over time. Checkfile (for checking a file exists) is all that remains
 RLE.pas      - Run length encoder object - not actually used, but formed the basis of adding RLE compression to graphics and maps
@@ -28,6 +29,8 @@ bfont.pas    - Replacement for BGI stroked font drawing. loads a font and allows
 gcommon.pas  - common functions for device dependant graphics code.
 CGA.pas      - CGA device dependant code for graphics library.
 VGA.pas      - VGA device dependant code for graphics library.
+EGA.pas      - EGA device dependant code for graphics library.
+VESA.pas     - VESA device dependant code for graphics library.
 bobtest.pas  - Main program for the game - interprets parameters and has main loop.
 bsound.pas   - base sound interface for sound effects and music
 buffer.pas   - a simple buffered file reader/writer for text type files

@@ -1,12 +1,11 @@
-
-tpc /B bobtest.pas /DXT /DnoAdlib /DCGA
-@echo XT and CGA build
+tpc /B bobtest.pas /DXT
+@echo XT build
 @pause
 @copy bobtest.exe bobxt.exe
 tpc /B /GD bobtest.pas
 @echo standard build
 @pause
-tpc /B bfleu.pas /DnoAdlib
+tpc /B bfleu.pas /DEDITOR
 @echo editor build
 @pause
 tpc /M convert.pas
