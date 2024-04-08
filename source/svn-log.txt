@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r187 | andrew | 2024-04-08 23:51:20 +1000 (Mon, 08 Apr 2024) | 4 lines
+
+Added feature to level editor where the map function has a count of the number of monsters and the total value of the treasures.
+
+This will make it easier to balance the different episodes (when I make more of them) to have comparable amounts of treasures
+ and monsters overall to keep the maximum scores within the same ball park.
+------------------------------------------------------------------------
 r186 | andrew | 2024-04-07 13:24:49 +1000 (Sun, 07 Apr 2024) | 16 lines
 
 I've restructured the conditional defines system to allow for more flexible build configurations

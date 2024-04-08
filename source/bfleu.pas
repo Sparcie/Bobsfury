@@ -607,6 +607,98 @@ begin
    end;
 end;
 
+function treasureValue(t : byte):integer;
+begin
+   treasureValue := 0;
+   case t of
+     22	 : treasureValue:=25;
+     23	 : treasureValue:=50;
+     24	 : treasureValue:=75;
+     25	 : treasureValue:=100;
+     26	 : treasureValue:=125;
+     27	 : treasureValue:=150;
+     125 : treasureValue:=300;
+   end;
+end;
+
+function isMonster(o : byte):boolean;
+begin
+   isMonster:=false;
+   case o of
+     16,28..55,57..78, 116, 121, 123, 138, 142, 147, 157, 166 : isMonster:=true;
+   end;
+end;
+
+procedure levelMap;
+var
+   i,c,s,t	: integer;
+   o		: byte;
+   os,ol,l	: integer;
+   a		: char;
+   output	: string;
+   treasures	: longint;
+   monsterCount	: integer;
+begin
+   treasures := 0;
+   monsterCount := 0;
+   os:=currentscreen;
+   ol:=getTier;
+   bar(0,0,(31*4)+1,(16*12)+1,7);
+   bar(0,0,(31*4),(16*12),8);
+   {display level 1 in map }
+   setTier(0);
+   for s:=1 to 4 do
+   begin
+      changescreen(s);	 
+      for i:= 0 to 15 do
+	 for c:=0 to 30 do
+	 begin
+	    o := objectat(c,i);
+	    t:= mapColour(o);
+	    treasures := treasures + treasureValue(o);
+	    if isMonster(o) then inc(monsterCount);
+	    bar(c+((s-1)*31),i,c+((s-1)*31),i,t);
+	 end;
+   end;
+   
+   if (getSpecial) then
+      for l:=1 to getTierCount-1 do
+      begin
+	 setTier(l);
+	 for s:=1 to 4 do
+	 begin
+	    changescreen(s);	 
+	    for i:= 0 to 15 do
+	       for c:=0 to 30 do
+	       begin
+		  o := objectat(c,i);
+		  t:= mapColour(o);
+		  if isMonster(o) then inc(monsterCount);
+		  treasures := treasures + treasureValue(o);
+		  bar(c+((s-1)*31),i+(l*16),c+((s-1)*31),i+(l*16),t);
+	       end;
+	 end;
+      end;
+
+   bar(127,20,275,42,0);
+   
+   str(treasures, output);
+   output := 'Treasure Value: '+ output;
+   textxy(130,20,4,9,output);
+
+   str(monsterCount, output);
+   output := 'Monsters: '+output;
+   textxy(130,30,4,9,output);
+   
+   while not(keypressed) do ;
+   a:=readkey;
+   a:=chr(1);
+   changescreen(os);
+   setTier(ol);
+   bar(0,0,(31*4)+1,(16*12)+1,0);
+   showscreen;
+end;
+
 procedure checkkeys;
 var i,c,s,t : integer;
    os,ol,l       : integer;
@@ -630,46 +722,7 @@ begin
 	 drawPaintIndicator;
       end;
       'M' : begin
-	 os:=currentscreen;
-	 ol:=getTier;
-	 bar(0,0,(31*4)+1,(16*12)+1,7);
-	 bar(0,0,(31*4),(16*12),8);
-	 {display level 1 in map }
-	 setTier(0);
-	 for s:=1 to 4 do
-	 begin
-	    changescreen(s);	 
-	    for i:= 0 to 15 do
-	       for c:=0 to 30 do
-	       begin
-		  t:= mapColour(objectat(c,i));
-		  bar(c+((s-1)*31),i,c+((s-1)*31),i,t);
-	       end;
-	 end;
-       
-	 if (getSpecial) then
-	    for l:=1 to getTierCount-1 do
-	    begin
-	       setTier(l);
-	       for s:=1 to 4 do
-	       begin
-		  changescreen(s);	 
-		  for i:= 0 to 15 do
-		     for c:=0 to 30 do
-		     begin
-			t:=mapColour(objectat(c,i));
-			bar(c+((s-1)*31),i+(l*16),c+((s-1)*31),i+(l*16),t);
-		     end;
-	       end;
-	    end;
-	 
-	 while not(keypressed) do ;
-	    a:=readkey;
-	 a:=chr(1);
-	 changescreen(os);
-	 setTier(ol);
-	 bar(0,0,(31*4)+1,(16*12)+1,0);
-	 showscreen;		      
+	 levelMap;
       end;
       '.' : begin
 	 repeat
