@@ -250,8 +250,6 @@ begin
    losehealth;
    player.health:=player.health-amount;
    hcount:=5;
-   if (diff<3) then hcount:=2;
-   if diff>3 then hcount:=7;
 end;
 
 procedure pickup(x,y:integer);
@@ -1701,8 +1699,8 @@ begin
       begin
 	 shoot(x,y,st,dir,1);
 	 if ft=3 then frame:=1;
-	 sd := diff;
-	 if diff<0 then sd:=0;
+	 sd := 3;
+	 if diff>3 then sd:=5;
       end;
    end;
 

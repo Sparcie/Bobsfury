@@ -21,10 +21,31 @@ var conf:file of char;
 begin
    if not(checkfile('bob.cfg')) then
    begin
-      soundoff;
+      soundon;
+      useCustomKeys := true;
+      {$ifndef XT}
+      {standard keyboard and graphics mode}
       graphicsMode:=2;
+      scancode[1] := 203; {left}
+      scancode[2] := 205; {right}
+      scancode[3] := 57; {fire}
+      scancode[4] := 200; {jump}
+      scancode[5] := 49; {select weapon}
+      scancode[6] := 35; {use bottle}
+      scancode[7] := 34; {toss grenade}
+      {$else}
+      { XT defaults for keyboard and graphics}
+      graphicsMode:=0;
+      scancode[1] := 75; {left}
+      scancode[2] := 77; {right}
+      scancode[3] := 57; {fire}
+      scancode[4] := 72; {jump}
+      scancode[5] := 49; {select weapon}
+      scancode[6] := 35; {use bottle}
+      scancode[7] := 34; {toss grenade}
+      {$endif}
       gap:=2;
-      diff:=5;
+      diff:=3;
       respawn:=false;
       usejoy:=false;
       musico:=false;

@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r188 | andrew | 2024-04-15 23:02:43 +1000 (Mon, 15 Apr 2024) | 10 lines
+
+I have changed the default settings when bob.cfg is missing and removed bob.cfg from the archives.
+The default settings now set VGA with sound on medium difficulty at normal speed. I've set the custom keys to sensible defaults.
+There are different settings for the graphics mode and keys for the XT build to account for the differing hardware support.
+
+I've modified the difficulty mechanism a little. I've removed variation in the hurt cool down for the player, it now takes
+ the same number of ticks before you can be hurt again for all difficulty settings (5 ticks). I've modified the shot delay
+ for monsters to be 3 ticks for most difficulty modes and 5 for easy.
+
+Hopefully this should make the hard setting a bit more fair, the increased hit points in most cases are enough to make things
+ more difficult.
+------------------------------------------------------------------------
 r187 | andrew | 2024-04-08 23:51:20 +1000 (Mon, 08 Apr 2024) | 4 lines
 
 Added feature to level editor where the map function has a count of the number of monsters and the total value of the treasures.
