@@ -349,12 +349,14 @@ begin
 		  invuln;
 		  d:=true;
 		  player.gren:=player.gren+5;
+		  if diff < 3 then player.gren := player.gren + 3;
 	       end;
      82	      : 
 	       begin
 		  invuln;
 		  d:=true;
 		  player.lbolt:=player.lbolt+50;
+		  if diff < 3 then player.lbolt := player.lbolt + 20;
 	       end;
      84	      : 
 	       begin
@@ -1844,8 +1846,9 @@ begin
      28	      : begin power := 90; bobhere:=true; end;
    end;
 
-   if diff<3 then power:=power*2;
-   if diff>3 then power:=power div 2;
+   if diff=-3 then power:=power shl 1;
+   if diff=1 then power:= power + (power shr 1);
+   if diff>3 then power:=power shr 1;
 end;
 
 destructor monsterob.done;

@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r189 | andrew | 2024-04-18 23:12:27 +1000 (Thu, 18 Apr 2024) | 4 lines
+
+Made some more adjustments to the hard difficulty level.
+I reduced the hit points from 2x to 1.5x the normal to reduce the bullet sponginess that was very much a thing. Insane difficulty retains the 2x hitpoints.
+
+hard and insane now get more ammunition from grenade boxes and lightning bolt packs, to reflect the greater number of shots required to kill the baddies.
+------------------------------------------------------------------------
 r188 | andrew | 2024-04-15 23:02:43 +1000 (Mon, 15 Apr 2024) | 10 lines
 
 I have changed the default settings when bob.cfg is missing and removed bob.cfg from the archives.
