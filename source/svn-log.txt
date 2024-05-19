@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r190 | andrew | 2024-05-19 18:21:59 +1000 (Sun, 19 May 2024) | 3 lines
+
+I wrote a small section of code to check if a file can be written to and have implemented checks for saving the config file and for writing a save game. I decided to do this after running the game in martyPC with the disk image write protected. The run time error message would have left a player in the dark.
+
+I've also changed how colours are selected for the UI. mostly as CGA requires the colours used be mapped to one of three usable colours. I made an array for the first 16 colours as I use those for the UI, which stores which actual colour to use based on my intention. I've changed the UI code where needed to use the new mapping array.
+------------------------------------------------------------------------
 r189 | andrew | 2024-04-18 23:12:27 +1000 (Thu, 18 Apr 2024) | 4 lines
 
 Made some more adjustments to the hard difficulty level.

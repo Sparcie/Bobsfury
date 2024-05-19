@@ -47,7 +47,7 @@ begin
    begin
       {bobgraph.bar(x,y,300,45,0);}
       textxy(x,y,4,0,olds + '_');
-      textxy(x,y,4,7,s + '_');
+      textxy(x,y,4,UIColours[7],s + '_');
       olds:=s;
       while not(keypressed) do checkSongChange;
       a:=readkey;
@@ -95,7 +95,7 @@ end;
 
 procedure startmenu;
 var
-   pic : integer;
+   pic			 : integer;
 begin
    {engine.clearmonsters;}
    if not(paging) then
@@ -105,6 +105,7 @@ begin
    end
    else
       UIPage;
+
    {bobgraph.bar(0,0,319,199,7);}
    {border of white going to grey black
    bobgraph.bar(0,0,319,199,15);
@@ -126,24 +127,24 @@ begin
 
    clearviewport;
    
-   bobgraph.bar(0,0,319,1,15);
-   bobgraph.bar(0,1,319,2,7);
-   bobgraph.bar(0,2,319,3,8);
+   bobgraph.bar(0,0,319,1,UIColours[15]);
+   bobgraph.bar(0,1,319,2,UIColours[7]);
+   bobgraph.bar(0,2,319,3,UIColours[8]);
    bobgraph.bar(0,3,319,4,0);
 
-   bobgraph.bar(0,198,319,199,15);
-   bobgraph.bar(0,197,319,198,7);
-   bobgraph.bar(0,196,319,197,8);
+   bobgraph.bar(0,198,319,199,UIColours[15]);
+   bobgraph.bar(0,197,319,198,UIColours[7]);
+   bobgraph.bar(0,196,319,197,UIColours[8]);
    bobgraph.bar(0,195,319,196,0);
 
-   bobgraph.bar(0,0,1,199,15);
-   bobgraph.bar(1,0,2,199,7);
-   bobgraph.bar(2,0,3,199,8);
+   bobgraph.bar(0,0,1,199,UIColours[15]);
+   bobgraph.bar(1,0,2,199,UIColours[7]);
+   bobgraph.bar(2,0,3,199,UIColours[8]);
    bobgraph.bar(3,0,4,199,0);
    
-   bobgraph.bar(319,0,318,199,15);
-   bobgraph.bar(318,0,317,199,7);
-   bobgraph.bar(317,0,316,199,8);
+   bobgraph.bar(319,0,318,199,UIColours[15]);
+   bobgraph.bar(318,0,317,199,UIColours[7]);
+   bobgraph.bar(317,0,316,199,UIColours[8]);
    bobgraph.bar(316,0,315,199,0);
    
    spritedraw(0,0,pic,copyput);
@@ -186,7 +187,7 @@ begin
    while keypressed do a:=readkey;
    startmenu;
    statereset:=true;
-   textxy(100,20,4,9,title);
+   textxy(100,20,4,UIColours[9],title);
    x:=0;
    spritedraw(x,40,107,xorput);
    nextt := timertick + pitRatio;
@@ -215,10 +216,10 @@ begin
    if txt.size=0 then exit;
    startmenu;
    statereset:=true;
-   textxy(10,10,4,9,title);
+   textxy(10,10,4,UIColours[9],title);
    for i:= 0 to txt.size-1 do
    begin
-      textxy(10,20+(i*10),4,7,txt.data[i]);
+      textxy(10,20+(i*10),4,UIColours[7],txt.data[i]);
    end;
    done:=false;
    while not(done) do
@@ -257,17 +258,17 @@ begin
    startmenu;
    x:=60;
    y:=30;
-   textxy(50,10,4,9,'Pick An Episode To Play :-');
+   textxy(50,10,4,UIColours[9],'Pick An Episode To Play :-');
    for i:= 1 to no do
    begin
-      textxy(x,y+(i*10),4,5,epname[i]); 
+      textxy(x,y+(i*10),4,UIColours[5],epname[i]); 
    end;
    bgdone:=false;
    while (not(bgdone)) do
    begin
-      textxy(x,y+(sel*10),4,13,epname[sel]);
+      textxy(x,y+(sel*10),4,UIColours[13],epname[sel]);
       while (not(keypressed)) do checkSongChange;
-      textxy(x,y+(sel*10),4,5,epname[sel]);
+      textxy(x,y+(sel*10),4,UIColours[5],epname[sel]);
       a:=readkey;
       if a=char(27) then bgdone:=true;
       if a=char(0) then
@@ -323,16 +324,16 @@ begin
    textxy(30,30,4,9,'pick a slot to save too...');
    for i:= 1 to 9 do
    begin
-      textxy(30,40 + i*10,4,5,slots[i]);
+      textxy(30,40 + i*10,4,UIColours[5],slots[i]);
    end;
    sel:=1;
    sdone:=false;
    while (not(sdone)) do
    begin
-      textxy(30,40+(sel*10),4,13,slots[sel]);
+      textxy(30,40+(sel*10),4,UIColours[13],slots[sel]);
       while (not(keypressed)) do checkSongChange;
       
-      textxy(30,40+(sel*10),4,5,slots[sel]);
+      textxy(30,40+(sel*10),4,UIColours[5],slots[sel]);
       
       a:=readkey;
       if a=char(27) then sdone:=true;
@@ -344,6 +345,16 @@ begin
 	 {saving game here yah!}
 	 textxy(30,40+(sel*10),4,0,slots[sel]);
 	 slots[sel] := ginput(slots[sel],30,40+(sel*10));
+	 { we need to check if we can write to the save file }
+	 if not(canWriteTo(slotfile[sel]+'.map') and canWriteTo(slotfile[sel]+'.dat')) then
+         begin
+	    {we have determined we can't save due to write protection most likely}
+	    textxy(40, 150, 4, UIColours[12], 'Cannot write save file');
+	    while (not(keypressed)) do ; {wait for a key}
+            while keypressed do a:=readkey;
+	    menudone;
+	    exit;
+	 end;	 
 	 map.save(slotfile[sel]+'.map');
 	 move(player,buff,sizeof(playerrec));
 	 assign(out,slotfile[sel]+'.dat');
@@ -399,19 +410,19 @@ begin
    end;
    if (nss=0) then exit;
    startmenu;
-   textxy(30,30,4,9,'pick a slot to load from...');
+   textxy(30,30,4,UIColours[9],'pick a slot to load from...');
    for i:= 1 to nss do
    begin
-      textxy(30,40 + i*10,4,5,slots[i]);
+      textxy(30,40 + i*10,4,UIColours[5],slots[i]);
    end;
    sel:=1;
    sdone:=false;
    while (not(sdone)) do
    begin
-      textxy(30,40+(sel*10),4,13,slots[sel]);
+      textxy(30,40+(sel*10),4,UIColours[13],slots[sel]);
       while (not(keypressed)) do checkSongChange;
       
-      textxy(30,40+(sel*10),4,5,slots[sel]);
+      textxy(30,40+(sel*10),4,UIColours[5],slots[sel]);
       
       a:=readkey;
       if a=char(27) then sdone:=true;
@@ -476,12 +487,12 @@ begin
      if (jcbuttons[c] = BUTTON_D) then fd := c;
    end;
    startmenu;
-   textxy(10,10,4,9,'centre joystick and press C');
-   textxy(100,80,4,7,functs[fa]);
-   textxy(100,90,4,7,functs[fb]);
-   textxy(100,100,4,7,functs[fc]);
-   textxy(100,110,4,7,functs[fd]);
-   textxy(20,120,4,2,'Done');
+   textxy(10,10,4,UIColours[9],'centre joystick and press C');
+   textxy(100,80,4,UIColours[7],functs[fa]);
+   textxy(100,90,4,UIColours[7],functs[fb]);
+   textxy(100,100,4,UIColours[7],functs[fc]);
+   textxy(100,110,4,UIColours[7],functs[fd]);
+   textxy(20,120,4,UIColours[2],'Done');
    spritedraw(6,80+(sel*10),44,xorput);
    done:=false;
    while not(done) do
@@ -520,10 +531,10 @@ begin
                if fc=5 then fc:=0;
                if fd=5 then fd:=0;
             end;
-            textxy(100,80,4,7,functs[fa]);
-            textxy(100,90,4,7,functs[fb]);
-            textxy(100,100,4,7,functs[fc]);
-            textxy(100,110,4,7,functs[fd]);
+            textxy(100,80,4,UIColours[7],functs[fa]);
+            textxy(100,90,4,UIColours[7],functs[fb]);
+            textxy(100,100,4,UIColours[7],functs[fc]);
+            textxy(100,110,4,UIColours[7],functs[fd]);
             spritedraw(6,80+(sel*10),44,xorput);
          end;
       end;
@@ -535,23 +546,23 @@ begin
       begin
 	 if (joy.yaxis<joy.ycentre) then jy:=30 else jy:=60;
       end;
-      bobgraph.bar(29,29,61,61,8);
-      bobgraph.bar(jx,jy,jx+1,jy+1,9);
+      bobgraph.bar(29,29,61,61,UIColours[8]);
+      bobgraph.bar(jx,jy,jx+1,jy+1,UIColours[9]);
       c:= 2;
       if (usejoy) then c:=10;
-      textxy(20,70,4,c,'Joystick Enabled');
+      textxy(20,70,4,UIColours[c],'Joystick Enabled');
       c:= 2;
       if (joy.buttons and BUTTON_A) = 0 then c:=10;
-      textxy(20,80,4,c,'Button A');
+      textxy(20,80,4,UIColours[c],'Button A');
       c:= 2;
       if (joy.buttons and BUTTON_B) =0 then c:=10;
-      textxy(20,90,4,c,'Button B');      
+      textxy(20,90,4,UIColours[c],'Button B');      
       c:= 2;
       if (joy.buttons and BUTTON_C) =0 then c:=10;
-      textxy(20,100,4,c,'Button C');
+      textxy(20,100,4,UIColours[c],'Button C');
       c:= 2;
       if (joy.buttons and BUTTON_D) =0 then c:=10;
-      textxy(20,110,4,c,'Button D'); 
+      textxy(20,110,4,UIColours[c],'Button D'); 
    end;
    for c:= 1 to 4 do
    begin
@@ -606,13 +617,13 @@ begin
    {ok we have initialised the basics to drive this menu lets deal with displaying the menu}
    c:=5;
    if useCustomKeys then c:=13;
-   textxy(40,40,4,c,'Custom Keyboard controls');
+   textxy(40,40,4,UIColours[c],'Custom Keyboard controls');
    for c:= 1 to 7 do
    begin
-      textxy(40,40+(c*10),4,5,keys[c]);
-      textxy(130,40+(c*10),4,5,keyface(scancode[c]));
+      textxy(40,40+(c*10),4,UIColours[5],keys[c]);
+      textxy(130,40+(c*10),4,UIColours[5],keyface(scancode[c]));
    end;
-   textxy(40,120,4,9,'Done');
+   textxy(40,120,4,UIColours[9],'Done');
    
    spritedraw(29,43+(pos*10),44,copyput);
    { init done... watch for the different key presses required }
@@ -631,8 +642,8 @@ begin
 	    textxy(40,40+(pos*10),4,0,keys[pos]);
 	    textxy(130,40+(pos*10),4,0,keyface(scancode[pos]));
 	    pickkey(pos);
-	    textxy(40,40+(pos*10),4,13,keys[pos]);
-	    textxy(130,40+(pos*10),4,13,keyface(scancode[pos]));
+	    textxy(40,40+(pos*10),4,UIColours[13],keys[pos]);
+	    textxy(130,40+(pos*10),4,UIColours[13],keyface(scancode[pos]));
 	 end;
 	 if pos = 8 then done:=true;
 	 if pos = 0 then
@@ -641,7 +652,7 @@ begin
 	    useCustomKeys:=not(useCustomKeys);
 	    c:=5;
 	    if useCustomKeys then c:=13;
-	    textxy(40,40,4,c,'Custom Keyboard controls');
+	    textxy(40,40,4,UIColours[c],'Custom Keyboard controls');
 	 end;
       end;
       if a = chr(0) then
@@ -652,8 +663,8 @@ begin
 	 spritedraw(29,43+(pos*10),44,xorput);
 	 if ((pos>0) and (pos<8)) then
 	 begin
-	    textxy(40,40+(pos*10),4,5,keys[pos]);
-	    textxy(130,40+(pos*10),4,5,keyface(scancode[pos]));
+	    textxy(40,40+(pos*10),4,UIColours[5],keys[pos]);
+	    textxy(130,40+(pos*10),4,UIColours[5],keyface(scancode[pos]));
 	 end;
     
 	 if a = chr(72) then
@@ -672,8 +683,8 @@ begin
 	 spritedraw(29,43+(pos*10),44,xorput);
 	 if ((pos>0) and (pos<8)) then
 	 begin
-	    textxy(40,40+(pos*10),4,13,keys[pos]);
-	    textxy(130,40+(pos*10),4,13,keyface(scancode[pos]));
+	    textxy(40,40+(pos*10),4,UIColours[13],keys[pos]);
+	    textxy(130,40+(pos*10),4,UIColours[13],keyface(scancode[pos]));
 	 end;
       end;
    end;
@@ -689,18 +700,20 @@ var s,t	: string[50];
     h,y	: integer;
     c	: char;
    tot	: longint;
+   col	: byte;
 begin
    startmenu;
    { find out memory information (just available at the moment)}
+   col := UIColours[9];
    str(memavail,t);
    s := 'Memory Available :' + t;
-   textxy(20,10,4,9,s);
+   textxy(20,10,4,col,s);
    str(maxavail,t);
    s:= 'Largest block :' + t;
-   textxy(20,20,4,9,s);
+   textxy(20,20,4,col,s);
 
    {print if we are running on a 286}
-   if is286 then textxy(190,10,4,9,'286+ processor');
+   if is286 then textxy(190,10,4,col,'286+ processor');
 
    s := '';
    h := detectGraphics;
@@ -720,7 +733,7 @@ begin
      5 : s:= 'VESA';
    end;
    s:= 'Graphics card:' + s;
-   textxy(180,20,4,9,s);
+   textxy(180,20,4,col,s);
    
    { find out what sound is detected and being used }
    {$ifndef noAdlib}
@@ -734,11 +747,11 @@ begin
    {$else}
    t:= ' Using PC Speaker sound';
    {$endif}
-   textxy(20,40,4,9,t);
+   textxy(20,40,4,col,t);
 
    {display if the joystick is available}
    if joyavail then
-      textxy(20,150,4,9,'Joystick found');
+      textxy(20,150,4,col,'Joystick found');
    
    {get display information}
    if graphicsMode=mCGA then t:='CGA';
@@ -746,7 +759,7 @@ begin
    if graphicsMode=mVGA then t:='VGA';
    if graphicsMode=mVESA then t:='VESA';
    s:= 'Driver :' + t;
-   textxy(20,70,4,9,s);
+   textxy(20,70,4,col,s);
    case graphicsmode of
      mCGA  : t:= '320x200 4 colours';
      mVGA  : t:= '320x200 256 colours';
@@ -754,32 +767,32 @@ begin
      mVESA : t:= '640x400 256 colours';
    end;
    s := 'Mode :' + t;
-   textxy(20,80,4,9,s);
+   textxy(20,80,4,col,s);
 
    {display the timing information from the engine.}
    str(maxCycle,t);
    s:= 'Max idle cycles :'+t;
-   textxy(20,120,4,9,s);
+   textxy(20,120,4,col,s);
    str(pitRatio,t);
    s:= 'PIT ratio: '+t;
-   textxy(20,130,4,9,s);
+   textxy(20,130,4,col,s);
 
    if paging then
       if graphicsmode = mEGA then
-	 textxy(20,140,4,9,'EGA page flipping enabled')
+	 textxy(20,140,4,col,'EGA page flipping enabled')
       else
-	 textxy(20,140,4,9,'System memory back-buffer enabled');
+	 textxy(20,140,4,col,'System memory back-buffer enabled');
 
    {determine the size and number of sprites}
    str(spriteCount,t);
    s:= 'Sprite Count:'+t;
-   textxy(20,160,4,9,s);
+   textxy(20,160,4,col,s);
    spriteSize(h,y);
    str(h,t);
    s:= 'Sprite size:'+t+'x';
    str(y,t);
    s:=s+t;
-   textxy(20,170,4,9,s);
+   textxy(20,170,4,col,s);
    h:= iSize(h,y);
    tot := h;
    tot := (tot * spriteCount) div 1024;
@@ -787,7 +800,7 @@ begin
    s:= 'Sprite Mem size:'+t+' total:';
    str(tot,t);
    s:= s+t+'kb';
-   textxy(20,180,4,9,s);
+   textxy(20,180,4,col,s);
    
    {now wait for any key and return to settings screen.}
    while not(keypressed) do checkSongChange;
@@ -828,7 +841,7 @@ begin
       im[i] := i + 1;
 
    {benchmark the graphics drawing on screen}
-   bobgraph.bar(59,179,260,190,7);
+   bobgraph.bar(59,179,260,190,UIColours[7]);
    while not(keypressed) do
    begin
       start := timerTick;
@@ -849,7 +862,7 @@ begin
       bobgraph.bar(60,159,200,178,0);
       str(rate:2:2,s);
       s := s + ' Sprites/sec';
-      textxy(61,160,4,9,s);
+      textxy(61,160,4,UIColours[9],s);
    end;
 
    while (keypressed) do c:= readkey;
@@ -882,8 +895,8 @@ begin
       spritedraw(29,33+((pos)*10),44,copyput);
       if (refresh or (pos=1)) then
       begin
-	 if respawn then textxy(40,40,4,13,'Monster Respawn')
-	 else textxy(40,40,4,5,'Monster Respawn');
+	 if respawn then textxy(40,40,4,UIColours[13],'Monster Respawn')
+	 else textxy(40,40,4,UIColours[5],'Monster Respawn');
       end;
       if (refresh or (pos=0)) then
       begin
@@ -893,14 +906,14 @@ begin
 	 if s=2 then t:=t+'Normal';
 	 if s=4 then t:=t+'Slow';
 	 if s=6 then t:=t+'Very Slow';
-	 textxy(40,30,4,9,t);
+	 textxy(40,30,4,UIColours[9],t);
       end;
       if (refresh or (pos = 4)) then
-	 if soundo then textxy(40,70,4,13,'Sound')
-	 else textxy(40,70,4,5,'Sound');
+	 if soundo then textxy(40,70,4,UIColours[13],'Sound')
+	 else textxy(40,70,4,UIColours[5],'Sound');
       if (refresh or (pos = 5)) then
-	 if musico then textxy(40,80,4,13,'Music')
-	 else textxy(40,80,4,5,'Music');
+	 if musico then textxy(40,80,4,UIColours[13],'Music')
+	 else textxy(40,80,4,UIColours[5],'Music');
       if (refresh or (pos = 2)) then
       begin
 	 bar(40,52,200,62,0);
@@ -909,38 +922,38 @@ begin
 	 if diff=3 then t:=t+'Medium';
 	 if diff=1 then t:=t+'Hard';
 	 if diff=-3 then t:=t+'InSaNe';
-	 textxy(40,50,4,9,t);
+	 textxy(40,50,4,UIColours[9],t);
       end;
       {$ifndef noAdlib}
       if (refresh or (pos=3)) then
       begin
 	 if (isBlaster) then
 	 begin
-	    textxy(40,60,4,9,'Volume');
+	    textxy(40,60,4,UIColours[9],'Volume');
 	    volume := getfmVol;
-	    bobgraph.bar(100,63,180,73,8);
-	    bobgraph.bar(95+(volume*5),63,105+(volume*5),73,12);
+	    bobgraph.bar(100,63,180,73,UIColours[8]);
+	    bobgraph.bar(95+(volume*5),63,105+(volume*5),73,UIColours[9]);
 	 end
-         else textxy(40,60,4,5,'Volume Unavailable');
+         else textxy(40,60,4,UIColours[5],'Volume Unavailable');
       end;
       {$else}
       if refresh then 
-	 textxy(40,60,4,5,'Volume Unavailable');
+	 textxy(40,60,4,UIColours[5],'Volume Unavailable');
       {$endif}
       if (refresh or (pos = 6)) then
       begin
 	 if (joyavail) then
 	 begin
-	    if (usejoy) then textxy(40,90,4,13,'Joystick Available') else
-	       textxy(40,90,4,5,'Joystick Available');
+	    if (usejoy) then textxy(40,90,4,UIColours[13],'Joystick Available') else
+	       textxy(40,90,4,UIColours[5],'Joystick Available');
 	 end
-         else textxy(40,90,4,9,'Joystick Unavailable');
+         else textxy(40,90,4,UIColours[9],'Joystick Unavailable');
       end;
       if refresh then
       begin
-	 textxy(40,100,4,9,'Keyboard Control');
-	 textxy(40,110,4,9,'Hardware Info');
-	 textxy(40,120,4,9,'Done');
+	 textxy(40,100,4,UIColours[9],'Keyboard Control');
+	 textxy(40,110,4,UIColours[9],'Hardware Info');
+	 textxy(40,120,4,UIColours[9],'Done');
       end;
       refresh := false;
       
@@ -1206,7 +1219,7 @@ begin
       for i:= 1 to 16 do
       begin
 	 spritedraw(10,y+(i*10),icons[i,page],copyput);
-	 textxy(x,y+(i*10),4,9,pages[i,page]);
+	 textxy(x,y+(i*10),4,UIColours[9],pages[i,page]);
       end;
       while (not(keypressed))do checkSongChange ;
 	 
@@ -1248,19 +1261,19 @@ begin
    menu[5]:='Help';
    menu[6]:='View High Scores';
    menu[7]:='Quit Bob`s Fury';
-   textxy(x,y,4,5,menu[1]);
-   textxy(x,y+10,4,5,menu[2]);
-   textxy(x,y+20,4,5,menu[3]);
-   textxy(x,y+30,4,5,menu[4]);
-   textxy(x,y+40,4,5,menu[5]);
-   textxy(x,y+50,4,5,menu[6]);
-   textxy(x,y+60,4,5,menu[7]);
+   textxy(x,y,4,UIColours[5],menu[1]);
+   textxy(x,y+10,4,UIColours[5],menu[2]);
+   textxy(x,y+20,4,UIColours[5],menu[3]);
+   textxy(x,y+30,4,UIColours[5],menu[4]);
+   textxy(x,y+40,4,UIColours[5],menu[5]);
+   textxy(x,y+50,4,UIColours[5],menu[6]);
+   textxy(x,y+60,4,UIColours[5],menu[7]);
    while not(mdone) do
    begin
       while not(keypressed) do
       begin
 	 checkSongChange;
-	 textxy(x,y+((sel-1)*10),4,13,menu[sel]);
+	 textxy(x,y+((sel-1)*10),4,UIColours[13],menu[sel]);
 	 spritedraw(x-11,y+((sel-1)*10)+3,44,copyput);
       end;        {80 is down 72 is up...13 if an enter key}
       a:=readkey;
@@ -1284,7 +1297,7 @@ begin
       if a=chr(0) then
       begin
 	 a:=readkey;
-	 textxy(x,y+((sel-1)*10),4,5,menu[sel]);
+	 textxy(x,y+((sel-1)*10),4,UIColours[5],menu[sel]);
 	 bobgraph.bar(x-11,y,x-1,y+80,0);
 	 if a=chr(72) then sel:=sel-1;
 	 if a=chr(80) then sel:=sel+1;
@@ -1309,7 +1322,7 @@ const
 begin
    a:=char(1);
    startmenu;
-   textxy(30,100,8,9,'Bob`s Fury');
+   textxy(30,100,8,UIColours[9],'Bob`s Fury');
    for c:=1 to 5 do
       for i:=1 to 30 do
 	 spritedraw((i*10)+5,(c*10)+120,stat[c,i],copyput);
@@ -1346,8 +1359,8 @@ begin
    while (keypressed) do a:=readkey;
    a:=char(0);
    startmenu;
-   textxy(130,10,4,9,'High Scores');
-   textxy(110,20,4,9,'press C to clear');
+   textxy(130,10,4,UIColours[9],'High Scores');
+   textxy(110,20,4,UIColours[9],'press C to clear');
    
    for i:=0 to 9 do
    begin
@@ -1398,7 +1411,7 @@ begin
    c:=i;
    if (i=10) then exit;
    startmenu;
-   textxy(110,10,4,7,'Enter Your Name');
+   textxy(110,10,4,UIColours[7],'Enter Your Name');
    s:='';
    s:= ginput(s,100,25);
    i:=9;

@@ -130,9 +130,9 @@ procedure pause;
 var a : char;
 begin
    save(100,0,80,20);
-   bobgraph.bar(110,0,170,19,9);
-   bobgraph.bar(111,1,169,18,1);
-   textxy(120,0,4,9,'Paused');
+   bobgraph.bar(110,0,170,19,UIColours[9]);
+   bobgraph.bar(111,1,169,18,UIColours[1]);
+   textxy(120,0,4,UIColours[9],'Paused');
    a:=singlekeypress;
    restore;
    checkTimer;
@@ -142,9 +142,9 @@ procedure quitquestion;
 var a : char;
 begin
    save(100,0,80,20);
-   bobgraph.bar(110,0,170,19,9);
-   bobgraph.bar(111,1,169,18,1);
-   textxy(120,0,4,9,'Quit?');
+   bobgraph.bar(110,0,170,19,UIColours[9]);
+   bobgraph.bar(111,1,169,18,UIColours[1]);
+   textxy(120,0,4,UIColours[9],'Quit?');
    a:=singlekeypress;
    a:=upcase(a);
    if ((a='Q') or (a='Y')) then
@@ -193,11 +193,11 @@ begin
    if (diff>3) then bonus := bonus div 2;
    if bonus>0 then
    begin
-      bobgraph.bar(90,0,210,22,9);
-      bobgraph.bar(91,1,209,21,1);
-      textxy(120,1,4,9,'BONUS POINTS!');
+      bobgraph.bar(90,0,210,22,UIColours[9]);
+      bobgraph.bar(91,1,209,21,UIColours[1]);
+      textxy(120,1,4,UIColours[9],'BONUS POINTS!');
       str(bonus,am);
-      textxy(140,11,4,9,am);
+      textxy(140,11,4,UIColours[9],am);
       
       l:=250;
       i:=0;
@@ -205,7 +205,7 @@ begin
       begin
 	 t:= timerTick + (6*pitRatio );
 	 while t>timerTick do ;
-	 textxy(140,11,4,1,am);
+	 textxy(140,11,4,UIColours[1],am);
 	 player.score:=player.score+l;
 	 i:=i+l;
 	 if keypressed then
@@ -213,7 +213,7 @@ begin
 	 if (l> bonus-i) then l:= bonus-i;
 	 showscore;
 	 str(bonus-i,am);
-	 textxy(140,11,4,9,am);
+	 textxy(140,11,4,UIColours[9],am);
       end;
    end;
 end;
@@ -459,12 +459,12 @@ begin
    if drawstaticstatus then
    begin
       drawstaticstatus := false;
-      textxy(5,165,4,7,'Score');
-      textxy(5,185,4,7,'Lives');
+      textxy(5,165,4,UIColours[7],'Score');
+      textxy(5,185,4,UIColours[7],'Lives');
       spritedraw(155,165,9,copyput);
       spritedraw(155,178,49,copyput);
       spritedraw(155,188,50,copyput);
-      textxy(250,165,4,7,'Weapon');
+      textxy(250,165,4,UIColours[7],'Weapon');
    end;
    if not(oldplay.score=player.score) then
    begin
@@ -472,7 +472,7 @@ begin
       textxy(45,165,4,0,s);}
       bar(45,165,90,174,0);
       str(player.score,s);
-      textxy(45,165,4,7,s);
+      textxy(45,165,4,UIColours[7],s);
    end;
    if (not(oldplay.health=player.health) or
        not(player.invuln div 10 = oldplay.invuln div 10)) then
@@ -485,6 +485,7 @@ begin
       if player.health>25 then i:=14;
       if player.health>50 then i:=2;
       if player.health>75 then i:=10;
+      i:= UIColours[i];
       if player.invuln>10 then
       begin
 	 i:=player.invuln;
@@ -504,7 +505,7 @@ begin
       textxy(45,185,4,0,s);}
       bar(45,185,50,194,0);
       str(player.lives,s);
-      textxy(45,185,4,7,s);
+      textxy(45,185,4,UIColours[7],s);
    end;
    if not(oldplay.fullb=player.fullb) then
    begin
@@ -512,7 +513,7 @@ begin
       textxy(165,165,4,0,s);}
       bar(165,165,180,174,0);
       str(player.fullb,s);
-      textxy(165,165,4,7,s);
+      textxy(165,165,4,UIColours[7],s);
    end;
    if (not(oldplay.keys=player.keys)) then
    begin
@@ -528,7 +529,7 @@ begin
       textxy(165,175,4,0,s);}
       bar(165,175,180,184,0);
       str(player.gren,s);
-      textxy(165,175,4,7,s);
+      textxy(165,175,4,UIColours[7],s);
    end;
    if not(oldplay.lbolt=player.lbolt) then
    begin
@@ -536,7 +537,7 @@ begin
       textxy(165,185,4,0,s);}
       bar(165,185,185,194,0);
       str(player.lbolt,s);
-      textxy(165,185,4,7,s);
+      textxy(165,185,4,UIColours[7],s);
    end;
    if (oldflbolt xor firelbolt) then 
    begin
@@ -555,7 +556,7 @@ begin
          textxy(265,180,4,0,s);}
 	 bar(265,180,280,189,0);
          str(bossp,s);
-         textxy(265,180,4,7,s);
+         textxy(265,180,4,UIColours[7],s);
          oldbossp:=bossp;
       end;
    end;

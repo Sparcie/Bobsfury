@@ -168,7 +168,6 @@ begin
    if isBlaster then writeln('Adlib/SoundBlaster detected');
    if force=3 then writeln('OPL2LPT on LPT1');
    if force=4 then writeln('OPL2LPT on LPT2');
-   writeln('Memory details...');
    write('memory available after load ');
    writeln(avail);
    write('heap used ');

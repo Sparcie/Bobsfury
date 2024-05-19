@@ -111,6 +111,11 @@ var conf:file of char;
     z,i:byte;
     a:char;
 begin
+   if not(canWriteTo('bob.cfg')) then
+   begin
+      writeln('Cannot write config file');
+      exit;
+   end;
    assign(conf,'bob.cfg');
    rewrite(conf);
    z:=graphicsMode;

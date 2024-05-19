@@ -9,7 +9,11 @@ var
    is286  : boolean;
    EGAmem : byte; {ega memory 0 = 64k 1 = 128k etc..}
 
+{checks if a file exists}
 function checkfile(filename:string):boolean;
+
+{ checks if a file is writable }
+function canWriteTo(filename : string):boolean;
 
 { detect highest level graphics card
   0 - none
@@ -110,6 +114,23 @@ begin
          checkfile:=false;
         end;
 end;
+
+{$I-}
+function canWriteTo(filename : string):boolean;
+var
+   f	  : text;
+   result : word;
+begin
+   canWriteTo:= true;
+   assign(f, filename);
+   append(f); { don't want to change the data unless necessary - maybe we only want to check }
+   result := IOResult;
+   if (result <> 0) then
+      canWriteTo := false
+   else
+      close(f);
+end;
+{$I+}
 
 begin
    is286:=false;

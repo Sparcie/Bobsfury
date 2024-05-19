@@ -67,8 +67,9 @@ const
    transput = 2; {not implemented yet}
 
 var
-   graphicsMode	: byte;
-   paging	: boolean;
+   graphicsMode		 : byte;
+   paging		 : boolean;
+   UIColours		 : array[0..15] of byte;
    
 implementation
 
@@ -101,12 +102,24 @@ begin
    end;
 end;
 
-procedure cgaUIColour(var c : integer);
+procedure cgaUIColour;
 begin
-   if c=9 then c:=3;
-   if c=5 then c:=2;
-   if c=13 then c:=1;
-   if c=8 then c:=2;
+   UIColours[0]:=0;
+   UIColours[1]:=2;
+   UIColours[2]:=3;
+   UIColours[3]:=1;
+   UIColours[4]:=1;
+   UIColours[5]:=2;
+   UIColours[6]:=0;
+   UIColours[7]:=3;
+   UIColours[8]:=2;
+   UIColours[9]:=3;
+   UIColours[10]:=2;
+   UIColours[11]:=3;
+   UIColours[12]:=2;
+   UIColours[13]:=1;
+   UIColours[14]:=2;
+   UIColours[15]:=1;
 end;
 
 procedure UIPage;
@@ -184,6 +197,8 @@ begin
    gcard := detectGraphics;
    paging := false;
    inited := false;
+   for i:= 0 to 15 do
+      UIColours[i] := i;
    if graphicsMode>3 then graphicsMode:=2;
    {$ifdef CGA}
    if graphicsMode=mCGA then
@@ -203,6 +218,7 @@ begin
       else
 	 b := cga.setdrawmode(0);
       inited := true;
+      cgaUIColour;
    end;
    {$endif}
    {$ifdef EGA}
@@ -317,13 +333,12 @@ begin
    
    bar(0,0,310,160,0);
 
-   {bar(0,160,312,161,6);}
-   bar(0,160,312,161,15);
-   bar(311,161,312,0,15);
-   bar(0,161,313,162,7);
-   bar(312,162,313,0,7);
-   bar(0,162,313,162,8);
-   bar(313,162,313,0,8);
+   bar(0,160,312,161,UIColours[15]);
+   bar(311,161,312,0,UIColours[15]);
+   bar(0,161,313,162,UIColours[7]);
+   bar(312,162,313,0,UIColours[7]);
+   bar(0,162,313,162,UIColours[8]);
+   bar(313,162,313,0,UIColours[8]);
    i:=0;
    c:=0;
    while i<16 do
@@ -369,7 +384,6 @@ begin
    case graphicsmode of
      {$ifdef CGA}
      mCGA : begin
-	       cgaUIColour(c);
 	       cga.line(x,y,x2,y2,c);
 	    end;
      {$endif}
@@ -400,7 +414,6 @@ begin
    case graphicsmode of
      {$ifdef CGA}
      mCGA : begin
-	       cgaUIColour(c);
 	       cga.filledBox(x,y,x2,y2,c);
 	    end;
      {$endif}
