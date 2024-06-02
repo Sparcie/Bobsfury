@@ -8,6 +8,7 @@
 {$undef general}
 {$define CGA}
 {$define noAdlib}
+{$define XTKbd}
 {$endif}
 
 {$ifdef EDITOR}

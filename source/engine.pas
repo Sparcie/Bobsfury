@@ -105,8 +105,11 @@ var oldplay		 : playerrec; {old player record, used to know what score items to 
 
 {checks the timing mechanism and resets it if needed, call when returning from a UI element}
 procedure checkTimer;
+var
+   t : word;
 begin
-   if abs(nextt-lastt) > (pitRatio shl 4) then nextt:=lastt+((gap * pitRatio) shr 1);
+   t := timerTick;
+   if abs(t - nextt) > (pitRatio shl 4) then nextt:= t + ((gap * pitRatio) shr 1);
 end;
 
 {checks to see if two sprites may be overlaping}

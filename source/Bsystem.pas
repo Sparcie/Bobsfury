@@ -120,10 +120,15 @@ function canWriteTo(filename : string):boolean;
 var
    f	  : text;
    result : word;
+   exists : boolean;
 begin
    canWriteTo:= true;
+   exists := checkfile(filename);
    assign(f, filename);
-   append(f); { don't want to change the data unless necessary - maybe we only want to check }
+   if exists then
+      append(f) { don't want to change the data unless necessary - maybe we only want to check }
+   else
+      rewrite(f);
    result := IOResult;
    if (result <> 0) then
       canWriteTo := false

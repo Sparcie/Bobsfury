@@ -1,4 +1,30 @@
 ------------------------------------------------------------------------
+r191 | andrew | 2024-06-02 17:38:09 +1000 (Sun, 02 Jun 2024) | 23 lines
+
+Addressed a few bugs and attempted to fix issue with keyboard.
+
+- fixed timer issue where if you paused the game for a significant amount of time sometimes it would stall game movement after the pause.
+- fixed the check for being able to write to a file not working if the file didn't exist.
+
+The keyboard issue is a bit more complex and I'm not sure if this solves it.
+From testing some machines would sometimes not register a key_up event causing game controls to stick. It's not consistent, with different results depending on machine type.
+- with martyPC the keys would stick 
+- with 86Box the keys would stick under some configurations but not others, there isn't a consistent pattern other than more modern configurations being less likely to suffer the problem.
+- with the book 8088 - it only suffered from stuck keys if the adlib sound was turned on (probably because it takes up more interrupt time that PC speaker and thus increases the likely hood)
+- with Microbyte 386sx PC - never gets stuck keys - with either set of code.
+
+I've implemented a new keyhandler that only applies to the XT version of the game.
+- it seems to solve the problem on martyPC which is encouraging
+- solves the problem on some 86Box configurations and makes it worse on others (how?!) this is kinda concerning.
+- works fine on the microbyte PC and Dosbox.
+- no change on the book 8088, the XT version is fine (as it only has PC speaker) and the normal version has the issue when using adlib sound but not otherwise.
+
+The new code isn't without issue, it does not call the BIOS handler so it doesn't reboot when CTRL+ALT+DEL is pressed, and the caplock, numlock and scroll lock keys are not handled.
+It has the benefit however of allowing some keys to be used in the game (such as shift, alt and ctrl)
+
+I have more experimentation to do, such as enabling interrupts during sound processing to see if that helps as it does on the book 8088.
+
+------------------------------------------------------------------------
 r190 | andrew | 2024-05-19 18:21:59 +1000 (Sun, 19 May 2024) | 3 lines
 
 I wrote a small section of code to check if a file can be written to and have implemented checks for saving the config file and for writing a save game. I decided to do this after running the game in martyPC with the disk image write protected. The run time error message would have left a player in the dark.

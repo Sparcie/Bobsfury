@@ -19,6 +19,8 @@ function keypressed:boolean; { returns true if there are keys waiting in the BIO
 function readkey:char;       { returns a character from the BIOS key buffer }
 
 
+{$I defines.pas }
+
 implementation
 
 uses dos;
@@ -31,6 +33,7 @@ var
    keys	       : array[0..255] of boolean; {normal keys 0- 127 extended keys 128 - 255 }
    head	       : integer absolute $0040:$001A; 
    tail	       : integer absolute $0040:$001C;
+   kbdbuff     : array[30..62] of byte absolute $0040:$001E;
    bscancode   : byte; {BIOS scan code saved when the ascii value is 0}
 
 const
@@ -140,6 +143,40 @@ begin
    end;
 end; { keyFace }
 
+{$ifdef XTKbd}
+
+{$I scancode.pas}
+
+procedure translate(code : byte);
+var
+   shift    : boolean;
+   ascii    : byte;
+   temptail : word;
+begin
+   {do a relatively simple translation from scan code to ascii}
+   { doesn't handle capslock or numlock (maybe could do that?)}
+   shift := keys[$2A] or keys[$36];
+   if not(shift) then
+      ascii := scantable[code]
+   else
+      ascii := shiftscantable[code];
+
+   {stuff the combined code and ascii into the BIOS buffer}
+   {determine a new tail value}
+   temptail := tail + 2;
+
+   {check if the buffer is full we drop the key press}
+   if temptail = head then exit;
+
+   {write to the buffer}
+   kbdbuff[tail] := ascii;
+   kbdbuff[tail+1] := code;
+   tail := temptail;
+   if tail > 60 then tail:=30;   
+end;
+			 
+{$endif}
+
 procedure keyhandler; interrupt;
 {interrupt for processing the keys}
 var
@@ -149,15 +186,19 @@ var
    count    : integer;
 begin
    key_in:= port[$60]; {grab the current scan code}
-   scode := key_in and $7f;
+   {$ifndef XTKbd}
+   {keyboard routine for AT keyboards/BIOS
+   we can read from the keyboard, do a little processing,
+   then hand control to the BIOS to handle the rest. }
    Inline(                  {call old BIOS handler }
           $9C/                   {pushf}
 	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
-   {now do my processing }
+   scode := key_in and $7f;
    if extended then
    begin
-      keys[scode + 128] := key_in < 128;
-      lastpressed := scode + 128;
+      scode := scode or 128;
+      keys[scode] := key_in < 128;
+      lastpressed := scode;
       extended:=false;
    end
    else
@@ -170,6 +211,28 @@ begin
       else
 	 extended:=true;
    end;
+   {$else}
+   {keyboard routine for XT keyboards/machines
+   We have to do all the handling ourselves as reading
+   from the keyboard port more than once can occasionally (not all the time)
+   cause us to miss a key up/down event, causing the game to think a key is stuck}
+   {reset PPI and send EOI}
+   scode := port[$61];
+   port[$61] := scode or $80;
+   port[$61] := scode and $7F;
+   port[$20] := $20;
+   {ignore any $E0 codes - in case we're not on an XT}
+   if (key_in = $E0) then exit;
+   {store state based on key input}
+   scode := key_in and $7f;
+   keys[scode] := key_in < 128;
+   lastpressed := scode;
+   {if it is a key down event we will translate the scan code and stuff it in the BIOS buffer}
+   if (key_in < $80) then translate(scode); 
+   
+   {$endif}
+   
+   {this part is common for both types of machine}
    {only allow a couple of keypresses to be stored to prevent buffer overflow}
    asm cli end;
    tempHead := head;

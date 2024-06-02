@@ -287,7 +287,7 @@ if MusicDelay2 > 0 then
   begin
   MusicDelay1 := MusicDelay2;            { Move second delay into first delay. }
   MusicDelay2 := 0;
-  Port[$61] := Port[$61] and $F8;                                 { Sound off. }
+  Port[$61] := Port[$61] and $78;                                 { Sound off. }
   exit;                                                                { Exit. }
   end;
 
@@ -296,7 +296,7 @@ if MusicHere = 0 then exit;
 if MusicHere > length(MusicString) then
   begin
   MusicHere := 0;
-  Port[$61] := Port[$61] and $F8;                                 { Sound off. }
+  Port[$61] := Port[$61] and $78;                                 { Sound off. }
   exit;                                                                { Exit. }
   end;
 
@@ -366,24 +366,24 @@ while MusicHere <= length(MusicString) do
             if note > 0 then dec(note);
             end;
           note := Frequency[note];          { Translate note into 'frequency'. }
-          Port[$61] := Port[$61] and $F8;                         { Sound off. }
+          Port[$61] := Port[$61] and $78;                         { Sound off. }
           Port[$43] := $B6;                                { Setup timer chip. }
           Port[$42] := Lo(note);                            { Setup frequency. }
           Port[$42] := Hi(note);
-          Port[$61] := Port[$61] or $03;                           { Sound on. }
+          Port[$61] := (Port[$61] and $7F) or $03;                           { Sound on. }
           SetupDelays;                             { Setup note length delays. }
           exit;
           end;
     'N' : begin                                        { Play a specific note. }
           note := GetNumber(1,84,0);                     { Accept note number. }
-          Port[$61] := Port[$61] and $F8;                         { Sound off. }
+          Port[$61] := Port[$61] and $78;                         { Sound off. }
           if note > 0 then                               { Zero means silence. }
             begin
             note := Frequency[note-1];      { Translate note into 'frequency'. }
             Port[$43] := $B6;                              { Setup timer chip. }
             Port[$42] := Lo(note);                          { Setup frequency. }
             Port[$42] := Hi(note);
-            Port[$61] := Port[$61] or $03;                         { Sound on. }
+            Port[$61] := (Port[$61] and $7f) or $03;                         { Sound on. }
             end;
           SetupDelays;                             { Setup note length delays. }
           exit;
