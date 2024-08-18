@@ -60,6 +60,33 @@ var
    bitmask   : byte; {the bitmask register (selects which pixels to operate on)}
    planemask : byte; {selects which planes are active for writing}
 
+{this function calculates the screen ofset needed to draw a pixel}
+function screenOfset(x,y : word):word; assembler;
+asm
+  {calculates the following formula...
+      ofs := (x shr 3) + y * 80;
+      ofs := ofs + pageofs; }
+  {store and determine the x component in BX}
+  mov bx, x 
+  shr bx,1 { it is quicker to shr bx,1 3 times than it is to use shr bx,cl }
+  shr bx,1  
+  shr bx,1
+  {now do the y component - store result in ax }
+  mov cx, y
+  shl cx,1 {same as before - four instructions is faster than one }
+  shl cx,1
+  shl cx,1
+  shl cx,1
+  mov ax,cx
+  shl cx,1
+  shl cx,1
+  add ax,cx
+  {now add in the x component}
+  add ax,bx
+  {add page ofset (for the multipaging aspect of EGA}
+  add ax, pageofs
+end;
+
 {use EGA BIOS to set the page we are displaying}
 procedure setVisualPage(p : byte); assembler;
 asm
@@ -226,8 +253,8 @@ begin
    xm:= sign(xs); ym := sign(ys) * 80 ;
    xs := abs(xs); ys := abs(ys);
 
-   ofs := (x shr 3) + y * 80;
-   ofs := ofs + pageofs;
+   ofs := screenOfset(x,y);
+
    mask := pixel[x and $7];
 
    {check for zero length lines}
@@ -389,7 +416,7 @@ begin
 
    {first we're going to draw all the leading pixels in the box.}
    mask := leadmask[ x and $7 ];
-   ofs := (x shr 3) + (y * 80) + pageofs;
+   ofs := screenOfset(x,y);
    {check if the width of the box is narrow, we might only need to draw using one byte}
    if ((x shr 3) = (x1 shr 3)) then
    begin
@@ -459,7 +486,7 @@ begin
    setBitMask(pixel[x and $7]);
    setDataFunc(0);
    setPlaneMask($F);
-   ofs := (x shr 3) + (y * 80) + pageofs;
+   ofs := screenOfset(x,y);
    dummy := mem[cardseg: ofs]; {dummy read to load latch}
    mem[cardseg:ofs] := c;
 end;
@@ -504,7 +531,7 @@ begin
    for plane := 0 to 3 do
    begin
       setReadPlane(plane);
-      sofs := (x shr 3) + (y * 80) + pageofs;
+      sofs := screenOfset(x,y);
       for c:= y to y1 do
       begin
 	 for i := 1 to rowsize do
@@ -593,7 +620,7 @@ begin
    sizey := memw[bseg:bofs+2];
    bheight := sizey;
    bofs := bofs + 4;
-   tofs := (x shr 3) + (y * 80) + pageofs;
+   tofs := screenOfset(x,y);
    bwidth := (sizex shr 3) + 1; {buffer width in bytes}
    if (x+sizex>639) then {check we're not going to draw off screen}
       sizex := 640-x;
@@ -661,7 +688,7 @@ begin
    sizey := memw[bseg:bofs+2];
    bheight := sizey;
    bofs := bofs + 4;
-   tofs := (x shr 3) + (y * 80) + pageofs;
+   tofs := screenOfset(x,y);
    bwidth := (sizex shr 3) + 1; {buffer width in bytes}
    if (x+sizex>639) then {check we're not going to draw off screen}
       sizex := 640-x;

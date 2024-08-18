@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r192 | andrew | 2024-08-18 23:08:12 +1000 (Sun, 18 Aug 2024) | 4 lines
+
+Two changes for performance.
+
+- Added a simple scaling mechanism to reduce the distance enemies can be seen if the game is struggling to keep up. applies only to machines with 8088/8086
+- Made minor change to CGA and EGA graphics making screen ofset calculation faster with some assembly.
+------------------------------------------------------------------------
 r191 | andrew | 2024-06-02 17:38:09 +1000 (Sun, 02 Jun 2024) | 23 lines
 
 Addressed a few bugs and attempted to fix issue with keyboard.

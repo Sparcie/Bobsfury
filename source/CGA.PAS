@@ -174,6 +174,39 @@ asm
     xor ah, ah 
 end;
 
+{this function calculates the buffer offset for a screen position (includes targofs) }
+function screenOfset(x, y :  word):word; assembler;
+asm
+   {we're implementing
+     tofs := (x div 4) + (80 * (y shr 1)) + targofs;
+     if y and 1 = 1 then tofs := tofs + $2000; set the correct bank
+   in assembly. }
+   mov bx, x {using BX to store the x component}
+   shr bx,1 {divide by 2 twice to divide by 4}
+   shr bx,1
+   mov cx, y    { using cx to calculate with the y component, will store the accumulated value in ax }
+   shr cx,1     {test if we need bank 0 or 1}
+   jc @bank1
+   xor ax,ax
+   jmp @bankdone
+@bank1:
+   mov ax, $2000
+@bankdone:
+{now we need to multiply what's left in cx by 80. We can do this with some shifting and adding fortunately}
+   shl cx,1
+   shl cx,1
+   shl cx,1
+   shl cx,1
+   add ax, cx   
+   shl cx,1
+   shl cx,1
+   add ax, cx
+   {now add the x to the value so far}
+   add ax, bx
+   {add the value of targofs (in case it's not screen memory}
+   add ax, targofs
+end;
+			  
 
 {line drawing routine, using bresenhams line algorithm}
 procedure line(x,y,x1,y1: word; c: byte);
@@ -194,9 +227,8 @@ begin
     end;
 
     {determine starting ofset}
-    ofs := (x shr 2) + ((y shr 1) * 80);
-    ofs := ofs + targofs; {add the offset for the target buffer}
-   
+    ofs := screenOfset(x,y);
+       
     xs := x1 - x; ys := y1-y;
 
     ym := sign(ys) * 80;
@@ -205,11 +237,11 @@ begin
     {to move up/down a row we need to know whether to increment or decrement or just change bank}
     { the nr (si register) stores what to do on the next row change, it contains ym or zero to add to the ofset }
     { after moving a row we just xor ym into the register to know what to do next, but we need to determine}
-    { it's initial state: this next short segment determines it's initial state.} 
+    { it's initial state: this next short segment determines it's initial state.
+    The bank ofset is already in the ofset variable.} 
    nr := 0; {initial state for sanity}
    if (y and 1) = 1 then
     begin {we're on the odd bank}
-       ofs := ofs + $2000; { we need to add this to the ofset to be in the correct bank}
        if ym<0 then nr := 0; { going from odd to even (up) doesn't change ofset }
        if ym>0 then nr := ym; { going from odd to even (down) does change ofset }
     end
@@ -417,28 +449,23 @@ begin
       rowLength := 0;
    end;
    asm
-       mov cl, 80
-       {CL will store the value which will determine if
-       the offset is incremented for the next row (will be moved later)}
+       {calulate ofset}
+       push x
+       push y
+       call screenOfset
+       mov di, ax
        {load segment}
        mov bx, targseg
        mov es,bx
-       {calulate ofset}
-       xor di,di
+
+       {CL will store the value which will determine if
+       the offset is incremented for the next row}
+       mov cl, 80
        mov ax,y
        shr ax,1
        jnc @even
        xor cl, cl
-       mov di, $2000
-   @even:
-       mov bx,x
-       shr bx,1
-       shr bx,1
-       mov dx, 80
-       mul dx
-       add di, bx
-       add di, ax
-       add di, targofs
+   @even:       
        { ok ofset is set up in ES:DI and CX contains a value for incrementing the ofset (for changing rows)}
        mov dl, cl {move the value for incrementing the row to DL as I will need CX}
        mov cx, y1 {calculate number of rows and store in CX}
@@ -509,24 +536,14 @@ begin
     if checkBounds(x,y) then exit;
     c := c and $3;
     asm {assembly implementation}
+       {calulate ofset (have a function for it)}
+       push x
+       push y
+       call screenOfset
+       mov di,ax   
        {load segment}
        mov bx, targseg
        mov es,bx
-       {calulate ofset}
-       xor di,di
-       mov ax,y
-       shr ax,1
-       jnc @even
-       mov di, $2000
-   @even:
-       mov bx,x
-       shr bx,1
-       shr bx,1
-       mov dx, 80
-       mul dx
-       add di, bx
-       add di, ax
-       add di, targofs
        {set up mask and colour and shift them}
        mov bl, c
        mov bh, $03
@@ -587,8 +604,8 @@ begin
    shift := (x mod 4) * 2;
    {figure out the starting address from the source}
    sseg := targseg;
-   sofs := (x div 4) + (80 * (y shr 1)) + targofs;
-   if y and 1 = 1 then sofs := sofs or $2000; {set the correct bank}
+   sofs := screenOfset(x,y);
+   
    { ok now we should be ready to get the image from the screen image}
    { we're going to copy each bank separately so as to save time in drawing}
    
@@ -711,8 +728,8 @@ begin
      bseg := seg(bitmap^);
      bofs := ofs(bitmap^);
      tseg := targseg;
-     tofs := (x div 4) + (80 * (y shr 1)) + targofs;
-     if y and 1 = 1 then tofs := tofs + $2000; {set the correct bank}
+     tofs := screenOfset(x,y);
+
      sizex := memw[bseg:bofs];
      sizey := memw[bseg:bofs+2];
      bwidth := (sizex shr 2) + 2;
@@ -879,8 +896,8 @@ begin
      bseg := seg(bitmap^);
      bofs := ofs(bitmap^);
      tseg := targseg;
-     tofs := (x div 4) + (80 * (y shr 1)) + targofs;
-     if y and 1 = 1 then tofs := tofs + $2000; {set the correct bank}
+     tofs := screenOfset(x,y);
+
      sizex := memw[bseg:bofs];
      sizey := memw[bseg:bofs+2];
      bwidth := (sizex shr 2) + 2;

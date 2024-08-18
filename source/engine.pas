@@ -102,6 +102,8 @@ var oldplay		 : playerrec; {old player record, used to know what score items to 
    {leg = boolean to indicate the frame state (legs appart or closed
     mov = whether the player is moving forward or not (control)
     fall = whether the player is falling (control) used to determine if you can jump.}
+   visibility		 : byte;
+   {the vertical/horizontal distance a monster disappears at - dynamically updated depending on performance - range 75 - 150 }
 
 {checks the timing mechanism and resets it if needed, call when returning from a UI element}
 procedure checkTimer;
@@ -576,6 +578,19 @@ begin
    inc(freecycle);
    if (lastt>=nextt) then
    begin
+      if (rot and not(is286)) then
+      begin
+	 {make some descisions to adjust the visible distance 
+          of monsters before disappearing - this is to hopefully reduce slowdown}
+	 if ((visibility > 75) and ((freecycle) < 10)) then
+	     visibility := visibility - 2;
+	 if ((visibility < 150) and (freecycle > 50)) then
+	     visibility :=visibility + 2;
+	 {line(315,0,315,162,0);
+	 line(315,0,315,visibility,1);}
+	 {line(316,0,316,162,0);
+	 line(316,0,316,lo(freecycle),2);}
+      end;
       nextt:=lastt+ ((gap * pitRatio) shr 1);
       if freecycle>maxcycle then maxcycle:=freecycle;
       freecycle:=0;
@@ -1133,7 +1148,7 @@ begin
    ax := abs(x-px);
    ay := abs(y-py);
    crudeDist:=120;
-   if ((ax>150) or (ay>150)) then crudeDist:= 220;
+   if ((ax > visibility) or (ay > visibility)) then crudeDist:= 220;
    if ((ax<75) and (ay<75)) then crudeDist:=90;
 end;
 
@@ -2079,6 +2094,7 @@ begin
    firelbolt:=false;
    boss:=0;
    bossp:=0;
+   visibility := 150;
    update;  
    calibrate;
 end.
