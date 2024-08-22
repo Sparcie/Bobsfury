@@ -603,7 +603,6 @@ begin
 	 processKeys;
       if hcount>0 then hcount:=hcount-1;
       personmove;
-      showscore;
       if shtt>0 then dec(shtt);
       {move monsters}
       if player.invuln>0 then player.health:=100;
@@ -643,6 +642,7 @@ begin
 	 end;
 	 inc(i);
       end;
+      showscore;
    end;
 end;
 

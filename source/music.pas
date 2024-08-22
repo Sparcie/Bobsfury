@@ -267,6 +267,9 @@ var
   note : word;                                          { Temporary variables. }
   ch : char;
 begin
+   {enable interrupts - hopefully to allow the keyboard to work better on an XT}
+   asm sti end;
+   
 { Call the old timer handler. The address of the old handler is saved by the
   installation code at the end of the unit. }
 Inline(

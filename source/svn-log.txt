@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r193 | andrew | 2024-08-22 21:38:08 +1000 (Thu, 22 Aug 2024) | 4 lines
+
+I made some more minor optimisations and changed the XT build to disable pitdbl by default.
+I added an STI in the music interrupt in the hope this would make the keyboard behave better on martyPC
+
+Sadly didn't make much of an impact on performance or the keyboard issues.
+------------------------------------------------------------------------
 r192 | andrew | 2024-08-18 23:08:12 +1000 (Sun, 18 Aug 2024) | 4 lines
 
 Two changes for performance.

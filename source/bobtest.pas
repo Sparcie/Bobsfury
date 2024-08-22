@@ -37,8 +37,9 @@ begin
    if s = 'LPT1' then force:=3;
    if s = 'LPT2' then force:=4;
    {$endif}
-   
+   {$ifdef pitdbl}
    if s= '-np' then usepitdbl := false;
+   {$endif}
    if s= '-c' then
    begin
       player.lives:=3;
@@ -74,7 +75,9 @@ begin
       writeln(' LPT1   use OPL2LPT on LPT1');
       writeln(' LPT2   use OPL2LPT on LPT2');
       {$endif}
+      {$ifdef pitdbl}
       writeln(' -np    disable doubling pit speed');
+      {$endif}
       writeln(' -c <filename.map>  load a custom level');
       writeln;
       halt(0);
@@ -93,7 +96,11 @@ begin
 end;
 
 begin
+   {$ifdef pitdbl}
    usepitdbl:=true;
+   {$else}
+   usepitdbl:=false;
+   {$endif}
    avail := memavail;
    writeln('loading conf');
    getconf; {check params}

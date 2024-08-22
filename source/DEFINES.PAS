@@ -24,4 +24,5 @@
 {$define EGA}
 {$define VGA}
 {$define VESA}
+{$define pitdbl}
 {$endif}

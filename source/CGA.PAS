@@ -900,15 +900,69 @@ begin
 
      sizex := memw[bseg:bofs];
      sizey := memw[bseg:bofs+2];
+   {implement this in assembly - slightly faster because pascal does multiple shifts slowly
+     and I can save some compute keeping values in registers.
      bwidth := (sizex shr 2) + 2;
-     {adjust the ofset of the buffer to the already shifted copy}
+     {adjust the ofset of the buffer to the already shifted copy
      bofs := bofs + 4 + ((x and $3) * bwidth * sizey);
      if (x+sizex>319) then
         sizex := 320-x;
      if (y+sizey>199) then
         sizey := 200-y;
-     width := ((sizex + (x and $3)) shr 2) + 1; {in bytes that are to be copied and xor'ed}
+     width := ((sizex + (x and $3)) shr 2) + 1; in bytes that are to be copied and xor'ed
      if ((x shr 2) + width > 80) then width:= 80 - ( x shr 2);
+ }
+     asm
+        mov ax, sizex
+        shr ax,1
+        shr ax,1
+        add ax,2
+        mov bwidth,ax
+
+        mov ax, x
+        and ax, $3
+        mov bx, ax {save a copy to use later}
+        mul bwidth
+        mul sizey
+        add ax,4
+        add ax,bofs
+        mov bofs,ax
+
+        mov ax,x
+        add ax,sizex
+        cmp ax,$013F
+        jbe @sizexOk
+        mov ax,$140
+        sub ax,x
+        mov sizex,ax
+   @sizexOk:
+
+        mov ax,y
+        add ax,sizey
+        cmp ax,$C7
+        jbe @sizeyOk
+        mov ax, $C8
+        sub ax, y
+        mov sizey,ax
+   @sizeyOk:
+   
+        mov ax, bx {use the copy of x and $3 from earlier}
+        add ax, sizex
+        shr ax,1
+        shr ax,1
+        inc ax
+        mov width, ax
+        mov bx, x
+        shr bx,1
+        shr bx,1
+        add ax, bx
+        cmp ax, $50
+        jbe @widthOk
+        mov ax, $50
+        sub ax, bx
+        mov width, ax
+     @widthOk:
+     end;
      { AX will be for working - loading pixel bytes and manipulating them
        BX 
        CX byte counter 
