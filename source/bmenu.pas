@@ -931,7 +931,7 @@ begin
 	 begin
 	    textxy(40,60,4,UIColours[9],'Volume');
 	    volume := getfmVol;
-	    bobgraph.bar(100,63,180,73,UIColours[8]);
+	    bobgraph.bar(95,63,180,73,UIColours[8]);
 	    bobgraph.bar(95+(volume*5),63,105+(volume*5),73,UIColours[9]);
 	 end
          else textxy(40,60,4,UIColours[5],'Volume Unavailable');
@@ -1013,7 +1013,7 @@ begin
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
 	    begin
-	       volume:=volume-$02;
+	       volume:=volume-1;
 	       setfmVol(volume);
 	       shoot;        
 	    end;
@@ -1076,7 +1076,7 @@ begin
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
 	    begin
-	       volume:=volume+$02;
+	       volume:=volume+1;
 	       setfmVol(volume);
 	       shoot;        
 	    end;

@@ -49,6 +49,7 @@ begin
       respawn:=false;
       usejoy:=false;
       musico:=false;
+      volume := $0B;
       exit;
    end;
    assign(conf,'bob.cfg');

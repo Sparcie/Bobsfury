@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r194 | andrew | 2024-10-15 22:17:05 +1100 (Tue, 15 Oct 2024) | 5 lines
+
+Found that the initial volume setting for adlib audio was initialised to zero when no config file present.
+
+Made some small changes to fix the initial volume state and to allow for finer control of the volume level.
+
+
+------------------------------------------------------------------------
 r193 | andrew | 2024-08-22 21:38:08 +1000 (Thu, 22 Aug 2024) | 4 lines
 
 I made some more minor optimisations and changed the XT build to disable pitdbl by default.
