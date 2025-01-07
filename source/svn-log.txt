@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r195 | andrew | 2025-01-07 12:29:22 +1100 (Tue, 07 Jan 2025) | 4 lines
+
+I made a new file selection mechanism for the level editor that is a little
+more user friendly.
+
+
+------------------------------------------------------------------------
 r194 | andrew | 2024-10-15 22:17:05 +1100 (Tue, 15 Oct 2024) | 5 lines
 
 Found that the initial volume setting for adlib audio was initialised to zero when no config file present.

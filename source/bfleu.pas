@@ -23,25 +23,6 @@ var hirs  : boolean;
    sm	  : boolean; {source marked}
    paint  : boolean;
 
-procedure listfiles;
-var  DirInfo : SearchRec;
-     x,y     : integer;
-begin
-   x:=0; y:=16;
-   FindFirst('*.map',0, DirInfo);
-   while DosError = 0 do
-   begin
-      textxy(x,y,4,7,DirInfo.Name);
-      x:=x+(13*8);
-      if (x>(320-96)) then
-      begin
-	 x:=0;
-	 y:=y+8;
-      end;
-      FindNext(DirInfo);
-   end;
-end; { listfiles }
-
 function ginput(x,y:integer):string;
 var z,s : string;
    done : boolean;
@@ -69,6 +50,162 @@ begin
    end;
    ginput:=z;
 end;
+
+
+function fileSelector( ext:string; wr:boolean):string;
+var
+   pge   :byte;
+   pattern:string[12];
+   list   :array[0..200] of string[12];
+   count  :byte;
+   pos    :byte;
+   maxPos :byte;
+   DirInfo:SearchRec;
+   x, y   :word;
+   k      :char;
+   done   :boolean;
+begin
+    {First make a list of all the files with the extension}
+    {prepare variables}
+    pattern := '*.'+ext;
+    count := 0;
+    if wr then {if we are writing a file we may need to input a new file name}
+    begin
+        {make an entry for a new file}
+        list[0] := 'New File';
+        count :=1;
+    end;
+    {now build the list}
+    FindFirst(pattern, 0, DirInfo);
+    while DosError = 0 do
+    begin
+       if count < 201 then
+       begin
+           list[count] := DirInfo.name;
+           inc(count);
+       end;
+       FindNext(DirInfo);
+    end;
+    
+    {Ok now we can do a file selection dialog box with the info we have}
+    
+    pge := 0;
+    clearviewport;
+    if wr then
+       textxy(0,0,4,12,'Select a file to write')
+    else
+       textxy(0,0,4,9,'Select a file to read');
+    
+    x:=0; y:=16;
+    pos:=0;
+    {we can display at most 69 files per page at most}
+    while ((pos<70) and (pos<count)) do
+    begin
+        textxy(x,y,4,7,list[pos]);
+        inc(pos);
+        x:= (pos mod 3) * 104;
+        y:= ((pos div 3) * 8) + 16;
+    end;
+    maxPos := pos - 1;
+    pos:=0;
+    
+    done:=false;
+    {ok now we should be able to have a basic menu!}
+    while not(done) do
+    begin
+        {highlight current position}
+        x:= (pos mod 3) * 104;
+        y:= ((pos div 3) * 8) + 16;
+        textxy(x,y,4,10,list[pos + (pge*69)]);
+        
+        while not(keypressed) do ; {wait for a keypress!}
+        
+        {hide current selection}
+        x:= (pos mod 3) * 104;
+        y:= ((pos div 3) * 8) + 16;
+        textxy(x,y,4,7,list[pos + (pge*69)]);
+        
+        {read and process keys}
+        k := readkey;
+        if k = chr(13) then
+        begin {enter key pressed - do actions related to that!}
+           pattern := list[pos];
+           if ((wr) and (pos=0) and (pge=0)) then
+           begin
+               bar(0,0,200,15,0);
+               textxy(0,0,4,9,'Enter new file...');
+               pattern := ginput(0,8) + '.' + ext;               
+           end;
+           if wr then
+           begin
+              if (canWriteTo(pattern)) then done := true
+              else
+              begin
+                 bar(160,0,319,16,0);
+                 textxy(160,0,4,12,'Cannot write to '+pattern);
+              end;
+           end
+           else
+              done:=true;
+           fileSelector := pattern;
+        end;
+        if k = chr(27) then
+        begin {escape key pressed - no file selected!}
+           fileSelector:= '';
+           exit;
+        end; 
+        if k = chr(0) then {special key!}
+        begin
+           k := readkey; {read next key code...}
+           
+           {arrow keys}
+           if ( (k = chr(75)) and (pos > 0)) then dec(pos);
+           if ( (k = chr(72)) and (pos > 2)) then pos := pos - 3;
+           if ( (k = chr(77)) and (pos < maxPos)) then inc(pos);
+           if ( (k = chr(80)) and (pos < maxPos-2)) then pos := pos + 3;
+           
+           {deal with page-up/pagedown}
+           if ( (k = chr(73)) or (k = chr(81))) then
+           begin
+              if ((pge>0) and (k = chr(73))) then dec(pge);
+              if ((pge< (count div 69)) and (k = chr(81))) then inc(pge);
+
+              bar(0,16,319,199,0);
+              x:=0; y:=16;
+              pos:=0;
+              {we can display at most 69 files per page at most}
+              while ((pos<70) and ((pos + (pge*69)) <count)) do
+              begin
+                 textxy(x,y,4,7,list[pos + (pge*69)]);
+                 inc(pos);
+                 x:= (pos mod 3) * 104;
+                 y:= ((pos div 3) * 8) + 16;
+             end;
+             maxPos := pos - 1;
+             pos:=0;                            
+           end;           
+        end;               
+    end;
+end;
+
+{procedure listfiles;
+var  DirInfo : SearchRec;
+     x,y     : integer;
+begin
+   x:=0; y:=16;
+   FindFirst('*.map',0, DirInfo);
+   while DosError = 0 do
+   begin
+      textxy(x,y,4,7,DirInfo.Name);
+      x:=x+(13*8);
+      if (x>(320-96)) then
+      begin
+	 x:=0;
+	 y:=y+8;
+      end;
+      FindNext(DirInfo);
+   end;
+end;  listfiles }
 
 function isok(dat:byte):boolean;
 begin
@@ -312,24 +449,26 @@ end;
 procedure load;
 var name:string;
 begin
-   clearviewport;
+   {clearviewport;
    textxy(0,0,4,9,'Type in the name of a map to load');
    listfiles;
-   name:= ginput(0,8);
-   if checkFile(name+'.map') then
-      map.load((name+'.map'));
+   name:= ginput(0,8);}
+   name := fileSelector('map', false);
+   if checkFile(name) then
+      map.load((name));
    showscreen;
 end;
 
 procedure save;
 var name :string;
 begin
-   clearviewport;
+{   clearviewport;
    textxy(0,0,4,9,'Save this map as...');
    listfiles;
-   name:= ginput(0,8);
+   name:= ginput(0,8);}
+   name := fileSelector('map', true);
    if not(name='') then
-      map.save((name+'.map'));
+      map.save((name));
    showscreen;
 end;
 
@@ -745,8 +884,8 @@ begin
 end;
 
 begin
-   init;
    loadFont('litt.chr');
+   init;
    sm:=false;
    dne:=true;
    drawSelection;
