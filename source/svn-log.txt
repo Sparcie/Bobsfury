@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r196 | andrew | 2025-01-09 10:09:24 +1100 (Thu, 09 Jan 2025) | 5 lines
+
+Removing and cleaning up some files
+- I'm splitting some code off into a new project - gedit - which will eventually replace the current graphics tool chain
+  So I've removed the exe and source for the packer tool, gedit and conversion tools as they will be a part of the new
+  repo.
+- I found some BGI files in the git-repo so I've cleaned them up there.
+------------------------------------------------------------------------
 r195 | andrew | 2025-01-07 12:29:22 +1100 (Tue, 07 Jan 2025) | 4 lines
 
 I made a new file selection mechanism for the level editor that is a little

@@ -36,14 +36,11 @@ bsound.pas   - base sound interface for sound effects and music
 buffer.pas   - a simple buffered file reader/writer for text type files
 compress.pas - compression program using huffman coding (see huffdec and huffenc)
 convert.pas  - converts Qbasic levels to the Pascal level format
-egaconv.pas  - converts a VGA graphics pack to EGA (640x200)
 engine.pas   - main game engine - probably the ugliest and oldest code. Been refactored a little.
 fixed.pas    - library for fixed math - used mainly for the integer Square root and distance calculations
 fmmusic.pas  - turns Q/GWBasic style play strings into note data for other sound libraries (not used in the game, but rather to generate the data beforehand)
 fmplayer.pas - Code for handling the playback of audio on the adlib, mostly has buffers and the int 1C interrupt
 fmsynth.pas  - Lowest level interface for talking to adlib/OLP2LPT devices (code for sending data to the devices)
-gedit.pas    - very basic graphics editor.
-gpack.pas    - Unit for creating the packed graphics sets (RLE compressed)
 huffdec.pas  - Huffman code decoder unit.
 huffenc.pas  - Huffman code encoder unit.
 joytest.pas  - test program for joystick unit.
@@ -55,7 +52,6 @@ mapcomp.pas  - map compression program - compresses previously uncompressed maps
 mconvert.pas - Music converter - converts music text files (with BASIC play syntax) to the music format - not the best way to make music.
 medit.pas    - Music editor - still a work in progress 
 music.pas    - PC speaker sound unit by J C Kessels - plays sound using the BASIC play syntax, modified to cope with increased timer rate
-packer.pas   - program for packing the graphics set into a file.
 palgen.pas   - generates VGAPAL.pas (stores VGA palette)
 pgs.pas      - packed graphics system, loads graphics packs (decodes RLE format), initialises video, some basic collision (box) detection between sprites, and drawing sprites.
 pitdbl.pas   - PIT doubler - doubles the PIT speed (optionally), could go to a higher rate if modified.
@@ -64,7 +60,6 @@ synthint.pas - intermediate interface to adlib device - play notes and does basi
 testfm.pas   - test program for fmplayer, sythint and fmsynth
 testm.pas    - test program for bmusic, fmmusic
 vector.pas   - Old unit for calulating distance - not used anymore.
-CGACONV.PAS  - CGA converter program - converts VGA graphic set to CGA
 PALETTE.PAS  - VGA palette interface (changes colours)
 SNDGEN.PAS   - creates the sound cache file for sound effect playback.
 VGAPAL.PAS   - generated from palgen.pas. const VGA palette.
