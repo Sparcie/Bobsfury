@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r197 | andrew | 2025-01-19 23:00:04 +1100 (Sun, 19 Jan 2025) | 2 lines
+
+- had another attempt at fixing stuck keys in when playing XT version in martypc
+- fixed fileSelector when there are no files to load.
+------------------------------------------------------------------------
 r196 | andrew | 2025-01-09 10:09:24 +1100 (Thu, 09 Jan 2025) | 5 lines
 
 Removing and cleaning up some files

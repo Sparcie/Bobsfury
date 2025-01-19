@@ -86,6 +86,9 @@ begin
        end;
        FindNext(DirInfo);
     end;
+
+    fileSelector :='';
+    if count=0 then exit;
     
     {Ok now we can do a file selection dialog box with the info we have}
     

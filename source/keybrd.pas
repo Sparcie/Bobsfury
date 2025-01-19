@@ -185,6 +185,7 @@ var
    tempHead : integer;
    count    : integer;
 begin
+   asm cli end;
    key_in:= port[$60]; {grab the current scan code}
    {$ifndef XTKbd}
    {keyboard routine for AT keyboards/BIOS
@@ -220,16 +221,15 @@ begin
    scode := port[$61];
    port[$61] := scode or $80;
    port[$61] := scode and $7F;
-   port[$20] := $20;
-   {ignore any $E0 codes - in case we're not on an XT}
-   if (key_in = $E0) then exit;
    {store state based on key input}
+   
    scode := key_in and $7f;
+   
    keys[scode] := key_in < 128;
    lastpressed := scode;
    {if it is a key down event we will translate the scan code and stuff it in the BIOS buffer}
    if (key_in < $80) then translate(scode); 
-   
+   port[$20] := $20;   
    {$endif}
    
    {this part is common for both types of machine}
