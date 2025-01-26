@@ -1,4 +1,29 @@
 ------------------------------------------------------------------------
+r200 | andrew | 2025-01-26 16:30:56 +1100 (Sun, 26 Jan 2025) | 4 lines
+
+Updated maps for Tomb level set so that when they are completed you can achieve the bonus points.
+
+The reason you couldn't previously is because the 4th screen was filled with noise (from the initial conversion process)
+I just filled the noise with bricks so the bonus check would work correctly - the additional benefit being the level set takes less disk space.
+------------------------------------------------------------------------
+r199 | andrew | 2025-01-26 16:01:42 +1100 (Sun, 26 Jan 2025) | 7 lines
+
+Added feedback during the counting of remaining items for the bonus score
+
+This is because a slower machine (like an XT) would take a while to check the entire level. This delay might look like a crash to someone who doesn't know, so I added this feedback to show how many treasure/monsters/switches were not collected/killed/used and how many level segments are left to process.
+
+pressing a key reduces the wait time for the bonus to add to your score and skips the delay after everything is done.
+
+This makes it clearer what the game is doing.
+------------------------------------------------------------------------
+r198 | andrew | 2025-01-26 13:14:02 +1100 (Sun, 26 Jan 2025) | 5 lines
+
+Tidied up the keyboard unit to make it easier to understand what the different builds (XT v's AT) do
+for the keyboard interrupt.
+
+I haven't tested this with martyPC yet, I've still been having issues with sticking controls in previous versions.
+Although only in martyPC lately.
+------------------------------------------------------------------------
 r197 | andrew | 2025-01-19 23:00:04 +1100 (Sun, 19 Jan 2025) | 2 lines
 
 - had another attempt at fixing stuck keys in when playing XT version in martypc

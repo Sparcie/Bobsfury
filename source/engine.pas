@@ -163,13 +163,14 @@ end; { quitquestion }
 
 procedure checkBonus;
 var
-   mcount, tcount     : integer; {counts of monsters and treasure. }
+   mcount, tcount    : integer; {counts of monsters and treasure. }
    oncount, offcount : integer; {count of switches and keyholes used and unused}
    l,s,i,c	     : integer;
    o		     : integer;
    bonus	     : integer;
    am		     : string;
    t		     : word;
+   k		     : char;
 begin
    {this is the end of the level so modifications to the level do not matter}
    clearmonsters;
@@ -177,8 +178,25 @@ begin
    tcount:=0;
    oncount:=0;
    offcount:=0;
-   for l:=0 to getTierCount do
+   bobgraph.bar(90,50,230,95, UIColours[9]);
+   bobgraph.bar(91,51,229,94,UIColours[1]);
+   textxy(110,51,4,UIColours[9], 'Remaining');
+   textxy(100,61,4,UIColours[9], 'Treasures');
+   textxy(100,71,4,UIColours[9], 'Monsters');
+   textxy(100,81,4,UIColours[9], 'Keys and Switches');
+
+   t := (getTierCount)*4;
+   str(t , am);
+   textxy(210,51,4,UIColours[9], am);
+   textxy(210,61,4,UIColours[9], '0');
+   textxy(210,71,4,UIColours[9], '0');
+   textxy(210,81,4,UIColours[9], '0'); 
+
+   while keypressed do k:=readkey;
+   
+   for l:=0 to getTierCount-1 do
       for s:=1 to 4 do
+      begin
 	 for i:=0 to 30 do
 	    for c:=0 to 15 do
 	    begin
@@ -190,6 +208,22 @@ begin
 		 155,156,86							: inc(oncount);
 	       end;
 	    end;
+	 {update remaining display}
+	 bobgraph.bar(209,51,229,94,UIColours[1]);
+
+	 t := (getTierCount)*4 - (s + (l*4));
+	 str(t , am);
+	 textxy(210,51,4,UIColours[9], am);
+
+	 str(tcount,am);
+	 textxy(210,61,4,UIColours[9], am);
+	 str(mcount,am);
+	 textxy(210,71,4,UIColours[9], am);
+	 str(offcount,am);
+	 textxy(210,81,4,UIColours[9], am);
+	 t:= timerTick + (2*pitRatio );
+	 while t>timerTick do ;
+      end;
    bonus :=0;
    if (mcount=0) then bonus := bonus + 2000;
    if (tcount=0) then bonus := bonus + 3000;
@@ -221,6 +255,11 @@ begin
 	 textxy(140,11,4,UIColours[9],am);
       end;
    end;
+   {pause at the end for few seconds - unless a key is pressed}
+   t:= timerTick + (72*pitRatio );
+   while ((t>timerTick) and not(keypressed)) do ;
+
+   while keypressed do k:=readkey;
 end;
 
 procedure switchTrigger(source :target );

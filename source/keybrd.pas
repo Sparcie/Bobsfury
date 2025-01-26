@@ -143,6 +143,27 @@ begin
    end;
 end; { keyFace }
 
+procedure limitBIOSBuffer;
+var
+   tempHead : integer;
+   count    : integer;
+begin
+   {this part is common for both types of machine}
+   {only allow a couple of keypresses to be stored to prevent buffer overflow}
+   asm cli end;
+   tempHead := head;
+   count := tail - head;
+   if count<0 then count := (62-head) + (tail-30);
+   if (count > 6) then
+   begin
+      head := head + 2;
+      if head>60 then head:=30;
+      if (head=tail) then head:=tempHead;
+   end;
+   asm sti end;
+end;
+
+
 {$ifdef XTKbd}
 
 {$I scancode.pas}
@@ -174,9 +195,43 @@ begin
    tail := temptail;
    if tail > 60 then tail:=30;   
 end;
-			 
-{$endif}
 
+{keyboard routine for XT keyboards/machines
+ We have to do all the handling ourselves as reading
+ from the keyboard port more than once can occasionally (not all the time)
+ cause us to miss a key up/down event, causing the game to think a key is stuck}
+procedure keyhandler; interrupt;
+{interrupt for processing the keys}
+var
+   key_in   : byte;
+   scode    : byte;
+begin
+   asm cli end;
+   key_in:= port[$60]; {grab the current scan code}
+   {reset PPI }
+   scode := port[$61];
+   port[$61] := scode or $80;
+   port[$61] := scode and $7F;
+   {store state based on key input}
+   
+   scode := key_in and $7f;
+   
+   keys[scode] := key_in < 128;
+   lastpressed := scode;
+   {if it is a key down event we will translate the scan code and stuff it in the BIOS buffer}
+   if (key_in < $80) then translate(scode);
+
+   limitBIOSBuffer;
+
+   {send EOI}
+   port[$20] := $20;      
+end;
+
+{$else}
+
+{keyboard routine for AT keyboards/BIOS
+ we can read from the keyboard, do a little processing,
+ then hand control to the BIOS to handle the rest. }
 procedure keyhandler; interrupt;
 {interrupt for processing the keys}
 var
@@ -187,13 +242,6 @@ var
 begin
    asm cli end;
    key_in:= port[$60]; {grab the current scan code}
-   {$ifndef XTKbd}
-   {keyboard routine for AT keyboards/BIOS
-   we can read from the keyboard, do a little processing,
-   then hand control to the BIOS to handle the rest. }
-   Inline(                  {call old BIOS handler }
-          $9C/                   {pushf}
-	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
    scode := key_in and $7f;
    if extended then
    begin
@@ -212,40 +260,16 @@ begin
       else
 	 extended:=true;
    end;
-   {$else}
-   {keyboard routine for XT keyboards/machines
-   We have to do all the handling ourselves as reading
-   from the keyboard port more than once can occasionally (not all the time)
-   cause us to miss a key up/down event, causing the game to think a key is stuck}
-   {reset PPI and send EOI}
-   scode := port[$61];
-   port[$61] := scode or $80;
-   port[$61] := scode and $7F;
-   {store state based on key input}
    
-   scode := key_in and $7f;
-   
-   keys[scode] := key_in < 128;
-   lastpressed := scode;
-   {if it is a key down event we will translate the scan code and stuff it in the BIOS buffer}
-   if (key_in < $80) then translate(scode); 
-   port[$20] := $20;   
-   {$endif}
-   
-   {this part is common for both types of machine}
-   {only allow a couple of keypresses to be stored to prevent buffer overflow}
-   asm cli end;
-   tempHead := head;
-   count := tail - head;
-   if count<0 then count := (62-head) + (tail-30);
-   if (count > 6) then
-   begin
-      head := head + 2;
-      if head>60 then head:=30;
-      if (head=tail) then head:=tempHead;
-   end;
-   asm sti end;
+   Inline(                  {call old BIOS handler }
+          $9C/                   {pushf}
+	  $FF/$1E/>OLDINT09);    {call far [>OldInt09]}
+
+   limitBIOSBuffer;
 end;
+
+{$endif}
+
 
 {$F+}
 procedure newExitProc;
