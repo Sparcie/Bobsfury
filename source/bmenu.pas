@@ -904,8 +904,8 @@ begin
 	 t:='Speed :';
 	 if s=1 then t:=t+'Fast';
 	 if s=2 then t:=t+'Normal';
-	 if s=4 then t:=t+'Slow';
-	 if s=6 then t:=t+'Very Slow';
+	 if s=3 then t:=t+'Slow';
+	 if s=4 then t:=t+'Very Slow';
 	 textxy(40,30,4,UIColours[9],t);
       end;
       if (refresh or (pos = 4)) then
@@ -1020,10 +1020,8 @@ begin
 	    {$endif}
 	    if (pos=0) then
 	    begin
-	       if s=6 then s:=1
-	       else if s=1 then s:=2
-	       else if s=2 then s:=4
-	       else if s=4 then s:=6;
+	       inc(s);
+	       if s=5 then s:=1;
 	       gap := s;
 	    end;
 	    
@@ -1084,12 +1082,9 @@ begin
 	    
 	    if (pos=0) then
 	    begin
-	       if s=6 then s:=4
-	       else if s=4 then s:=2
-	       else if s=2 then s:=1
-	       else if s=1 then s:=6;
+	       dec(s);
+	       if s=0 then s:=4;
 	       gap := s;
-	       if s=200 then maxcycle:=10;
 	    end;
 	    
 	    if (pos=1) then
@@ -1119,6 +1114,7 @@ end; { Settings }
 
 procedure help;
 var pages      : array[1..16,1..5] of string[45];
+   titles      : array[1..5] of string[45];
    icons       : array[1..16,1..5] of word;
     page,x,y,i : integer;
     hdone,new  : boolean;
@@ -1126,6 +1122,11 @@ var pages      : array[1..16,1..5] of string[45];
 begin
    for i:=1 to 16 do
       for x:= 1 to 5 do icons[i,x]:=0;
+   titles[1] := '';
+   titles[2] := 'Keyboard Controls';
+   titles[3] := 'Collectibles';
+   titles[4] := 'Special Items';
+   titles[5] := 'Bad Guys';
    pages[1,1]:='Welcome To Bob`s Fury ...';icons[1,1]:=28;
    pages[2,1]:='';
    pages[3,1]:='Programming: Andrew Danson';icons[3,1]:=59;
@@ -1142,8 +1143,8 @@ begin
    pages[14,1]:='press PageUp and PageDown';
    pages[15,1]:='for more information or';
    pages[16,1]:='Esc to return';
-   pages[1,2]:='How to play...';
-   pages[2,2]:='The Keys';
+   pages[1,2]:='';
+   pages[2,2]:='';
    pages[3,2]:=' Space bar   = fire';icons[3,2]:=47;
    pages[4,2]:=' Up arrow    = jump';
    pages[5,2]:=' left arrow  = move left';
@@ -1156,9 +1157,9 @@ begin
    pages[12,2]:='     n       = change weapon ';icons[12,2]:=50;
    pages[13,2]:='     q       = quit';
    pages[14,2]:='';
-   pages[15,2]:='Occasionally you will find blocks that';
-   pages[16,2]:='you can shoot, or walk through.';
-   pages[1,3]:='Treasures';
+   pages[15,2]:='';
+   pages[16,2]:='';
+   pages[1,3]:='';
    pages[2,3]:='25 points';icons[2,3]:=22;
    pages[3,3]:='50 points';icons[3,3]:=23;
    pages[4,3]:='75 points';icons[4,3]:=24;
@@ -1174,38 +1175,38 @@ begin
    pages[14,3]:='Switch will clear or block a area';icons[14,3]:=85;
    pages[15,3]:='Lightning bolt supply';icons[15,3]:=82;
    pages[16,3]:='Grenade supply';icons[16,3]:=83;
-   pages[1,4]:='The Stats part ...';
-   pages[2,4]:='  at the bottom of the screen information';
-   pages[3,4]:=' about you is shown';
-   pages[4,4]:='';
+   pages[1,4]:='';
+   pages[2,4]:='Explodes when shot (any projectile)'; icons[2,4] := 14;
+   pages[3,4]:='Explodes when hit by a grenade'; icons[3,4] := 81;
+   pages[4,4]:='Explodes when hit by lightning'; icons[4,4] := 80;
    pages[5,4]:='';
-   pages[6,4]:='your score health and number of lives';
-   pages[7,4]:='are displayed on the left hand side';
-   pages[8,4]:='in the middle there is you inventory of ';
-   pages[9,4]:='items you have health bottles, grenades,';
-   pages[10,4]:='and lightning bolts.';
-   pages[11,4]:='to the right it displays whether you are';
-   pages[12,4]:='using the lightning bolts or ordinary';
-   pages[13,4]:='bullets';
-   pages[14,4]:='';
+   pages[6,4]:='Green Key'; icons[6,4] := 151;
+   pages[7,4]:='Red Key'; icons[7,4] := 152;
+   pages[8,4]:='';
+   pages[9,4]:='Checkpoint (unused)'; icons[9,4] := 160;
+   pages[10,4]:='';
+   pages[11,4]:='Magic potion - turns you into a bird'; icons[11,4] := 149;
+   pages[12,4]:='Red potion - changes you back'; icons[12,4] := 150;
+   pages[13,4]:='';
+   pages[14,4]:='Extra Life when ever you collect 20 bottles'; icons[14,4] := 9;
    pages[15,4]:='';
    pages[16,4]:='';
-   pages[1,5]:='Just in case you wanted to know';
-   pages[2,5]:=' here is how to use the settings';
-   pages[3,5]:=' screen';
-   pages[4,5]:='';
-   pages[5,5]:='Press up and down to select an';
-   pages[6,5]:=' Item and left and right to adjust';
-   pages[7,5]:=' the setting.';
-   pages[8,5]:='';
-   pages[9,5]:=' When calibrating the joystick';
-   pages[10,5]:=' pressing the return key returns';
-   pages[11,5]:=' to the settings menu.';
-   pages[12,5]:='';
-   pages[13,5]:='';
-   pages[14,5]:='';
-   pages[15,5]:='';
-   pages[16,5]:='';
+   pages[1,5]:='Bomb - keep clear, explosion hurts.'; icons[1,5] := 55;
+   pages[2,5]:='Slug'; icons[2,5] := 31;
+   pages[3,5]:='Lizard';icons[3,5] := 33;
+   pages[4,5]:='Snail - use grenades';icons[4,5] := 35;
+   pages[5,5]:='Reflector bot - shoot from behind shield'; icons[5,5] := 61;
+   pages[6,5]:='Shield bot'; icons[6,5] := 62;
+   pages[7,5]:='Tank bot'; icons[7,5] := 44;
+   pages[8,5]:='Green bird'; icons[8,5] := 38;
+   pages[9,5]:='Red bird - use lightning'; icons[9,5] := 36;
+   pages[10,5]:='Purple bird - immune to lightning'; icons[10,5] := 41;
+   pages[11,5]:='Bat'; icons[11,5] := 123;
+   pages[12,5]:='Lighting Flyer'; icons[12,5] := 121;
+   pages[13,5]:='Gun Turret'; icons[13,5] := 17;
+   pages[14,5]:='Machinegun Turret'; icons[14,5] := 139;
+   pages[15,5]:='Drop Monkey'; icons[15,5] := 59;
+   pages[16,5]:='Grenade Flyer'; icons[16,5] := 42;
    
    page:=1;
    new:=true;
@@ -1216,6 +1217,7 @@ begin
    begin
       if new then startmenu;
       new:=false;
+      textxy(45,5,4,UIColours[12], titles[page]);
       for i:= 1 to 16 do
       begin
 	 spritedraw(10,y+(i*10),icons[i,page],copyput);
