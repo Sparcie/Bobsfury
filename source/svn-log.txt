@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r203 | andrew | 2025-05-10 14:14:26 +1000 (Sat, 10 May 2025) | 7 lines
+
+Changes to reduce flicker on slower machines.
+- the player is only redrawn when their location or frame changes
+- time between erase and redraw is reduced
+
+testing on martypc shows significantly less flicker for the player.
+
+I've also renamed a variable (newf) as the name was a bit obtuse.
+------------------------------------------------------------------------
 r202 | andrew | 2025-04-27 18:43:56 +1000 (Sun, 27 Apr 2025) | 3 lines
 
 Changed speed settings for slow and very slow to make them faster - they were painfully slow.

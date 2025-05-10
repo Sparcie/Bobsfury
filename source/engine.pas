@@ -67,7 +67,6 @@ procedure checkTimer;
     lastt,nextt        : word;    {timing related variables}
     done,successful    : boolean; {finished level and finished playing}
     player	       : playerrec; {player record}
-    newf	       : integer; {player frame (relative to first one)}
     diff	       : integer; {difficulty level}
     respawn	       : boolean; {monster respawn?}
     freecycle,maxcycle : word;    {idle cycle count}
@@ -83,12 +82,13 @@ procedure showscore; forward;
 procedure processKeys; forward;
    
 var oldplay		 : playerrec; {old player record, used to know what score items to update on status display}
+   pframe,opframe        : integer; {player frame (relative to first one) and old copy so we can detect changes}
    juf,pdr,pbul,shtt	 : integer;
    {juf= jumping force, pdr = player direction, pbul = player bullet count, shtt = shooting timer }
    creatures		 : array[0..50] of monsterob;
    bullets		 : array[0..50] of project;
    ncreat,nbul		 : integer; {number of creatures and bullets}
-   bobhere		 : boolean; {is bob here (is a coss present)}
+   bobhere		 : boolean; {is bob here (is a boss present)}
    firelbolt		 : boolean; {weapon selection between bullets and firebolts}
    oldflbolt		 : boolean; {old copy of firelbolt, for determining if we should update the status display}
    drawstaticstatus	 : boolean; { true if we need to draw the static elements of the status bar }
@@ -517,6 +517,7 @@ begin
       bar(45,165,90,174,0);
       str(player.score,s);
       textxy(45,165,4,UIColours[7],s);
+      oldplay.score := player.score;
    end;
    if (not(oldplay.health=player.health) or
        not(player.invuln div 10 = oldplay.invuln div 10)) then
@@ -542,6 +543,8 @@ begin
       end;
       textxy(5,175,4,i,'Health');
       textxy(45,175,4,i,s);
+      oldplay.health := player.health;
+      oldplay.invuln := player.invuln;
    end;
    if not(oldplay.lives=player.lives) then
    begin
@@ -550,6 +553,7 @@ begin
       bar(45,185,50,194,0);
       str(player.lives,s);
       textxy(45,185,4,UIColours[7],s);
+      oldplay.lives := player.lives;
    end;
    if not(oldplay.fullb=player.fullb) then
    begin
@@ -558,6 +562,7 @@ begin
       bar(165,165,180,174,0);
       str(player.fullb,s);
       textxy(165,165,4,UIColours[7],s);
+      oldplay.fullb := player.fullb;
    end;
    if (not(oldplay.keys=player.keys)) then
    begin
@@ -566,6 +571,7 @@ begin
 	 spritedraw(200,165,151,copyput);
       if (player.keys and $02) > 0 then
 	 spritedraw(210,165,152,copyput);
+      oldplay.keys := player.keys;
    end;
    if not(oldplay.gren=player.gren) then
    begin
@@ -574,6 +580,7 @@ begin
       bar(165,175,180,184,0);
       str(player.gren,s);
       textxy(165,175,4,UIColours[7],s);
+      oldplay.gren := player.gren;
    end;
    if not(oldplay.lbolt=player.lbolt) then
    begin
@@ -582,6 +589,7 @@ begin
       bar(165,185,185,194,0);
       str(player.lbolt,s);
       textxy(165,185,4,UIColours[7],s);
+      oldplay.lbolt := player.lbolt;
    end;
    if (oldflbolt xor firelbolt) then 
    begin
@@ -604,7 +612,6 @@ begin
          oldbossp:=bossp;
       end;
    end;
-   oldplay:=player;
 end;
 
 procedure run;
@@ -660,7 +667,7 @@ begin
 	    with creatures[i] do
 	       if (displayed) then
 		  addMonster(x,y,i);
-	    if creatures[i].ishit(player.x,player.y,newf+106) then
+	    if creatures[i].ishit(player.x,player.y,pframe+106) then
 	    begin
 	       hurtPlayer(5);
 	    end;
@@ -826,7 +833,7 @@ begin
    player.flyer:=false;
    mov:=false;
    pdr:=1;
-   newf:=1;
+   pframe:=1;
    leg:=false;
    load(path+fle);
    changescreen(1);
@@ -1137,7 +1144,7 @@ begin
    if hurt then
    begin
       {(distance(x,y,player.x,player.y) < 10)}
-      if (checkOverlap(x,y,player.x,player.y) and collision(x,y,fr,player.x,player.y,106+newf)) then
+      if (checkOverlap(x,y,player.x,player.y) and collision(x,y,fr,player.x,player.y,106+pframe)) then
       begin
 	 delta:=5;
 	 if typ =2 then delta:=15;
@@ -1920,13 +1927,36 @@ procedure drawPlayer;
 begin
    if player.flyer then
    begin
-      spritedraw(player.x,player.y,121 + (newf mod 2),xorput);
+      spritedraw(player.x,player.y,121 + (pframe mod 2),xorput);
    end
    else
-      spritedraw(player.x,player.y,newf+106,xorput);
+      spritedraw(player.x,player.y,pframe+106,xorput);
 end;
 
+{resets the mechanism for player updates}
+procedure resetPlayerUpdate;
+begin
+   oldplay.x:= player.x;
+   oldplay.y:= player.y;
+   oldplay.flyer := player.flyer;
+   opframe := pframe;
+end;
 
+{updates the player on the display (only if needed)}
+procedure updatePlayer;
+begin
+   {check if we need to do a display update...}
+   if  ((player.x = oldplay.x) and (player.y = oldplay.y) and (pframe = opframe) and (player.flyer=oldplay.flyer)) then exit;
+   {remove the original}
+   if oldplay.flyer then
+   begin
+      spritedraw(oldplay.x,oldplay.y,121 + (opframe mod 2),xorput);
+   end
+   else
+      spritedraw(oldplay.x,oldplay.y,opframe+106,xorput);
+   { draw the current state }
+   drawplayer; {we can use that function to save code space }
+end;
 
 procedure personmove;
 var nx,ny,i,ty : integer;
@@ -1936,8 +1966,7 @@ var nx,ny,i,ty : integer;
    delta       : integer;
 begin
    nx:=0;ny:=0;
-   {spritedraw(player.x,player.y,oldf+106,xorput);}
-   drawPlayer;
+   resetPlayerUpdate;
    with player do
    begin
       if juf>0 then
@@ -1965,11 +1994,15 @@ begin
 	 begin
 	    newscreen(currentscreen+1,getTier);
 	    x:=0;
+	    resetPlayerUpdate;
+	    drawPlayer;
 	 end;
 	 if ((x=0) and (pdr=0) and not(currentscreen = 1)) then
 	  begin
 	     newscreen(currentscreen-1,getTier);
 	     x:=300;
+	     resetPlayerUpdate;
+	     drawPlayer;
 	  end;
 	 delta:=0;
 	 if (pdr=0) then delta := - movelefth(x+2,y,9,2);
@@ -1980,17 +2013,17 @@ begin
 	 if (not(flyer) and not(delta=0)) then
 	 begin
 	    leg:=not(leg);
-	    newf:=1;
-	    if pdr=0 then newf:=3;
-	    if leg then inc(newf);
+	    pframe:=1;
+	    if pdr=0 then pframe:=3;
+	    if leg then inc(pframe);
 	 end;
       end;
       
       if flyer then
       begin
 	 leg:=not(leg);
-	 newf:=1;
-	 if leg then inc(newf);	    
+	 pframe:=1;
+	 if leg then inc(pframe);	    
       end;
       
       if elv=0 then
@@ -2021,6 +2054,8 @@ begin
 	    begin
 	       newscreen(currentscreen,getTier+1);
 	       y:=0;
+	       resetPlayerUpdate;
+	       drawPlayer;
 	    end;	 
 	 end;         
 	 if ((y<=0) and (juf>0) and (getTier>0)) then
@@ -2034,15 +2069,16 @@ begin
 	    begin
 	       newscreen(currentscreen,getTier-1);
 	       y:=150;
+	       resetPlayerUpdate;
+	       drawPlayer;
 	    end
 	    else y:=0; {limit the movement so we don't fly offscreen!}
 	 end;      
       end;
       
    end;
-   checkpickup; 
-   {spritedraw(player.x,player.y,newf+106,xorput);}
-   drawPlayer;
+   checkpickup;
+   updatePlayer;
    if (player.health<1) then
    begin
       drawPlayer;
@@ -2076,7 +2112,7 @@ begin
 	  inc(i);
       end;
       ncreat:=0;
-      player.x:=0;player.y:=0;mov:=false;newf:=1;leg:=false;
+      player.x:=0;player.y:=0;mov:=false;pframe:=1;opframe:=1; leg:=false;
       newscreen(1,0);
       source.x:=0; source.y:=0; source.screen:=currentscreen; source.tier:=getTier;
       if (gettarget(source,dest)) then
@@ -2108,7 +2144,8 @@ begin
    ncreat:=0;
    useCustomKeys:=false;
    juf:=0;
-   newf:=1;
+   pframe:=1;
+   opframe:=1;
    nbul:=0;
    pbul:=0;
    shtt:=0;
