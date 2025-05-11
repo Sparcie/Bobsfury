@@ -80,6 +80,7 @@ procedure keypress; forward;
 procedure joystick; forward;
 procedure showscore; forward;
 procedure processKeys; forward;
+procedure resetPlayerUpdate; forward;
    
 var oldplay		 : playerrec; {old player record, used to know what score items to update on status display}
    pframe,opframe        : integer; {player frame (relative to first one) and old copy so we can detect changes}
@@ -413,6 +414,8 @@ begin
 		     if not( (currentscreen=dest.screen) and (getTier=dest.tier)) then
 		     begin
 			newscreen(dest.screen,dest.tier);
+			resetPlayerUpdate;
+			drawPlayer;
 		     end;
 		     mapp(player.x,player.y);
 		  end; 

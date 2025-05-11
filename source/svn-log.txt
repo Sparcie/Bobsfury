@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r204 | andrew | 2025-05-11 12:59:35 +1000 (Sun, 11 May 2025) | 2 lines
+
+Fixed a graphical glitch related to player teleporting.
+It was related to the recent change to reduce the player flickering.
+------------------------------------------------------------------------
 r203 | andrew | 2025-05-10 14:14:26 +1000 (Sat, 10 May 2025) | 7 lines
 
 Changes to reduce flicker on slower machines.
