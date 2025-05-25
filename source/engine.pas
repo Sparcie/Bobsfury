@@ -770,7 +770,7 @@ function isMonster(ob : byte):boolean;
 begin
    isMonster:=false;
    case ob of
-     16,28..55,57..78, 116, 121, 123, 138, 142, 147, 157, 166 : isMonster:=true;
+     16,28..55,57..78, 116, 121, 123, 138, 142, 147, 157, 166, 170 : isMonster:=true;
    end;
 end;
 
@@ -1713,6 +1713,43 @@ begin
 		  else
 		     frame := state;
 	       end;
+
+     170     : {Horizontal moving elevator - not really an enemy}
+	       begin
+		  displayed := true;
+		  ft := $FF;
+		  frame := frame + 1;
+		  if (frame=3) then frame:=0;
+		  bf := false; {we will need to do movement so we can move the player}
+		  prob:=0;
+		  if state=0 then
+		  begin
+		     delta := moveleft(x,y,2);
+		     x := x - delta;
+		     if delta<2 then state := 1;
+		  end
+	          else if state=1 then
+		  begin
+		     delta := moveright(x+10,y,2);
+		     x := x + delta;
+		     if delta<2 then state :=0;
+		  end;
+		  {ok check to see if the player is in the correct position to use the elevator}
+		  if ((player.x <= x+4) and (player.x >= x-4) and (player.y >= y-14) and (player.y<= y-4)) then
+		  begin
+		     drawPlayer;
+		     player.y := y-10;
+		     {move the player with the platform, as long as it moved it's full travel.}
+		     if delta = 2 then
+			if state = 0 then
+			   player.x := player.x - delta
+			else
+			   player.x := player.x + delta;		     
+		     elv := 3;
+		     fall:=false;
+		     drawPlayer;
+		  end;
+	       end;
    end; {end of monster behaviour case block}
    
    if (bf) then {move backwards and forwards}
@@ -1808,7 +1845,7 @@ begin
    if not(checkOverlap(x,y,i,c)) then exit;
    r:=false;
    case typ of
-     166,116,142,147,157,51,54 : exit;
+     170,166,116,142,147,157,51,54 : exit;
      77			   : if state=0 then r:=true;
      66			   : if not(state=6) then exit;
      62			   : if state=0 then r:=true;
@@ -1877,7 +1914,7 @@ function monsterob.ishit(i,c,fr:integer):boolean;
 begin
    ishit:=false;
    case typ of
-     116,157 : exit;
+     116,157,170 : exit;
      51	     : if state<7 then exit;
      142     : if ((state<2) or (state>9)) then exit;
    end;

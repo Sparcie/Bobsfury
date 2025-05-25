@@ -1,4 +1,15 @@
 ------------------------------------------------------------------------
+r205 | andrew | 2025-05-25 18:20:37 +1000 (Sun, 25 May 2025) | 8 lines
+
+Updated the graphics tool chain in the GFX folder with the new Gedit binaries (rev 25) and have adjusted repack.bat 
+to convert and update the graphics packs in the relevant folders. The new Gedit can edit the pack files directly, so I no longer need the collection of images that were in the GFX folder.
+
+I Zipped an archive of the old GFX folder for posterity, but it's no longer needed.
+
+I've used the new tools to add graphics for a platform which moves horizontally and can carry the player across a gap.
+It has been added to the editor and engine and has been tested within the test level in the editor. It has not been used
+in any levels yet.
+------------------------------------------------------------------------
 r204 | andrew | 2025-05-11 12:59:35 +1000 (Sun, 11 May 2025) | 2 lines
 
 Fixed a graphical glitch related to player teleporting.
