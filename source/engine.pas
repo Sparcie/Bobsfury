@@ -483,6 +483,8 @@ begin
 		  spritedraw(x*10,y*10,o,xorput);
 		  setObjectat(x,y,161);
 		  spritedraw(x*10,y*10,161,xorput);
+		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier; 
+		  switchTrigger(source);
 	       end;
    end; {end case block}
    

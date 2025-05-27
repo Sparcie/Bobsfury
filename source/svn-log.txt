@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r206 | andrew | 2025-05-27 23:37:41 +1000 (Tue, 27 May 2025) | 4 lines
+
+Simple change to the check-point to make it a potential trigger for blocks appearing or disappearing
+when the player activates the check-point
+
+I thought this would be a good idea so you could deny access to back-tracking or open up a new path.
+------------------------------------------------------------------------
 r205 | andrew | 2025-05-25 18:20:37 +1000 (Sun, 25 May 2025) | 8 lines
 
 Updated the graphics tool chain in the GFX folder with the new Gedit binaries (rev 25) and have adjusted repack.bat 
