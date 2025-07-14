@@ -19,19 +19,13 @@ procedure leveltitle(title : string);
 
 
 implementation
-uses bobgraph,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl
+uses bobgraph,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl, hiscore
 {$ifndef noAdlib}
  ,fmplayer
 {$endif}
 ;
 
-type
-	score=record
-		name:string[30];
-		score:longint;
-		end;
-
-var scorez    : array[0..9] of score;
+var 
    statereset : boolean; {indicates that the monsters array was emptied in order to save (or other function)}
    menudepth  : integer; {stores how many menus deep we are before returning.}
 
@@ -295,6 +289,7 @@ begin
 	 player.flyer := false;
 	 engine.clearmonsters;
 	 loadepisode(epdir[sel]);
+	 llist.epname := epname[sel];
 	 if gettext(0,eptext^) then doleveltext(epname[sel],eptext^);
 	 nextlevel;
 	 if gettext(llist.getlevel,eptext^) then doleveltext(getlevelname,eptext^)
@@ -1336,130 +1331,120 @@ begin
    menuDepth:=0;
 end;
 
-procedure saveScorez;
-var zz:integer;
-    buf:array[1..sizeof(score)] of char;
-    infile:text;
-    i,t:integer;   
+procedure drawScores(scoreTable	:tableptr);
+var
+   i,c : integer;
+   s   : string;
 begin
-	assign(infile,'hiscorez.dat');
-	rewrite(infile);
-	for i:=0 to 9 do
-	begin
-		move(scorez[i],buf,sizeof(score));
-		for t:=1 to sizeof(score) do
-			write(infile,buf[t]);
-	end;
-	close(infile);
+   c:= 160 - (length(scoreTable^.episode) * 3);
+   textxy(130,10,4,UIColours[9],'High Scores');
+   textxy(c,30,4,UIColours[9], scoreTable^.episode);
+   for i:=0 to 9 do
+   begin
+      str(scoreTable^.scorez[i],s);
+      c:=15-i;
+      if graphicsMode=0 then c:=(c mod 3)+1;
+      textxy(50,(i*10) +40 ,4,(c),scoreTable^.name[i]);
+      textxy(250,(i*10) + 40,4,(c),s);
+   end;
 end;
 
+
 procedure viewScorez;
-var i,z,c:integer;
-    a:char;
-    s:string;
+var
+   i	      : integer;
+    a	      : char;
+   done	      : boolean;
+   t	      : byte;
+   scoreTable : tableptr;
 begin
    while (keypressed) do a:=readkey;
    a:=char(0);
-   startmenu;
-   textxy(130,10,4,UIColours[9],'High Scores');
-   textxy(110,20,4,UIColours[9],'press C to clear');
+   done := false;
+   t:= 0;
+   if tableCount=0 then exit;
+
+   while not(done) do
+   begin
+      startmenu;
+      scoreTable := indexScoreTable(t);
+      drawScores(scoreTable);
+      textxy(110,20,4,UIColours[9],'press C to clear');
    
-   for i:=0 to 9 do
-   begin
-      str(scorez[i].score,s);
-      {z:= 30;
-      z:= z-length(scorez[i].name);
-      for c := 1 to z do s:=' '+s;
-      s:=scorez[i].name +s;}
-      c:=15-i;
-      if graphicsMode=0 then c:=(c mod 3)+1;
-      textxy(50,(i*10) +40 ,4,(c),scorez[i].name);
-      textxy(250,(i*10) + 40,4,(c),s);
-   end;
-   while (not(keypressed)) do checkSongChange;    
-   a:=readkey;
-   if ((a='c') or (a='C')) then
-   begin
-      for i:=0 to 9 do
+      while (not(keypressed)) do checkSongChange;    
+      a:=readkey;
+      if (a=chr(27)) then done:=true;
+      if ((a='c') or (a='C')) then
       begin
-	 scorez[i].name:='no body';
-	 scorez[i].score:=0;             
+	 for i:=0 to 9 do
+	 begin
+	    scoreTable^.name[i]:='no body';
+	    scoreTable^.scorez[i]:=0;             
+	 end;
+	 saveScores;
       end;
-      saveScorez;
-      viewScorez;
+      { deal with pageup/down }
+      if (a=chr(0)) then
+      begin
+	 a := readkey;
+	 if ((t>0) and (a=chr(73))) then t:=t-1;
+	 if ((t<tableCount-1) and (a=chr(81))) then t:=t+1;
+      end;
+      menudone;
    end;
-   menudone;
 end;
 
 procedure endGame(score:longint);
-var s,z:string;
-    i,c:integer;
-    done:boolean;
-    a:char;
+var s,z	      : string;
+    i,c	      : integer;
+    done      : boolean;
+   scoreTable : tableptr;
+    a	      : char;
 begin
+   scoreTable := currentScoreTable;
    {now find where the score belongs}
    while (keypressed) do a:=readkey;
    a:=char(0);
-   i:=0; done:=false;
-   while ( not(done) and (i<10) ) do
+   with scoreTable^ do
    begin
-      if (score>scorez[i].score) then 
+      i:=0; done:=false;
+      while ( not(done) and (i<10) ) do
       begin
-	 done:=true;
-	 i:=i-1;
+	 if (score>scorez[i]) then 
+	 begin
+	    done:=true;
+	    i:=i-1;
+	 end;
+	 i:=i+1;                 
       end;
-      i:=i+1;                 
+      c:=i;
    end;
-   c:=i;
    if (i=10) then exit;
    startmenu;
    textxy(110,10,4,UIColours[7],'Enter Your Name');
    s:='';
    s:= ginput(s,100,25);
    i:=9;
-   while (i>c) do
-   begin
-      scorez[i] := scorez[i-1];
-      i:=i-1;
-   end;
-   scorez[c].name:=s;
-   scorez[c].score:=score;         
-   saveScorez;
-   viewScorez;
+   with scoreTable^ do
+      while (i>c) do
+      begin
+	 scorez[i] := scorez[i-1];
+	 name[i] := name[i-1];
+	 i:=i-1;
+      end;
+   scoreTable^.name[c]:=s;
+   scoreTable^.scorez[c]:=score;         
+   saveScores;
+   menudone;
+   startmenu;
+   drawScores(scoreTable);
+   while not(keypressed) do ;
+   while keypressed do a:= readkey;
    menudone;
 end;
 
-procedure loadScorez;
-var zz:integer;
-    buf:array[1..sizeof(score)] of char;
-    infile:text;
-    i,t:integer;   
 begin
-   if (checkfile('hiscorez.dat')) then
-   begin
-      assign(infile,'hiscorez.dat');  
-      reset(infile);
-      for i:=0 to 9 do
-      begin
-	 for t:=1 to sizeof(score) do
-	    read(infile,buf[t]);
-	 move(buf,scorez[i],sizeof(score));
-      end;
-      close(infile);
-   end
-   else
-   begin
-      for zz:=0 to 9 do
-      begin
-	 scorez[zz].name:='no body';
-	 scorez[zz].score:=0;            
-      end;
-   end;
-end;
-
-
-begin
-   loadScorez;
+   loadScores;
    statereset:=false;
    menuDepth :=0;
 end.

@@ -23,8 +23,9 @@ function getlevel:integer;
 function getLevelname:string;
    
 var
-   nl:integer;
-   eppath:string;
+   nl	  : integer;
+   eppath : string[8];
+   epname : string[25];
 
 implementation 
 uses engine,bsystem,buffer,huffdec;

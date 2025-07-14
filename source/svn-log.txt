@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r207 | andrew | 2025-07-14 18:31:12 +1000 (Mon, 14 Jul 2025) | 5 lines
+
+I've introduced a new unit for storing more than one high score table
+so that each episode has it's own. This is a good idea as 
+the currently available levels have very different maximum scores.
+
+
+------------------------------------------------------------------------
 r206 | andrew | 2025-05-27 23:37:41 +1000 (Tue, 27 May 2025) | 4 lines
 
 Simple change to the check-point to make it a potential trigger for blocks appearing or disappearing
