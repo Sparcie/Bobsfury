@@ -15,7 +15,7 @@ tpc /M mconvert.pas
 tpc /M sndgen.pas
 tpc /M mapcomp.pas
 sndgen
-erase bob.exe
+rem erase bob.exe
 copy bob.snd ..\bob.snd
 copy bobtest.exe bob.exe
 copy bob.exe ..\bob.exe

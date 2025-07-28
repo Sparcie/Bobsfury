@@ -1108,38 +1108,43 @@ begin
 end; { Settings }
 
 procedure help;
-var pages      : array[1..16,1..5] of string[45];
-   titles      : array[1..5] of string[45];
-   icons       : array[1..16,1..5] of word;
+var pages      : array[1..16,1..6] of string[45];
+   titles      : array[1..6] of string[45];
+   icons       : array[1..16,1..6] of word;
     page,x,y,i : integer;
     hdone,new  : boolean;
     a	       : char;
 begin
    for i:=1 to 16 do
-      for x:= 1 to 5 do icons[i,x]:=0;
+      for x:= 1 to 6 do
+	 begin
+	    icons[i,x]:=0;
+	    pages[i,x]:='';
+	 end;
    titles[1] := '';
    titles[2] := 'Keyboard Controls';
    titles[3] := 'Collectibles';
    titles[4] := 'Special Items';
    titles[5] := 'Bad Guys';
+   titles[6] := 'Hazards';
    pages[1,1]:='Welcome To Bob`s Fury ...';icons[1,1]:=28;
-   pages[2,1]:='';
+   {pages[2,1]:='';}
    pages[3,1]:='Programming: Andrew Danson';icons[3,1]:=59;
-   pages[4,1]:='';
+   {pages[4,1]:='';}
    pages[5,1]:='Design and playtesting:';icons[5,1]:=60;
    pages[6,1]:='Benjamin & Andrew Danson';
-   pages[7,1]:='';
+   {pages[7,1]:='';}
    pages[8,1]:='PC speaker sound unit:';icons[8,1]:=63;
    pages[9,1]:='J C Kessels ';
-   pages[10,1]:='';
+   {pages[10,1]:='';}
    pages[11,1]:='Special Thanks to:';icons[11,1]:=86;
    pages[12,1]:='Sam Baker';
-   pages[13,1]:='';
+   {pages[13,1]:='';}
    pages[14,1]:='press PageUp and PageDown';
    pages[15,1]:='for more information or';
    pages[16,1]:='Esc to return';
-   pages[1,2]:='';
-   pages[2,2]:='';
+   {pages[1,2]:='';}
+   {pages[2,2]:='';}
    pages[3,2]:=' Space bar   = fire';icons[3,2]:=47;
    pages[4,2]:=' Up arrow    = jump';
    pages[5,2]:=' left arrow  = move left';
@@ -1151,10 +1156,10 @@ begin
    pages[11,2]:='     p       = pause';
    pages[12,2]:='     n       = change weapon ';icons[12,2]:=50;
    pages[13,2]:='     q       = quit';
-   pages[14,2]:='';
-   pages[15,2]:='';
-   pages[16,2]:='';
-   pages[1,3]:='';
+   {pages[14,2]:='';}
+   {pages[15,2]:='';}
+   {pages[16,2]:='';}
+   {pages[1,3]:='';}
    pages[2,3]:='25 points';icons[2,3]:=22;
    pages[3,3]:='50 points';icons[3,3]:=23;
    pages[4,3]:='75 points';icons[4,3]:=24;
@@ -1164,28 +1169,28 @@ begin
    pages[8,3]:='300 points';icons[8,3]:=125;
    pages[9,3]:='Gives you 10 more health ';icons[9,3]:=9;
    pages[10,3]:='Makes you invincible for a short time';icons[10,3]:=10;
-   pages[11,3]:=' ';
+   {pages[11,3]:=' ';}
    pages[12,3]:='The end of the level';icons[12,3]:=21;
    pages[13,3]:='Teleport to another place';icons[13,3]:=84;
    pages[14,3]:='Switch will clear or block a area';icons[14,3]:=85;
    pages[15,3]:='Lightning bolt supply';icons[15,3]:=82;
    pages[16,3]:='Grenade supply';icons[16,3]:=83;
-   pages[1,4]:='';
+   {pages[1,4]:='';}
    pages[2,4]:='Explodes when shot (any projectile)'; icons[2,4] := 14;
    pages[3,4]:='Explodes when hit by a grenade'; icons[3,4] := 81;
    pages[4,4]:='Explodes when hit by lightning'; icons[4,4] := 80;
-   pages[5,4]:='';
+   {pages[5,4]:='';}
    pages[6,4]:='Green Key'; icons[6,4] := 151;
    pages[7,4]:='Red Key'; icons[7,4] := 152;
-   pages[8,4]:='';
+   {pages[8,4]:='';}
    pages[9,4]:='Checkpoint (unused)'; icons[9,4] := 160;
-   pages[10,4]:='';
+   {pages[10,4]:='';}
    pages[11,4]:='Magic potion - turns you into a bird'; icons[11,4] := 149;
    pages[12,4]:='Red potion - changes you back'; icons[12,4] := 150;
-   pages[13,4]:='';
+   {pages[13,4]:='';}
    pages[14,4]:='Extra Life when ever you collect 20 bottles'; icons[14,4] := 9;
-   pages[15,4]:='';
-   pages[16,4]:='';
+   {pages[15,4]:='';}
+   {pages[16,4]:='';}
    pages[1,5]:='Bomb - keep clear, explosion hurts.'; icons[1,5] := 55;
    pages[2,5]:='Slug'; icons[2,5] := 31;
    pages[3,5]:='Lizard';icons[3,5] := 33;
@@ -1198,10 +1203,26 @@ begin
    pages[10,5]:='Purple bird - immune to lightning'; icons[10,5] := 41;
    pages[11,5]:='Bat'; icons[11,5] := 123;
    pages[12,5]:='Lighting Flyer'; icons[12,5] := 121;
-   pages[13,5]:='Gun Turret'; icons[13,5] := 17;
-   pages[14,5]:='Machinegun Turret'; icons[14,5] := 139;
+   pages[13,5]:='Spider'; icons[13,5] := 173;
+   pages[14,5]:='Mummy'; icons[14,5] := 169;
    pages[15,5]:='Drop Monkey'; icons[15,5] := 59;
    pages[16,5]:='Grenade Flyer'; icons[16,5] := 42;
+   pages[1,6]:='Spikes'; icons[1,6] := 11;
+   pages[2,6]:='Water'; icons[2,6] := 12;
+   pages[3,6]:='Lava';icons[3,6] := 13;
+   {pages[4,6]:='';}
+   pages[5,6]:='Blades'; icons[5,6] := 51;
+   pages[6,6]:='Grenade Dropper'; icons[6,6] := 54;
+   pages[7,6]:='Crusher'; icons[7,6] := 146;
+   pages[8,6]:='Drop Spike'; icons[8,6] := 147;
+   {pages[9,6]:=''; icons[9,6] := 0;}
+   pages[10,6]:='Vertical Launcher'; icons[10,6] := 116;
+   pages[11,6]:='Lift'; icons[11,6] := 157;
+   pages[12,6]:='Moving Platform'; icons[12,6] := 170;
+   {pages[13,6]:=''; icons[13,6] := 17;}
+   pages[14,6]:='Gun Turret'; icons[14,6] := 17;
+   pages[15,6]:='Machine Gun Turret'; icons[15,6] := 139;
+   {pages[16,6]:=''; icons[16,6] := 42;}
    
    page:=1;
    new:=true;
@@ -1228,7 +1249,7 @@ begin
 	 if a=char(81) then begin page:=page+1;new:=true; end;
 	 if a=char(73) then begin page:=page-1;new:=true; end;
 	 if page = 0 then begin page:=1;new:=false; end;
-	 if page = 6 then begin page:=5;new:=false; end;
+	 if page = 7 then begin page:=6;new:=false; end;
       end;
       if new then menuDone;
    end;

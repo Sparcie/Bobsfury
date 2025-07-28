@@ -32,6 +32,11 @@ function playerfall(x,y,dist: integer):integer;
 function moveleftonfloor(x,y,dist : integer):integer;
 function moverightonfloor(x,y,dist : integer):integer;
 
+{look-up tables for multiply and divide - just for screen co-ordinates}
+var
+   divLookup : array[0..320] of byte; {only need bytes as nothing over 32}
+   mulLookup : array[0..32] of word; {need words - maximum value 320}
+
 implementation
 
 uses map;
@@ -44,7 +49,7 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x - dist) div 10, y div 10);
+        o := objectat(divLookup[x - dist], divLookup[y]);
         if ((o>0) and (o<9)) or (x-dist < 0) then
             dec(dist)
         else
@@ -62,7 +67,7 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x + dist) div 10, y div 10);
+        o := objectat(divLookup[x + dist], divLookup[y]);
         if ((o>0) and (o<9)) or (x+dist > 310) then
             dec(dist)
         else
@@ -80,7 +85,7 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat(x div 10, (y - dist) div 10);
+        o := objectat(divLookup[x], divLookup[y - dist]);
         if ((o>0) and (o<9)) or (y-dist <0) then
             dec(dist)
         else
@@ -98,7 +103,7 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat(x div 10, (y + dist) div 10);
+        o := objectat(divLookup[x], divLookup[y + dist]);
         if ((o>0) and (o<9)) or (y+dist>160) then
             dec(dist)
         else
@@ -117,8 +122,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x - dist) div 10, y div 10);
-        o1 := objectat((x - dist) div 10, (y + h) div 10);
+        o := objectat(divLookup[x - dist], divLookup[y]);
+        o1 := objectat(divLookup[x - dist], divLookup[y + h]);
         if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (x-dist<0)) then
             dec(dist)
         else
@@ -136,8 +141,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x + dist) div 10, y div 10);
-        o1 := objectat((x + dist) div 10, (y + h) div 10);
+        o := objectat(divLookup[x + dist], divLookup[y]);
+        o1 := objectat(divLookup[x + dist], divLookup[y + h]);
         if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (x+dist>310)) then
             dec(dist)
         else
@@ -155,8 +160,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat(x div 10, (y - dist) div 10);
-        o1 := objectat((x + w) div 10, (y - dist) div 10);
+        o := objectat(divLookup[x], divLookup[y - dist]);
+        o1 := objectat(divLookup[x + w], divLookup[y - dist]);
         if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (y-dist<0)) then
             dec(dist)
         else
@@ -174,8 +179,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat(x div 10, (y + dist) div 10);
-        o1 := objectat((x + w) div 10, (y + dist) div 10);
+        o := objectat(divLookup[x], divLookup[y + dist]);
+        o1 := objectat(divLookup[x + w], divLookup[y + dist]);
         if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (y+dist>160)) then
             dec(dist)
         else
@@ -193,8 +198,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x + 2) div 10, (y + 9 + dist) div 10);
-        o1 := objectat((x + 7) div 10, (y + 9 + dist) div 10);
+        o := objectat(divLookup[x + 2], divLookup[y + 9 + dist]);
+        o1 := objectat(divLookup[x + 7], divLookup[y + 9 + dist]);
         if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (o=15) or (o1=15) or (y+dist>160)) then
             dec(dist)
         else
@@ -213,8 +218,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x - dist) div 10, y div 10);
-        o1 := objectat((x - dist) div 10, (y div 10)+1);
+        o := objectat(divLookup[x - dist], divLookup[y]);
+        o1 := objectat(divLookup[x - dist], divLookup[y]+1);
         if (((o>0) and (o<9)) or ((o1=0) or (o1>8)) or (x-dist<0)) then
             dec(dist)
         else
@@ -232,8 +237,8 @@ begin
     done:=false;
     while not(done) do
     begin
-        o := objectat((x + dist) div 10, y div 10);
-        o1 := objectat((x + dist) div 10, (y div 10)+1);
+        o := objectat(divLookup[x + dist], divLookup[y]);
+        o1 := objectat(divLookup[x + dist], divLookup[y]+1);
         if (((o>0) and (o<9)) or ((o1=0) or (o1>8)) or (x+dist>310)) then
             dec(dist)
         else
@@ -243,4 +248,15 @@ begin
     moverightonfloor := dist;
 end;
 
+procedure fillTables;
+var i : word;
+begin
+   for i:= 0 to 320 do
+      divLookup[i] := i div 10;
+   for i:= 0 to 32 do
+      mulLookup[i] := i * 10;
+end;
+
+begin
+   fillTables;
 end.

@@ -203,7 +203,7 @@ begin
 	    begin
 	       o:=getobjat(i,c,s,l);
 	       case o of
-		 28,30,32,34,36,38,40,42,43,45,55,57,60,62,64,66,77,121,123,138	: inc(mcount);
+		 28,30,32,34,36,38,40,42,43,45,55,57,60,62,64,66,77,121,123,138,173 : inc(mcount);
 		 125,22..27							: inc(tcount);
 		 153,154,85							: inc(offcount);
 		 155,156,86							: inc(oncount);
@@ -274,7 +274,7 @@ begin
 	 if (isSource(dest)) then switchTrigger(dest);
 	 o1 := getobjat(dest.x,dest.y,dest.screen,dest.tier);
 	 if ( (dest.tier=getTier) and (dest.screen=currentscreen)) then
-	    spritedraw(dest.x*10,dest.y*10,o1,xorput);
+	    spritedraw(mulLookup[dest.x],mulLookup[dest.y],o1,xorput);
 	 if (o1=0 ) then
 	    setobjat(dest.x,dest.y,dest.screen,dest.tier,8)
 	 else
@@ -282,8 +282,8 @@ begin
 	 o1 := getobjat(dest.x,dest.y,dest.screen,dest.tier);
 	 if ( (dest.tier=gettier) and (dest.screen=currentscreen)) then
 	 begin
-	    spritedraw(dest.x*10,dest.y*10,o1,xorput);
-	    mapp(dest.x*10,dest.y*10);
+	    spritedraw(mulLookup[dest.x],mulLookup[dest.y],o1,xorput);
+	    mapp(mulLookup[dest.x],mulLookup[dest.y]);
 	 end;
       end;
    end;
@@ -406,11 +406,11 @@ begin
      84	      : 
 	       begin
 		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier;
-		  mdis(x*10,y*10);
+		  mdis(mulLookup[x],mulLookup[y]);
 		  if (gettarget(source,dest)) then
 		  begin
-		     player.x:=dest.x*10;
-		     player.y:=dest.y*10;
+		     player.x:=mulLookup[dest.x];
+		     player.y:=mulLookup[dest.y];
 		     if not( (currentscreen=dest.screen) and (getTier=dest.tier)) then
 		     begin
 			newscreen(dest.screen,dest.tier);
@@ -422,9 +422,9 @@ begin
 	       end;
      85	      : 
 	       begin
-		  spritedraw(x*10,y*10,o,xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],o,xorput);
 		  setobjectat(x,y,86);
-		  spritedraw(x*10,y*10,objectat(x,y),xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],objectat(x,y),xorput);
 		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier; 
 		  switchTrigger(source);  
 	       end;
@@ -458,9 +458,9 @@ begin
 	       if ((player.keys and $01 > 0)) then
 	       begin
 		  player.keys := player.keys and not($01);
-		  spritedraw(x*10,y*10,o,xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],o,xorput);
 		  setobjectat(x,y,155);
-		  spritedraw(x*10,y*10,objectat(x,y),xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],objectat(x,y),xorput);
 		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier; 
 		  switchTrigger(source);
 	       end;
@@ -468,9 +468,9 @@ begin
 	       if ((player.keys and $02 > 0)) then
 	       begin
 		  player.keys := player.keys and not($02);
-		  spritedraw(x*10,y*10,o,xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],o,xorput);
 		  setobjectat(x,y,156);
-		  spritedraw(x*10,y*10,objectat(x,y),xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],objectat(x,y),xorput);
 		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier; 
 		  switchTrigger(source);
 	       end;
@@ -480,9 +480,9 @@ begin
 		  if (isSource(source)) then deleteTrigger(source);
 		  dest.x:=x; dest.y:=y; dest.screen:=currentscreen; dest.tier:=getTier;
 		  addTrigger(source,dest);
-		  spritedraw(x*10,y*10,o,xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],o,xorput);
 		  setObjectat(x,y,161);
-		  spritedraw(x*10,y*10,161,xorput);
+		  spritedraw(mulLookup[x],mulLookup[y],161,xorput);
 		  source.x:=x; source.y:=y; source.screen:=currentscreen; source.tier:=gettier; 
 		  switchTrigger(source);
 	       end;
@@ -490,15 +490,15 @@ begin
    
    if d then
    begin
-      spritedraw(x*10,y*10,objectat(x,y),xorput);
+      spritedraw(mulLookup[x],mulLookup[y],objectat(x,y),xorput);
       setobjectat(x,y,0);
    end;
 end;
 
 procedure checkpickup;
 begin
-   pickup( (player.x+3) div 10,player.y div 10);
-   pickup( (player.x+6) div 10,player.y div 10);
+   pickup( divLookup[player.x+3], divLookup[player.y]);
+   pickup( divLookup[player.x+6], divLookup[player.y]);
 end;
 
 procedure showscore;
@@ -772,7 +772,7 @@ function isMonster(ob : byte):boolean;
 begin
    isMonster:=false;
    case ob of
-     16,28..55,57..78, 116, 121, 123, 138, 142, 147, 157, 166, 170 : isMonster:=true;
+     16,28..55,57..78, 116, 121, 123, 138, 142, 147, 157, 166, 170, 173 : isMonster:=true;
    end;
 end;
 
@@ -846,8 +846,8 @@ begin
    source.x:=0; source.y:=0; source.screen:=currentscreen; source.tier:=getTier;
    if (gettarget(source,dest)) then
    begin
-      player.x:=dest.x*10;
-      player.y:=dest.y*10;
+      player.x:=mulLookup[dest.x];
+      player.y:=mulLookup[dest.y];
       if not( (currentscreen=dest.screen) and (getTier=dest.tier)) then
       begin
 	 changescreen(dest.screen);
@@ -1105,7 +1105,7 @@ begin
       if dir > 2 then
       begin
 	 timeout:=timeout-1;
-	 o1 := objectat( (x+2) div 10 , (y+8) div 10 );
+	 o1 := objectat( divLookup[x+2], divLookup[y+8]);
 	 if ( ((o1 <9) and not(o1 =0)) or (y=150) ) then 
 	    y:=y-2 else y:=y+2; 
       end;
@@ -1127,7 +1127,7 @@ begin
    
    if (typ=2) then 
    begin
-      if (objectat((x+5) div 10,(y+5) div 10))=81 then brickexplode((x+5) div 10,(y+5) div 10);
+      if (objectat(divLookup[x+5], divLookup[y+5]))=81 then brickexplode(divLookup[x+5], divLookup[y+5]);
       if (timeout<1) then
 	 mve:=false;
       if not(mve) then
@@ -1138,9 +1138,9 @@ begin
    end
    else
    begin {not the grenade}
-      o1 := objectat((x+5) div 10,(y+5) div 10);
-      if o1=14 then brickexplode((x+5) div 10,(y+5) div 10);
-      if ( (o1=80) and (typ=3)) then brickexplode((x+5) div 10,(y+5) div 10);
+      o1 := objectat(divLookup[x+5], divLookup[y+5]);
+      if o1=14 then brickexplode(divLookup[x+5], divLookup[y+5]);
+      if ( (o1=80) and (typ=3)) then brickexplode(divLookup[x+5] ,divLookup[y+5]);
       if ((x<0) or (x>300) or (y>150)) then mve:=false;
       if not(mve) then bulex(x,y);
    end;
@@ -1177,9 +1177,9 @@ var
 begin
    if (((x>-1) and (x<31)) and ((y>-1) and (y<16))) then
    begin
-      explode(x*10,y*10);
+      explode(mulLookup[x],mulLookup[y]);
       if objectat(x,y)=8 then exit;
-      spritedraw(x*10,y*10,objectat(x,y),xorput);
+      spritedraw(mulLookup[x], mulLookup[y],objectat(x,y),xorput);
       o:= objectat(x,y);
       setobjectat(x,y,0);            
       if ((o=14) or (o=80) or (o=81)) then
@@ -1285,8 +1285,8 @@ begin
           begin
 	     dir:=2;
 	     st:=1;
-	     prob:=15;
-	     ft:=1;
+	     prob :=15;
+	     ft :=1;
 	  end;
 
      16	     : {gun turret}
@@ -1752,6 +1752,93 @@ begin
 		     drawPlayer;
 		  end;
 	       end;
+     173     : { crawling Spider - walks around walls anti clockwise }
+	      begin
+		 { initial set up}
+		 bf := false;
+		 ft := $FF;
+		 prob := 20;
+		 dir:=0;
+		 direction:=false;
+		 {movement}
+		 case frame of
+		   0 : begin
+			  if (player.x >x) then direction:=true;
+			  { move left - upright}
+			  delta := moveleft(x,y,2);
+			  if (delta=0) then
+			     state := 3
+			  else
+			     begin
+				x := x - delta;
+				o1 := objectat( divLookup[x+5], divLookup[y] +1 );
+				if (o1 =0) or (o1>8) then
+				begin
+				   state:= 1;
+				   x := x - (x mod 10); {lock x to the grid}
+				   delta := movedown(x,y+9,4);
+				   y:=y+delta;				   
+				end;
+			     end;
+		       end;
+		   1 : begin { move down - on right hand block }
+			  direction :=false;
+			  delta := movedown(x,y+9,2);
+			  if delta = 0 then
+			     state := 0
+			  else
+			     begin
+				y := y + delta;
+				o1 := objectat( divLookup[x] + 1, divLookup[y+5]);
+				if (o1=0) or (o1>8) then
+				   begin
+				      state := 2;
+				      y := y - (y mod 10) + 10;
+				      delta := moveright(x+9,y,4);
+				      x:= x + delta;
+				   end;
+			     end;
+		       end;
+		   2 : begin {upside down right}
+			  st:=1;
+			  dir:=2;
+			  delta := moveright(x+9,y,2);
+			  if delta = 0 then
+			     state := 1
+			  else
+			     begin
+				x:=x + delta;
+				o1 := objectat( divLookup[x+5], divLookup[y] -1 );
+				if (o1=0) or (o1>8) then
+				   begin
+				      state:= 3;
+				      x := x - (x mod 10) + 10;
+				      delta := moveup(x,y,4);
+				      y:= y - delta;
+				   end;
+			     end;
+		       end;
+		   3 : begin {up on left block}
+			  direction:=true;
+			  delta := moveup(x,y,2);
+			  if delta = 0 then
+			     state:=2
+			  else
+			     begin
+				y := y - delta;
+				o1 := objectat( divLookup[x] - 1, divLookup[y+5] );
+				if (o1=0) or (o1>8) then
+				   begin
+				      state := 0;
+				      y := y - (y mod 10);
+				      delta := moveleft(x,y,4);
+				      x:= x - delta;
+				   end;
+			     end;
+		       end;
+		 end; {end of movement case statement}
+		 frame := state;
+	      end; {end of spider}
    end; {end of monster behaviour case block}
    
    if (bf) then {move backwards and forwards}
@@ -1935,7 +2022,7 @@ begin
    setobjectat(i,c,0);
    xloc:=i;yloc:=c;
    frame:=0;
-   x:=xloc*10;y:=yloc*10;
+   x:=mulLookup[xloc];y:=mulLookup[yloc];
    power:=3;
 
    case typ of
@@ -1951,6 +2038,14 @@ begin
      64	      : power := 25;
      77	      : power := 50;
      28	      : begin power := 90; bobhere:=true; end;
+     173      : begin {spider}
+		   power := 6;
+		   {check surrounding blocks}
+		   if ((objectat(i+1,c)>0) and (objectat(i+1,c)<9)) then state := 1;
+		   if (objectat(i-1,c)>0) and (objectat(i-1,c)<9) then state := 3;
+		   if (objectat(i,c-1)>0) and (objectat(i,c-1)<9) then state := 2;
+		   frame := state;
+		end;
    end;
 
    if diff=-3 then power:=power shl 1;
@@ -2087,8 +2182,8 @@ begin
 	 i := currentscreen;
 	 if ((y=150) and (getTier<getTierCount-1) and (juf=0)) then
 	 begin
-	    nx := (x+3) div 10;
-	    ny := (x+6) div 10;
+	    nx := divLookup[x+3];
+	    ny := divLookup[x+6];
 	    o1 := getobjat(nx,0,i,getTier+1);
 	    o2 := getobjat(ny,0,i,getTier+1);
 	    if not( ((o1<9) and not(o1=0)) or
@@ -2102,8 +2197,8 @@ begin
 	 end;         
 	 if ((y<=0) and (juf>0) and (getTier>0)) then
 	 begin
-	    nx := (x+3) div 10;
-	    ny := (x+6) div 10;
+	    nx := divLookup[x+3];
+	    ny := divLookup[x+6];
 	    o1 := getobjat(nx,15,i,getTier-1);
 	    o2 := getobjat(ny,15,i,getTier-1);
 	    if not( ((o1<9) and not(o1=0)) or
@@ -2159,8 +2254,8 @@ begin
       source.x:=0; source.y:=0; source.screen:=currentscreen; source.tier:=getTier;
       if (gettarget(source,dest)) then
       begin
-	 player.x:=dest.x*10;
-	 player.y:=dest.y*10;
+	 player.x:=mulLookup[dest.x];
+	 player.y:=mulLookup[dest.y];
 	 if not( (currentscreen=dest.screen) and (getTier=dest.tier)) then
 	 begin
 	    newscreen(dest.screen,dest.tier);

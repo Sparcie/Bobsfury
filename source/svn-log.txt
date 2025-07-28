@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r208 | andrew | 2025-07-28 18:42:40 +1000 (Mon, 28 Jul 2025) | 10 lines
+
+Lots of improvements rolled up into one (due to being away)
+- Made a look-up table for both multiply and divide by 10. This is to speed up conversion of screen co-ordinates to map co-ordinates and vice
+  versa. The lookup tables only cover valid screen/map co-ordinates for what is on the current screen.
+- added a new spider monster - it crawls around the surface of bricks including up walls and upside-down.
+  It will occasionally shoot at you.
+- added a new page to the help system - for hazards that are generally static. This made room for the spider and mummy on the badies screen.
+
+I will need to test on MartyPC to see if the lookup table made any difference to how playable things are on an XT (fingers crossed)
+
+
+------------------------------------------------------------------------
 r207 | andrew | 2025-07-14 18:31:12 +1000 (Mon, 14 Jul 2025) | 5 lines
 
 I've introduced a new unit for storing more than one high score table
