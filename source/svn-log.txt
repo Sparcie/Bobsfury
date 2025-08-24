@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r209 | andrew | 2025-08-24 14:11:24 +1000 (Sun, 24 Aug 2025) | 2 lines
+
+Added a feature to the editor (BFLEU) to change the difficulty setting. Access it by pressing escape while testing
+to gain access to the testing cheat menu. I need this to make it a bit easier to test new levels are not too difficult.
+------------------------------------------------------------------------
 r208 | andrew | 2025-07-28 18:42:40 +1000 (Mon, 28 Jul 2025) | 10 lines
 
 Lots of improvements rolled up into one (due to being away)

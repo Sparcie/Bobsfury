@@ -514,14 +514,18 @@ end;
 { this won't draw as nicely in hires mode for lack of bobgraph usage here}
 procedure cheatMenu;
 var 
-   c	  : char;
-   done	  : boolean;
+   c	 : char;
+   done	 : boolean;
+   s	 : string;
+   d	 : byte;
+   reset : boolean;
 begin
    while keypressed do
       c:= readkey;
    {bobgraph.save(0,0,260,100);}
    engine.hideMonsters;
    clearanims;
+   reset := false;
    {display the list of options for cheating!}
    bar(0,0,260,100,9);
    bar(1,1,259,99,1);
@@ -533,6 +537,13 @@ begin
    textxy(15,50,4,9,'V = Lives');
    textxy(15,60,4,9,'Esc or Q back to game test');
    textxy(15,70,4,9,'R = Return to editor');
+   {print difficulty - so we can change it.}
+   if diff=5 then s:='Easy';
+   if diff=3 then s:='Medium';
+   if diff=1 then s:='Hard';
+   if diff=-3 then s:='InSaNe';
+   s:= 'D = Difficulty: '+s;
+   textxy(15,80,4,9,s);
    spritedraw(1,10,9,copyput);
    spritedraw(1,20,10,copyput);
    spritedraw(1,30,50,copyput);
@@ -540,6 +551,13 @@ begin
    spritedraw(1,50,107,copyput);
    spritedraw(1,60,29,copyput);
    spritedraw(1,70,59,copyput);
+   {icon for difficulty}
+   if diff=5 then d:=143;
+   if diff=3 then d:=144;
+   if diff=1 then d:=145;
+   if diff=-3 then d:=146;
+   spritedraw(1,80,d,copyput);
+   
    {ok decide what to do!}
    done:=false;
    while not(done) do
@@ -553,14 +571,39 @@ begin
 	'G'	     : player.gren:= player.gren + 20;
 	'V'	     : inc(player.lives);
 	'Q', chr(27) : done:=true;
-	'R'          : begin
+	'R'	     : begin
 	   successful:=true;
 	   done:= true;
+	end;
+	'D'	     : begin
+	   textxy(15,80,4,1,s); {clear the text so we can display the new one}
+	   if diff=5 then diff:=3
+	   else if diff=3 then diff:=1
+	   else if diff=1 then diff:=-3
+	   else if diff=-3 then diff:=5;
+	   {redisplay the difficulty}
+	   if diff=5 then s:='Easy';
+	   if diff=3 then s:='Medium';
+	   if diff=1 then s:='Hard';
+	   if diff=-3 then s:='InSaNe';
+	   s:= 'D = Difficulty: '+s;
+	   textxy(15,80,4,9,s);
+	   {icon for difficulty}
+	   if diff=5 then d:=143;
+	   if diff=3 then d:=144;
+	   if diff=1 then d:=145;
+	   if diff=-3 then d:=146;
+	   spritedraw(1,80,d,copyput);
+	   clearMonsters; { deactivate the current monsters to reset HP }
+	   reset:=true;
 	end;
       end;
    end;
    clearviewport;
-   bobgraph.showscreen;
+   if not(reset) then
+      bobgraph.showscreen
+   else
+      engine.newscreen(currentscreen,getTier);
    drawPlayer;
    drawAllBullets;
    {restore;}
