@@ -1588,18 +1588,23 @@ begin
 		 bf:=false;
 		 if state=0 then
 		 begin
-		    if player.x>x then direction:=true else direction:=false;
 		    if (abs(player.y-y)<20) then
+		    begin
 		       if direction then state:=1 else state:=2;
+		       if ((state=1) and (moverightonfloor(x+9,y,5) < 5)) then state:=2
+		       else if (moveleftonfloor(x,y,5) < 5) then  state :=1;
+		    end;
 		 end;
 		 if state=1 then
 		 begin
+		    direction := true;
                     delta := moverightonfloor(x+9,y,5);
                     x:= x + delta;
                     if delta <5 then state:=0;
 		 end;
 		 if state=2 then
 		 begin
+		    direction := false;
                     delta := moveleftonfloor(x,y,5);
                     x:= x - delta;
                     if delta <5 then state:=0;
@@ -1935,12 +1940,25 @@ begin
    r:=false;
    case typ of
      170,166,116,142,147,157,51,54 : exit;
-     77			   : if state=0 then r:=true;
-     66			   : if not(state=6) then exit;
-     62			   : if state=0 then r:=true;
-     34			   : if not(bt=2) then r:=true;
-     36			   : if bt<2 then r:=true;
-     40			   : if bt>1 then r:=true;
+     77				   : if state=0 then r:=true;
+     66				   : if not(state=6) then exit;
+     62				   : if state=0 then r:=true;
+     34				   : if not(bt=2) then r:=true;
+     36				   : if bt<2 then r:=true;
+     40,28,45,66,77		   : if bt=3 then r:=true;
+     64				   : if ((not(direction) and (d=1)) or (direction and (d=0))) then r:= true;
+     60				   : begin
+					if  (not(direction) and (d=1)) then
+					begin
+					   shoot(i,c,0,0,1);
+					   r:=true;
+					end;
+					if  ((direction) and (d=0)) then
+					begin
+					   shoot(i,c,0,1,1);
+					   r:=true;
+					end;
+				     end;
    end;
    if (r) then
    begin
@@ -1954,49 +1972,27 @@ begin
      3 : damage:=2;
    end;
    if not(collision(i,c,fr,x,y,typ+frame)) then exit;
-   if not(typ=60) then
+   power := power - damage;
+   if typ=66 then state:=7;
+   if power=0 then
    begin
-      power := power - damage;
-      if typ=66 then state:=7;
-      if power=0 then
+      xplode;
+      source.x:=xloc; source.y:=yloc; source.screen:=currentscreen; source.tier:=getTier;
+      switchTrigger(source);
+      if typ=55 then
       begin
-	 xplode;
-	 source.x:=xloc; source.y:=yloc; source.screen:=currentscreen; source.tier:=getTier;
-	 switchTrigger(source);
-	 if typ=55 then
-	 begin
-	    if distance(x,y,player.x,player.y) < 20 then hurtPlayer(30);
-	    explode(x-10,y-10);
-	    explode(x,y-10);
-	    explode(x+10,y-10);
-	    explode(x-10,y);
-	    explode(x+10,y);
-	    explode(x-10,y+10);
-	    explode(x,y+10);
-	    explode(x+10,y+10);
-	 end;	 
-      end;
-      checkhit:=true;
+	 if distance(x,y,player.x,player.y) < 20 then hurtPlayer(30);
+	 explode(x-10,y-10);
+	 explode(x,y-10);
+	 explode(x+10,y-10);
+	 explode(x-10,y);
+	 explode(x+10,y);
+	 explode(x-10,y+10);
+	 explode(x,y+10);
+	 explode(x+10,y+10);
+      end;	 
    end;
-   if (typ=60) then
-   begin
-      if (direction and (d=1)) then
-	 power:=power-damage;
-      if (not(direction) and (d=0)) then
-	 power:=power-damage;
-      if  (not(direction) and (d=1)) then
-	 shoot(i,c,0,0,1);
-      if  ((direction) and (d=0)) then
-	 shoot(i,c,0,1,1);
-      if power=0 then
-      begin
-	 xplode;
-	 source.x:=xloc; source.y:=yloc; source.screen:=currentscreen;
-	 source.tier:=getTier;
-	 switchTrigger(source);
-      end;
-      checkhit:=true;
-   end;
+   checkhit:=true;
 end;
 
 function monsterob.ishit(i,c,fr:integer):boolean;

@@ -1,4 +1,25 @@
 ------------------------------------------------------------------------
+r212 | andrew | 2025-08-31 15:35:24 +1000 (Sun, 31 Aug 2025) | 2 lines
+
+Adding the incomplete work I've been doing on the 8th and last Castle level.
+It doesn't appear in the level set yet, I've not finished it yet.
+------------------------------------------------------------------------
+r211 | andrew | 2025-08-31 15:26:46 +1000 (Sun, 31 Aug 2025) | 7 lines
+
+Changed how the roller-bot behaves to make it a bit more challenging (not much!)
+Now you must shoot it in the rear as it drives away. If you trigger it and it
+cannot move towards you it will drive away giving an opportunity to shoot it
+
+I also found the checkhit code for the monsters could be simplified a little.
+I moved the check for reflecting bullets (for the shield bot) into the case
+block and simplified the following code as I no longer need separate code for the shield bot.
+------------------------------------------------------------------------
+r210 | andrew | 2025-08-31 14:49:30 +1000 (Sun, 31 Aug 2025) | 3 lines
+
+Balance change to make the Boss monsters (including Bob and his assistants)
+Immune to lightning as using that makes it super easy to wipe them out.
+Grenades will cause damage, but you have to get pretty close to use those.
+------------------------------------------------------------------------
 r209 | andrew | 2025-08-24 14:11:24 +1000 (Sun, 24 Aug 2025) | 2 lines
 
 Added a feature to the editor (BFLEU) to change the difficulty setting. Access it by pressing escape while testing
