@@ -648,10 +648,10 @@ begin
       rot:=not(rot);
       {move person and use joystick if available}
       if (joyavail and usejoy) then
-	 joystick;
-      {use custom keys if needed}
-      if useCustomKeys then
-	 processKeys;
+	 joystick
+      else
+	 if useCustomKeys then {use custom keys if needed}
+	    processKeys;
       if hcount>0 then hcount:=hcount-1;
       personmove;
       if shtt>0 then dec(shtt);
@@ -1974,7 +1974,7 @@ begin
    if not(collision(i,c,fr,x,y,typ+frame)) then exit;
    power := power - damage;
    if typ=66 then state:=7;
-   if power=0 then
+   if power<=0 then
    begin
       xplode;
       source.x:=xloc; source.y:=yloc; source.screen:=currentscreen; source.tier:=getTier;

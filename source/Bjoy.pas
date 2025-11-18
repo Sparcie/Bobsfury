@@ -8,10 +8,13 @@ interface
 
 type
    joystick = record
-		 xaxis,yaxis	 : word;
-		 xcentre,ycentre : word;
-		 buttons         : byte;
-	      end;		 
+		 xaxis,yaxis	      : word;
+		 xcentre,ycentre      : word;
+		 xdeadzone, ydeadzone : word;
+		 xmin, ymin	      : word;
+		 xmax, ymax	      : word;
+		 buttons	      : byte;
+	      end;		      
 
 var
    joy       : joystick;
@@ -64,26 +67,58 @@ const
       joypressed := (joy.buttons and jcbuttons[b]) = 0;
    end;
 
+   {during calibration you need the stick to be in the centre}
    procedure calibrate;
+   var i       : word;
+      axisData : array[0..255] of integer;
+      sum      : longint;
+      delta    : word;
    begin
-      joy.xcentre := joy.xaxis;
-      joy.ycentre := joy.yaxis;
+      {calibrate the X axis - do loads of samples and calculate average and estimated deadzone}
+      sum := 0;
+      for i:= 0 to 255 do
+      begin
+	 axisData[i] := $FFFF - count($01);
+	 sum := sum + axisData[i];
+      end;
+      {calculate the average as the centre}
+      joy.xcentre := sum div 256;
+      { determine the max delta from the centre - determine how noisy the stick is }
+      joy.xdeadzone := 5;
+      for i:=0 to 255 do
+      begin
+	 delta := abs(joy.xcentre - axisData[i]);
+	 if (delta > joy.xdeadzone) then joy.xdeadzone := delta + 5;
+      end;
+      {calibrate the Y axis - do loads of samples and calculate average and estimated deadzone}
+      sum := 0;
+      for i:= 0 to 255 do
+      begin
+	 axisData[i] := $FFFF - count($02);
+	 sum := sum + axisData[i];
+      end;
+      {calculate the average as the centre}
+      joy.ycentre := sum div 256;
+      { determine the max delta from the centre - determine how noisy the stick is }
+      joy.ydeadzone := 5;
+      for i:=0 to 255 do
+      begin
+	 delta := abs(joy.ycentre - axisData[i]);
+	 if (delta > joy.ydeadzone) then joy.ydeadzone := delta + 5;
+      end;
    end; { calibrate }
 
    function xcentred:boolean;
-   var z : integer;
    begin
-      z:= joy.xcentre div 5;
       xcentred := false;
-      if abs(joy.xaxis-joy.xcentre)<z+1 then xcentred:=true;
+      if abs(Integer(joy.xaxis)-Integer(joy.xcentre))< joy.xdeadzone then xcentred:=true;
    end; { xcentred }
 
    function ycentred:boolean;
    var z : integer;
    begin
-      z:= joy.ycentre div 5;
       ycentred := false;
-      if abs(joy.yaxis-joy.ycentre)<z+1 then ycentred:=true;
+      if abs(Integer(joy.yaxis)-Integer(joy.ycentre))< joy.ydeadzone then ycentred:=true;
    end; { ycentred }
 
    procedure update;
@@ -94,6 +129,12 @@ const
       joy.xaxis := $FFFF-c;
       c := count($02);
       joy.yaxis := $FFFF-c;
+      {update min/max}
+      if joy.xmin > joy.xaxis then joy.xmin := joy.xaxis;
+      if joy.xmax < joy.xaxis then joy.xmax := joy.xaxis;
+      if joy.ymin > joy.yaxis then joy.ymin := joy.yaxis;
+      if joy.ymax < joy.yaxis then joy.ymax := joy.yaxis;      
+      
       joy.buttons:=port[joyport];
       if not((joy.xaxis=$FFFF) or (joy.yaxis=$FFFF)) then
 	    joyavail := true
@@ -103,7 +144,13 @@ const
 
 
 begin
+   joy.xmin := $FFFF;
+   joy.xmax := 0;
+   joy.ymin := $FFFF;
+   joy.ymax := 0;
    joyavail:=false;
    update;
+   if joyavail then
+      calibrate;
    usejoy:=false;
 end.

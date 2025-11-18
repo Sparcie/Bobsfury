@@ -1,4 +1,19 @@
 ------------------------------------------------------------------------
+r213 | andrew | 2025-11-18 18:59:28 +1100 (Tue, 18 Nov 2025) | 12 lines
+
+I found that the joystick support was not working, I had extremely simple code that works ok on slow machines
+but fails on faster machines due to jitter in the joystick signal.
+- I changed the axis centred calculation to use a deadzone - to fix the centring issue on fast machines.
+- changed how the calibration mechanism works - it takes 256 samples and calculates the average to get the centre
+  and looks for the largest delta from the centre for the deadzone.
+
+Also changed the game engine so it chooses either joystick or the keyboard (with custom handler). I found that the keyboard handler was invalidating the joystick input.
+
+Seems to work well in dosbox, I'll need to try it on some real hardware.
+
+I also found a bug in the game behaviour - when a monster died it would not trigger blocks if it's health got below zero
+Fixed so the trigger always occurs. This affected a new level I'm working on - the last one for the castle episode.
+------------------------------------------------------------------------
 r212 | andrew | 2025-08-31 15:35:24 +1000 (Sun, 31 Aug 2025) | 2 lines
 
 Adding the incomplete work I've been doing on the 8th and last Castle level.
