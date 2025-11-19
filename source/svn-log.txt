@@ -1,4 +1,26 @@
 ------------------------------------------------------------------------
+r214 | andrew | 2025-11-19 14:47:03 +1100 (Wed, 19 Nov 2025) | 19 lines
+
+I found that the joystick code I had didn't work well on real hardware - the y axis was all over the place and not correct.
+
+After a bit of reading I found advice that said you should wait for both axes (or all four for two joysticks) to settle
+with each read. Otherwise the next read will be all over the place. I think this was the cause of the problem.
+
+I've retooled the code to read both axes in one read loop. Note that it is important that the read loop be the same
+number of cpu cycles all the way through to either timeout or both axes having discharged.
+
+This is why the new read loop uses masking and subtraction rather than a test and conditional jump. The upside is I can
+read both axes correctly at the same time. The downside is this longer loop does fewer iterations per read, effectively reducing the potential read resolution.
+
+Fortunately I'm looking for essentially digital direction input, so values in between max, min and centre are not
+terribly important. So for my purposes this is a good solution.
+
+I've tested this new code in dosbox and on the thinkpad laptop (with gravis gamepad) with success, both work well.
+I'll need to test a slower real pc (such as the microbyte 386) otherwise this looks like a good solution.
+
+I'm considering extending the games controls to include some options for assigning controls to the y axis. Such as 
+jumping or weapons. Probably not a good option for a real joystick, but maybe good for something like the gamepad.
+------------------------------------------------------------------------
 r213 | andrew | 2025-11-18 18:59:28 +1100 (Tue, 18 Nov 2025) | 12 lines
 
 I found that the joystick support was not working, I had extremely simple code that works ok on slow machines

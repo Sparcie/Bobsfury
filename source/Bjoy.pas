@@ -40,25 +40,41 @@ implementation
 const
    joyport =  $201;
 
-   function count(bit : byte):word;
-   var
-      c	: word;
-   begin
-      asm
-          cli
-          mov ah,bit
+   procedure count(var x,y :word ); assembler;
+   asm
+          cli {disable interrupts - to minimise noise }
           mov al,$FF
           mov cx,$FFFF
+          mov bx,$FFFF
           mov dx,joyport
+          xor ah,ah
+      {read both axis }
           out dx, al
       @read:
 	  in al,dx
-	  test al,ah
-	  loopnz @read
-	  mov c,cx
-          sti
-      end;
-      count:=c;
+          {dec x counter if needed with constant number of cycles}
+          mov di, ax
+          and di, $01
+          sub cx, di
+          jz @break {check for timeout and break if needed}
+          {dec y counter if needed with constant number of cycles}
+          mov di, ax
+          and di, $02
+          shr di, 1
+          sub bx, di
+          jz @break {check for timeout on y axis}
+   
+          test al,$03 {test and loop if either axis is still active}
+          jnz @read
+      @break:
+          sti {loop done enable interrutps}
+
+          {push the counters to the vars}
+          les di, x
+          mov es:[di], cx
+          les di, y
+          mov es:[di], bx
+          {done!}
    end;
 
 
@@ -69,41 +85,35 @@ const
 
    {during calibration you need the stick to be in the centre}
    procedure calibrate;
-   var i       : word;
-      axisData : array[0..255] of integer;
-      sum      : longint;
-      delta    : word;
+   var i	: word;
+      xData	: array[0..255] of word;
+      yData	: array[0..255] of word;
+      xsum,ysum	: longint;
+      delta	: word;
    begin
-      {calibrate the X axis - do loads of samples and calculate average and estimated deadzone}
-      sum := 0;
+      {calibrate the input - do loads of samples and calculate average and estimated deadzone}
+      xsum := 0;
+      ysum := 0;
       for i:= 0 to 255 do
       begin
-	 axisData[i] := $FFFF - count($01);
-	 sum := sum + axisData[i];
+	 count(xdata[i], ydata[i]);
+	 xdata[i] := $FFFF - xdata[i];
+	 ydata[i] := $FFFF - ydata[i];
+	 xsum := xsum + xData[i];
+	 ysum := ysum + yData[i];
       end;
       {calculate the average as the centre}
-      joy.xcentre := sum div 256;
+      joy.xcentre := xsum div 256;
+      joy.ycentre := ysum div 256;
+      
       { determine the max delta from the centre - determine how noisy the stick is }
       joy.xdeadzone := 5;
-      for i:=0 to 255 do
-      begin
-	 delta := abs(joy.xcentre - axisData[i]);
-	 if (delta > joy.xdeadzone) then joy.xdeadzone := delta + 5;
-      end;
-      {calibrate the Y axis - do loads of samples and calculate average and estimated deadzone}
-      sum := 0;
-      for i:= 0 to 255 do
-      begin
-	 axisData[i] := $FFFF - count($02);
-	 sum := sum + axisData[i];
-      end;
-      {calculate the average as the centre}
-      joy.ycentre := sum div 256;
-      { determine the max delta from the centre - determine how noisy the stick is }
       joy.ydeadzone := 5;
       for i:=0 to 255 do
       begin
-	 delta := abs(joy.ycentre - axisData[i]);
+	 delta := abs(integer(joy.xcentre) - integer(xData[i]));
+	 if (delta > joy.xdeadzone) then joy.xdeadzone := delta + 5;
+	 delta := abs(integer(joy.ycentre) - integer(yData[i]));
 	 if (delta > joy.ydeadzone) then joy.ydeadzone := delta + 5;
       end;
    end; { calibrate }
@@ -122,13 +132,10 @@ const
    end; { ycentred }
 
    procedure update;
-   var
-      c	: word;
    begin
-      c := count($01);
-      joy.xaxis := $FFFF-c;
-      c := count($02);
-      joy.yaxis := $FFFF-c;
+      count(joy.xaxis, joy.yaxis);
+      joy.xaxis := $FFFF-joy.xaxis;
+      joy.yaxis := $FFFF-joy.yaxis;
       {update min/max}
       if joy.xmin > joy.xaxis then joy.xmin := joy.xaxis;
       if joy.xmax < joy.xaxis then joy.xmax := joy.xaxis;
