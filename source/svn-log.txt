@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r215 | andrew | 2025-11-21 23:49:55 +1100 (Fri, 21 Nov 2025) | 3 lines
+
+Found a minor issue where the engine unit was attempting to calibrate the joystick on initialisation when the joystick unit already does it for itself (when one if found)
+
+Removed the offending lines and the start-up delay is fixed.
+------------------------------------------------------------------------
 r214 | andrew | 2025-11-19 14:47:03 +1100 (Wed, 19 Nov 2025) | 19 lines
 
 I found that the joystick code I had didn't work well on real hardware - the y axis was all over the place and not correct.

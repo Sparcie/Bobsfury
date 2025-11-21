@@ -2304,6 +2304,4 @@ begin
    boss:=0;
    bossp:=0;
    visibility := 150;
-   update;  
-   calibrate;
 end.
