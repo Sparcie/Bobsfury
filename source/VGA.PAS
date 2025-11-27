@@ -134,7 +134,7 @@ begin
 
     ofs := x + (y *320) + targofs; 
    
-    xs := x1 - x; ys := y1 - y;
+    xs := Integer(x1) - x; ys := Integer(y1) - y;
 
     xm:= sign(xs); ym := sign(ys) * 320;
     xs := abs(xs); ys := abs(ys);

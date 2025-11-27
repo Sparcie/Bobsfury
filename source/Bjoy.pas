@@ -80,7 +80,12 @@ const
 
    function joypressed( b : byte ):boolean;
    begin
-      joypressed := (joy.buttons and jcbuttons[b]) = 0;
+      joypressed := false;
+      if not(joyavail) then exit;
+      if b > 0 then
+	 joypressed := (joy.buttons and jcbuttons[b]) = 0
+      else
+	 joypressed := (joy.buttons and $F0) < $F0;
    end;
 
    {during calibration you need the stick to be in the centre}
@@ -120,6 +125,11 @@ const
 
    function xcentred:boolean;
    begin
+      if not(joyavail) then
+      begin
+	 xcentred := true;
+	 exit;
+      end;
       xcentred := false;
       if abs(Integer(joy.xaxis)-Integer(joy.xcentre))< joy.xdeadzone then xcentred:=true;
    end; { xcentred }
@@ -127,7 +137,12 @@ const
    function ycentred:boolean;
    var z : integer;
    begin
-      ycentred := false;
+      if not(joyavail) then
+      begin
+	 ycentred := true;
+	 exit;
+      end;
+      ycentred := false;      
       if abs(Integer(joy.yaxis)-Integer(joy.ycentre))< joy.ydeadzone then ycentred:=true;
    end; { ycentred }
 

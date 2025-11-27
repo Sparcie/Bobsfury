@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r217 | andrew | 2025-11-27 08:32:27 +1100 (Thu, 27 Nov 2025) | 1 line
+
+fixed the singlekeypress function - it needed to include the joystick update function.
+------------------------------------------------------------------------
+r216 | andrew | 2025-11-27 00:53:51 +1100 (Thu, 27 Nov 2025) | 5 lines
+
+Some significant changes today
+
+- fixed  moveutil.pas, CGA.PAS, VGA.PAS, EGA.PAS, VESA.PAS so that range check errors don't happen - I usually have range checking off, but this helps if I turn it on for debugging.
+
+I reworked bmenu.pas and some other components to allow for the joystick to navigate most of the menu ui. Getting the logic right took a little while.
+------------------------------------------------------------------------
 r215 | andrew | 2025-11-21 23:49:55 +1100 (Fri, 21 Nov 2025) | 3 lines
 
 Found a minor issue where the engine unit was attempting to calibrate the joystick on initialisation when the joystick unit already does it for itself (when one if found)

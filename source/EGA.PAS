@@ -248,7 +248,7 @@ begin
    setDataFunc(0);
    setPlaneMask($F);
    
-   xs := x1 - x; ys := y1-y;
+   xs := Integer(x1) - x; ys := Integer(y1)-y;
 
    xm:= sign(xs); ym := sign(ys) * 80 ;
    xs := abs(xs); ys := abs(ys);
@@ -271,10 +271,10 @@ begin
       {swap the co-ords so we draw left to right}
       swapW(x,x1);
       swapW(y,y1);
-      ys := y1 -y;
+      ys := Integer(y1) -y;
       ym := sign(ys) * 80;
       ys := abs(ys);
-      xs := x1 - x;
+      xs := Integer(x1) - x;
       xm := sign(xs);
       xs := abs(xs);
       ofs := (x shr 3) + y * 80;

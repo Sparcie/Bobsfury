@@ -128,8 +128,12 @@ end;
 
 function singlekeypress:char;
 begin
-   while not(keypressed) do checkSongChange;
-   singlekeypress := readkey;
+   if joyavail then update;
+   while not(keypressed or joypressed(0)) do
+      if joyavail then update;
+   singlekeypress := 'z';
+   if keypressed then
+      singlekeypress := readkey;
 end;
 
 procedure pause;
@@ -248,7 +252,8 @@ begin
 	 textxy(140,11,4,UIColours[1],am);
 	 player.score:=player.score+l;
 	 i:=i+l;
-	 if keypressed then
+	 if joyavail then update;
+	 if (keypressed or joypressed(0)) then
 	    l:=1000;
 	 if (l> bonus-i) then l:= bonus-i;
 	 showscore;
@@ -258,7 +263,7 @@ begin
    end;
    {pause at the end for few seconds - unless a key is pressed}
    t:= timerTick + (72*pitRatio );
-   while ((t>timerTick) and not(keypressed)) do ;
+   while ((t>timerTick) and not(keypressed or joypressed(0))) do ;
 
    while keypressed do k:=readkey;
 end;

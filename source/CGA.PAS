@@ -212,7 +212,8 @@ end;
 procedure line(x,y,x1,y1: word; c: byte);
 var
    xs,ys,ym : integer;
-   ofs, nr  : word;
+   ofs	    : word;
+   nr	    : integer;
 begin
     if checkBounds(x,y) then exit;
     if checkBounds(x1,y1) then exit;
@@ -229,7 +230,7 @@ begin
     {determine starting ofset}
     ofs := screenOfset(x,y);
        
-    xs := x1 - x; ys := y1-y;
+    xs := Integer(x1) - x; ys := Integer(y1)-y;
 
     ym := sign(ys) * 80;
     xs := abs(xs); ys := abs(ys);

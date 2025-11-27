@@ -252,7 +252,7 @@ begin
     gran := granule(x,y,ofs);
     if not(cgran=gran) then setWindow(gran);
 
-    xs := x1 - x; ys := y1 - y;
+    xs := Integer(x1) - x; ys := Integer(y1) - y;
 
     xm:= sign(xs); ym := sign(ys) * 640;
     xs := abs(xs); ys := abs(ys);

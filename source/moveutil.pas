@@ -47,6 +47,7 @@ var
     o: byte;
 begin
     done:=false;
+    if dist>x then dist:=x;
     while not(done) do
     begin
         o := objectat(divLookup[x - dist], divLookup[y]);
@@ -65,10 +66,11 @@ var
     o : byte;
 begin
     done:=false;
+    if dist> 310-x then dist:= 310-x;
     while not(done) do
     begin
         o := objectat(divLookup[x + dist], divLookup[y]);
-        if ((o>0) and (o<9)) or (x+dist > 310) then
+        if ((o>0) and (o<9))  then
             dec(dist)
         else
             done:= true; 
@@ -83,10 +85,11 @@ var
     o : byte;
 begin
     done:=false;
+    if dist>y then dist:=y;
     while not(done) do
     begin
         o := objectat(divLookup[x], divLookup[y - dist]);
-        if ((o>0) and (o<9)) or (y-dist <0) then
+        if ((o>0) and (o<9)) then
             dec(dist)
         else
             done:= true; 
@@ -101,6 +104,7 @@ var
     o : byte;
 begin
     done:=false;
+    if dist>160-y then dist:=160-y;
     while not(done) do
     begin
         o := objectat(divLookup[x], divLookup[y + dist]);
@@ -120,11 +124,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+    if dist>x then dist:=x;
     while not(done) do
     begin
         o := objectat(divLookup[x - dist], divLookup[y]);
         o1 := objectat(divLookup[x - dist], divLookup[y + h]);
-        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (x-dist<0)) then
+        if (((o>0) and (o<9)) or ((o1>0) and (o1<9))) then
             dec(dist)
         else
             done:= true;
@@ -139,11 +144,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+   if dist>310-x then dist := 310-x;
     while not(done) do
     begin
         o := objectat(divLookup[x + dist], divLookup[y]);
         o1 := objectat(divLookup[x + dist], divLookup[y + h]);
-        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (x+dist>310)) then
+        if (((o>0) and (o<9)) or ((o1>0) and (o1<9))) then
             dec(dist)
         else
             done:= true; 
@@ -158,11 +164,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+    if dist>y then dist:=y;
     while not(done) do
     begin
         o := objectat(divLookup[x], divLookup[y - dist]);
         o1 := objectat(divLookup[x + w], divLookup[y - dist]);
-        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (y-dist<0)) then
+        if (((o>0) and (o<9)) or ((o1>0) and (o1<9))) then
             dec(dist)
         else
             done:= true; 
@@ -177,11 +184,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+    if dist>160-y then dist:= 160-y;
     while not(done) do
     begin
         o := objectat(divLookup[x], divLookup[y + dist]);
         o1 := objectat(divLookup[x + w], divLookup[y + dist]);
-        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (y+dist>160)) then
+        if (((o>0) and (o<9)) or ((o1>0) and (o1<9))) then
             dec(dist)
         else
             done:= true; 
@@ -196,11 +204,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+    if dist>160-y then dist:= 160-y;
     while not(done) do
     begin
         o := objectat(divLookup[x + 2], divLookup[y + 9 + dist]);
         o1 := objectat(divLookup[x + 7], divLookup[y + 9 + dist]);
-        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (o=15) or (o1=15) or (y+dist>160)) then
+        if (((o>0) and (o<9)) or ((o1>0) and (o1<9)) or (o=15) or (o1=15)) then
             dec(dist)
         else
             done:= true; 
@@ -216,11 +225,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+    if dist>x then dist:=x;
     while not(done) do
     begin
         o := objectat(divLookup[x - dist], divLookup[y]);
         o1 := objectat(divLookup[x - dist], divLookup[y]+1);
-        if (((o>0) and (o<9)) or ((o1=0) or (o1>8)) or (x-dist<0)) then
+        if (((o>0) and (o<9)) or ((o1=0) or (o1>8))) then
             dec(dist)
         else
             done:= true;
@@ -235,11 +245,12 @@ var
     o, o1: byte;
 begin
     done:=false;
+   if dist>310-x then dist := 310-x;
     while not(done) do
     begin
         o := objectat(divLookup[x + dist], divLookup[y]);
         o1 := objectat(divLookup[x + dist], divLookup[y]+1);
-        if (((o>0) and (o<9)) or ((o1=0) or (o1>8)) or (x+dist>310)) then
+        if (((o>0) and (o<9)) or ((o1=0) or (o1>8))) then
             dec(dist)
         else
             done:= true;

@@ -29,6 +29,20 @@ var
    statereset : boolean; {indicates that the monsters array was emptied in order to save (or other function)}
    menudepth  : integer; {stores how many menus deep we are before returning.}
 
+{simple function to wait for a keypress or joystick interaction - updates the joystick
+ yc is ycentre value before calling (so return on change)}
+procedure waitForPress(yc :boolean) ;
+begin
+   if joyavail then
+   begin
+      if joyavail then update;
+      while not( keypressed or joypressed(0) or (ycentred xor yc)) do
+	 if joyavail then update;
+   end
+   else
+      while not(keypressed) do ;
+end;
+
 function ginput(s:string;x,y:integer):string;
 var done:boolean;
     a:char;
@@ -145,12 +159,19 @@ begin
    spritedraw(0,190,pic,copyput);
    spritedraw(310,0,pic,copyput);
    spritedraw(310,190,pic,copyput);
+   if joyavail then update;
    inc(menuDepth);   
 end;
 
 procedure menudone;
+var a : char;
 begin
    dec(menuDepth);
+   while (keypressed) do a:=readkey;
+   if joyavail then update;
+   while (joypressed(0)) do
+      if joyavail then update;
+
    if (menuDepth>0) then exit;
    checkTimer;
    if ((paging) and not(stateReset)) then
@@ -185,8 +206,9 @@ begin
    x:=0;
    spritedraw(x,40,107,xorput);
    nextt := timertick + pitRatio;
-   while (not(keypressed) and (x<310)) do
+   while (not(keypressed or joypressed(0)) and (x<310)) do
    begin
+      if joyavail then update;
       if (timerTick>=nextt) then
       begin
 	 nextt:=timerTick + pitRatio;
@@ -196,7 +218,6 @@ begin
 	 checkSongChange;
       end;
    end;
-   if keypressed then a:=readkey;
    engine.clearmonsters;   
    menudone;   
 end; { leveltitle }
@@ -218,23 +239,25 @@ begin
    done:=false;
    while not(done) do
    begin
-      checkSongChange;
+      if joyavail then update;
       a:=chr(1);
       if keypressed then a:=readkey;
       if ((a=chr(13)) or (a=' ')) then done:=true;
+      if joypressed(0) then done:= true;
    end;
    engine.clearmonsters;
    menudone;
 end;
 
 procedure begingame;
-var infile       : text;
-    epname       : array[1..30] of string[25];
-    epdir        : array[1..30] of string[8];
+var infile	 : text;
+    epname	 : array[1..30] of string[25];
+    epdir	 : array[1..30] of string[8];
     no,x,y,i,sel : integer;
-    bgdone       : boolean;
-    a            : char;
-   eptext        :leveltextptr;
+    bgdone	 : boolean;
+    a		 : char;
+   yc		 : boolean; {joystick y was centred}
+   eptext	 : leveltextptr;
 begin
    new(eptext);
    sel:=1;
@@ -261,10 +284,12 @@ begin
    while (not(bgdone)) do
    begin
       textxy(x,y+(sel*10),4,UIColours[13],epname[sel]);
-      while (not(keypressed)) do checkSongChange;
+      waitForPress(yc);
       textxy(x,y+(sel*10),4,UIColours[5],epname[sel]);
-      a:=readkey;
-      if a=char(27) then bgdone:=true;
+      a:='z';
+      if keypressed then
+	 a:=readkey;
+      if ((a=char(27)) or joypressed(2)) then bgdone:=true;
       if a=char(0) then
       begin
 	 a:=readkey;
@@ -272,8 +297,16 @@ begin
 	 if a=char(72) then sel:=sel-1;
 	 if sel<1 then sel:=no;
 	 if sel>no then sel:=1;
-      end; 
-      if a=char(13) then
+      end;
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then sel:=sel+1;
+	 if joy.yaxis<joy.ycentre then sel:=sel-1;
+	 if sel<1 then sel:=no;
+	 if sel>no then sel:=1;
+      end;
+      yc := ycentred;      
+      if ((a=char(13)) or joypressed(1)) then
       begin
 	 successful:=false;
 	 statereset:=true;
@@ -309,6 +342,7 @@ var slots : array[1..9] of string[50];
    buff	  : array[1..sizeof(playerrec)] of char;
    out	  : text;
    t	  : byte;
+   yc	  : boolean;
 const	  
     slotfile:array[1..9] of string[8] = ('save1','save2','save3','save4','save5','save6','save7','save8','save9');
 begin
@@ -326,13 +360,13 @@ begin
    while (not(sdone)) do
    begin
       textxy(30,40+(sel*10),4,UIColours[13],slots[sel]);
-      while (not(keypressed)) do checkSongChange;
-      
+      waitForPress(yc);
       textxy(30,40+(sel*10),4,UIColours[5],slots[sel]);
-      
-      a:=readkey;
-      if a=char(27) then sdone:=true;
-      if a=char(13) then 
+      a:='z';
+      if keypressed then
+	 a:=readkey;
+      if ((a=char(27)) or joypressed(2))  then sdone:=true;
+      if ((a=char(13)) or joypressed(1)) then 
       begin
 	 sdone:=true;
 	 inc(statereset);
@@ -345,7 +379,7 @@ begin
          begin
 	    {we have determined we can't save due to write protection most likely}
 	    textxy(40, 150, 4, UIColours[12], 'Cannot write save file');
-	    while (not(keypressed)) do ; {wait for a key}
+	    while (not(keypressed or joypressed(0))) do ; {wait for a key}
             while keypressed do a:=readkey;
 	    menudone;
 	    exit;
@@ -376,6 +410,14 @@ begin
 	 if sel=0 then sel:=9;
 	 if sel=10 then sel:=1;
       end;
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then sel:=sel+1;
+	 if joy.yaxis<joy.ycentre then sel:=sel-1;
+	 if sel<1 then sel:=9;
+	 if sel>9 then sel:=1;
+      end;
+      yc:= ycentred;
    end;
    menudone;
 end;
@@ -389,6 +431,7 @@ var slots    : array[1..9] of string[50];
    buff	     : array[1..sizeof(playerrec)] of char;
    out	     : text;
    t	     : byte;
+   yc	     : boolean;
 const
    savefile:array[1..9] of string[8] = ('save1','save2','save3','save4','save5','save6','save7','save8','save9');
 begin
@@ -415,13 +458,13 @@ begin
    while (not(sdone)) do
    begin
       textxy(30,40+(sel*10),4,UIColours[13],slots[sel]);
-      while (not(keypressed)) do checkSongChange;
-      
+      waitForPress(yc);
       textxy(30,40+(sel*10),4,UIColours[5],slots[sel]);
-      
-      a:=readkey;
-      if a=char(27) then sdone:=true;
-      if a=char(13) then 
+      a:='z';
+      if keypressed then
+	 a:=readkey;
+      if ((a=char(27)) or joypressed(2)) then sdone:=true;
+      if ((a=char(13)) or joypressed(1)) then 
       begin
 	 sdone:=true;
 	 statereset:=true;
@@ -455,17 +498,26 @@ begin
 	 if sel=0 then sel:=nss;
 	 if sel=(nss+1) then sel:=1;
       end;
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then sel:=sel+1;
+	 if joy.yaxis<joy.ycentre then sel:=sel-1;
+	 if sel<1 then sel:=nss;
+	 if sel>nss then sel:=1;
+      end;
+      yc:= ycentred;
    end;
    menudone;
 end;
 
 procedure joycal;
-var done : boolean;
-   jx,jy : integer;
-   c     : byte;
-   a     : char;
-   fa,fb,fc,fd: byte;
-   sel   : integer;
+var done       : boolean;
+   jx,jy       : integer;
+   c	       : byte;
+   a	       : char;
+   fa,fb,fc,fd : byte;
+   sel	       : integer;
+   yc	       : boolean;
 const
    functs : array[0..4] of string[8] = ('none', 'Fire', 'Jump', 'Weapon', 'Health');
 begin
@@ -497,7 +549,7 @@ begin
       jx:=45;
       jy:=45;
       if keypressed then
-      begin
+      begin	 
 	 a:=readkey;
 	 if ((a='c') or (a='C')) then calibrate;
          if (a=chr(27)) then done:=true;
@@ -581,7 +633,7 @@ begin
    while keypressed do a:=readkey;
 
    {wait for a keypress}
-   while not keypressed do checkSongChange;
+   while not keypressed do ;
 
    clearKey(ind);
    scancode[ind]:=lastKeyPressed;
@@ -626,7 +678,7 @@ begin
 
    while not(done) do
    begin
-      while not(keypressed) do checkSongChange;
+      while not(keypressed) do ;
 
       a:= readkey;
       if a = chr(27) then done:=true;
@@ -798,10 +850,8 @@ begin
    textxy(20,180,4,col,s);
    
    {now wait for any key and return to settings screen.}
-   while not(keypressed) do checkSongChange;
-
-   while (keypressed) do c:= readkey;
-
+   waitForPress(true);
+   
    {clear the display so the settings screen can redraw itself}
    menudone;
    dec(menuDepth);
@@ -837,8 +887,9 @@ begin
 
    {benchmark the graphics drawing on screen}
    bobgraph.bar(59,179,260,190,UIColours[7]);
-   while not(keypressed) do
+   while not(keypressed or joypressed(0)) do
    begin
+      if joyavail then update;
       start := timerTick;
       count:=0;
       while ((timerTick< start+(91 * pitRatio)) and not(keypressed)) do
@@ -860,8 +911,6 @@ begin
       textxy(61,160,4,UIColours[9],s);
    end;
 
-   while (keypressed) do c:= readkey;
-
    {clear the display so the settings screen can redraw itself}
    menudone;
    dec(menuDepth);
@@ -878,6 +927,8 @@ var
    mem	      : longint;
     pos	      : integer;
    refresh    : boolean;
+   yc	      : boolean;
+   act	      : boolean;
 begin
    startmenu;
    pos:=0;
@@ -951,37 +1002,34 @@ begin
 	 textxy(40,120,4,UIColours[9],'Done');
       end;
       refresh := false;
+
+      waitForPress(yc);
       
-      while not(keypressed) do checkSongChange;
-      a:=readkey;
+      a:= 'z';
+      if keypressed then
+	 a:=readkey;
       spritedraw(29,33+((pos)*10),44,xorput);
 
+      act:= false;
+      
+      if ((a=chr(13)) or joypressed(1)) then act:= true;
 
-      if (a=chr(13)) then
-      begin
-	 if pos=9 then mdone:=true;
-	 if pos=8 then
-	 begin
-	    info;
-	    refresh := true;
-	 end;
-	 if pos=7 then
-	 begin
-	    customKeys;
-	    refresh := true;
-	 end;
-	 if ((pos=6) and joyavail) then
-	 begin
-	    joycal;
-	    refresh := true;
-	 end;
-      end;
       if (a='S') then
       begin
 	 spriteTest;
 	 refresh := true;
       end;
-      if (a=chr(27)) then mdone:=true;
+      if ((a=chr(27)) or joypressed(2)) then mdone:=true;
+
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then inc(pos);
+	 if joy.yaxis<joy.ycentre then dec(pos);
+	 if pos<0 then pos:=9;
+	 if pos>9 then pos:=0;
+      end;
+      yc:= ycentred;
+
       if (a=chr(0)) then
       begin
 	 a:=readkey;
@@ -993,18 +1041,8 @@ begin
 	 {left key}
 	 if (a=chr(75)) then
 	 begin
-	    if (joyavail and (pos=6)) then
-	    begin
-	       joycal;
-	       refresh := true;
-	    end;
+	    act:= true;
 	    
-	    if (pos=7) then
-	    begin
-	       customkeys;
-	       refresh := true;
-	    end;
-
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
 	    begin
@@ -1013,6 +1051,7 @@ begin
 	       shoot;        
 	    end;
 	    {$endif}
+
 	    if (pos=0) then
 	    begin
 	       inc(s);
@@ -1020,8 +1059,6 @@ begin
 	       gap := s;
 	    end;
 	    
-	    if (pos=1) then
-	       respawn:=not(respawn);
 	    if (pos=2) then
 	    begin
 	       diff:=diff+2;
@@ -1029,42 +1066,11 @@ begin
 	       if diff=7 then diff:=-3;
 	    end; 
 	    
-	    if pos=4 then soundo:=not(soundo);
-	    if pos=8 then
-	    begin
-	       info;
-	       refresh := true;
-	    end;
-	    
-	    {$ifndef noAdlib}
-	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
-	    begin
-	       musico:=not(musico);
-	       if musico then musicOn else musicoff;
-	    end;
-	    {$endif}
 	 end; {left}
 	 {right key}
 	 if (a=chr(77)) then
 	 begin
-	    {if (joyavail and (pos=6)) then
-	       usejoy:=not(usejoy);}        
-	    if (joyavail and (pos=6)) then
-	    begin
-	       joycal;
-	       refresh := true;
-	    end;
-	    
-	    if (pos=7) then
-	    begin
-	       customkeys;
-	       refresh := true;
-	    end;
-	    if pos=8 then
-	    begin
-	       info;
-	       refresh := true;
-	    end;
+	    act:=true;
 	    
 	    {$ifndef noAdlib}
 	    if (isBlaster and (pos=3)) then
@@ -1082,27 +1088,47 @@ begin
 	       gap := s;
 	    end;
 	    
-	    if (pos=1) then
-	       respawn:=not(respawn);
 	    if (pos=2) then
 	    begin
 	       diff:=diff-2;
 	       if diff=-1 then diff:=-3;
 	       if diff=-5 then diff:=5;
 	    end; 
-	    
-	    if pos=4 then soundo:=not(soundo);
-
-	    {$ifndef noAdlib}
-	    if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
-	    begin
-	       musico:=not(musico);
-	       if musico then musicOn else musicoff;
-	    end;
-	    {$endif}
 	 end;{right}
 	 
       end;{special key}
+      if act then
+      begin
+	 if pos=9 then mdone:=true;
+	 if pos=8 then
+	 begin
+	    info;
+	    refresh := true;
+	 end;
+	 if pos=7 then
+	 begin
+	    customKeys;
+	    refresh := true;
+	 end;
+	 if ((pos=6) and joyavail) then
+	 begin
+	    joycal;
+	    refresh := true;
+	 end;
+
+	 if (pos=1) then
+	    respawn:=not(respawn);
+	 if pos=4 then soundo:=not(soundo);
+
+	 {$ifndef noAdlib}
+	 if ((pos=5) and (isBlaster or ((force=3) or (force=4)))) then
+	 begin
+	    musico:=not(musico);
+	    if musico then musicOn else musicoff;
+	 end;
+	 {$endif}
+      end;
+
    end; {while}
    menuDone;
 end; { Settings }
@@ -1114,6 +1140,7 @@ var pages      : array[1..16,1..6] of string[45];
     page,x,y,i : integer;
     hdone,new  : boolean;
     a	       : char;
+   yc	       : boolean;
 begin
    for i:=1 to 16 do
       for x:= 1 to 6 do
@@ -1239,18 +1266,31 @@ begin
 	 spritedraw(10,y+(i*10),icons[i,page],copyput);
 	 textxy(x,y+(i*10),4,UIColours[9],pages[i,page]);
       end;
-      while (not(keypressed))do checkSongChange ;
-	 
+
+      waitForPress(yc);
+      
+      a:= 'z';
+      if keypressed then
 	 a:=readkey;
-      if (a=char(27)) then hdone:=true;
+      if ((a=char(27)) or joypressed(2)) then hdone:=true;
+
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then begin inc(page); new:=true; end;
+	 if joy.yaxis<joy.ycentre then begin dec(page); new:=true; end;
+      end;
+      yc:= ycentred;
+      
       if a=char(0) then
       begin
 	 a:=readkey;
 	 if a=char(81) then begin page:=page+1;new:=true; end;
 	 if a=char(73) then begin page:=page-1;new:=true; end;
-	 if page = 0 then begin page:=1;new:=false; end;
-	 if page = 7 then begin page:=6;new:=false; end;
       end;
+      
+      if page = 0 then begin page:=1;new:=false; end;
+      if page = 7 then begin page:=6;new:=false; end;
+
       if new then menuDone;
    end;
    menuDone;
@@ -1259,11 +1299,13 @@ end;
 procedure viewScorez; forward;
 
 procedure gamemenu;
-var menu:array[1..7] of string[20];
-    top,sel:integer;
-    x,y:integer;
-    mdone:boolean;
-    a:char;
+var menu    : array[1..7] of string[20];
+    top,sel : integer;
+   osel	    : integer;
+    x,y	    : integer;
+    mdone   : boolean;
+    a	    : char;
+   yc	    : boolean;
 begin
    a:=' ';
    mdone:=false;
@@ -1288,15 +1330,18 @@ begin
    textxy(x,y+60,4,UIColours[5],menu[7]);
    while not(mdone) do
    begin
-      while not(keypressed) do
+      if joyavail then update;
+      while not(keypressed or joypressed(0) or (ycentred xor yc)) do
       begin
-	 checkSongChange;
+	 if joyavail then update;
 	 textxy(x,y+((sel-1)*10),4,UIColours[13],menu[sel]);
 	 spritedraw(x-11,y+((sel-1)*10)+3,44,copyput);
       end;        {80 is down 72 is up...13 if an enter key}
-      a:=readkey;
-      if a=chr(27) then mdone:=true;
-      if a=chr(13) then
+      a:='z';
+      if keypressed then
+	 a:=readkey;
+      if ((a=chr(27)) or joypressed(2)) then mdone:=true;
+      if ((a=chr(13)) or joypressed(1)) then
       begin {execute selection}
 	 mdone:=true;
 	 case sel of
@@ -1312,15 +1357,25 @@ begin
 	       end;
 	 end;   
       end;
-      if a=chr(0) then
+      osel := sel;
+      if (not(ycentred) and yc) then
+      begin
+	 if joy.yaxis>joy.ycentre then inc(sel);
+	 if joy.yaxis<joy.ycentre then dec(sel);
+      end;
+      yc:= ycentred;
+      if (a=chr(0))  then
       begin
 	 a:=readkey;
-	 textxy(x,y+((sel-1)*10),4,UIColours[5],menu[sel]);
-	 bobgraph.bar(x-11,y,x-1,y+80,0);
 	 if a=chr(72) then sel:=sel-1;
 	 if a=chr(80) then sel:=sel+1;
-	 if sel=0 then sel:=7;
-	 if sel=8 then sel:=1;
+      end;
+      if (sel<>osel) then
+      begin
+	 textxy(x,y+((osel-1)*10),4,UIColours[5],menu[osel]);
+	 bobgraph.bar(x-11,y,x-1,y+80,0);
+	 if sel<1 then sel:=7;
+	 if sel>7 then sel:=1;
       end;
    end;
    menudone;
@@ -1345,7 +1400,7 @@ begin
       for i:=1 to 30 do
 	 spritedraw((i*10)+5,(c*10)+120,stat[c,i],copyput);
    start := timerTick;
-   while (not(keypressed) and ((start+(pitratio*182)>timerTick))) do checkSongChange;
+   while (not(keypressed) and ((start+(pitratio*182)>timerTick))) do ;
    if keypressed then a:=readkey;
    if a=char(0) then a:=readkey;
 
@@ -1378,6 +1433,7 @@ var
    done	      : boolean;
    t	      : byte;
    scoreTable : tableptr;
+   yc	      : boolean;
 begin
    while (keypressed) do a:=readkey;
    a:=char(0);
@@ -1391,10 +1447,13 @@ begin
       scoreTable := indexScoreTable(t);
       drawScores(scoreTable);
       textxy(110,20,4,UIColours[9],'press C to clear');
-   
-      while (not(keypressed)) do checkSongChange;    
-      a:=readkey;
-      if (a=chr(27)) then done:=true;
+      
+      waitForPress(yc);
+      
+      a:='z';
+      if keypressed then
+	 a:=readkey;
+      if ((a=chr(27)) or joypressed(2)) then done:=true;
       if ((a='c') or (a='C')) then
       begin
 	 for i:=0 to 9 do
@@ -1405,6 +1464,12 @@ begin
 	 saveScores;
       end;
       { deal with pageup/down }
+      if (not(ycentred) and yc) then
+      begin
+	 if ((joy.yaxis>joy.ycentre) and (t<tableCount-1)) then inc(t);
+	 if ((joy.yaxis<joy.ycentre) and (t>0)) then dec(t);
+      end;
+      yc:= ycentred;
       if (a=chr(0)) then
       begin
 	 a := readkey;
@@ -1460,7 +1525,6 @@ begin
    startmenu;
    drawScores(scoreTable);
    while not(keypressed) do ;
-   while keypressed do a:= readkey;
    menudone;
 end;
 
