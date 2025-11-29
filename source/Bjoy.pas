@@ -27,6 +27,8 @@ const
         BUTTON_B = $20;
         BUTTON_C = $40;
         BUTTON_D = $80;
+        X_AXIS	 = $01;
+        Y_AXIS	 = $02;
 
 procedure update;
 procedure calibrate;
@@ -81,9 +83,14 @@ const
    function joypressed( b : byte ):boolean;
    begin
       joypressed := false;
-      if not(joyavail) then exit;
+      if not(joyavail) then exit;      
       if b > 0 then
-	 joypressed := (joy.buttons and jcbuttons[b]) = 0
+      begin
+	 if jcbuttons[b] = Y_AXIS then
+	    joypressed := not(ycentred)
+	 else
+	    joypressed := (joy.buttons and jcbuttons[b]) = 0;
+      end
       else
 	 joypressed := (joy.buttons and $F0) < $F0;
    end;

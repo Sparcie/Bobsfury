@@ -953,13 +953,27 @@ begin
       end;
    end;
 
-   {change weapon}
-   if (cw and (cw xor ocw) and not(fi)) then fireLbolt:=not(fireLbolt);
-   {if both cw and fi are pressed you can fire a grenade}
-   if (cw and (cw xor ocw) and fi and (player.gren>0) and not(player.flyer)) then 
+   {change weapon pressed (not y axis)}
+   if (cw and (cw xor ocw) and (jcbuttons[3] <> Y_AXIS)) then
    begin
-      shoot(player.x,player.y,2,pdr+3,0);
-      player.gren:=player.gren-1;
+       if (not(fi)) then fireLbolt:=not(fireLbolt);
+       {if both cw and fi are pressed you can fire a grenade}
+       if (fi and (player.gren>0) and not(player.flyer)) then 
+       begin
+	  shoot(player.x,player.y,2,pdr+3,0);
+	  player.gren:=player.gren-1;
+       end;
+   end;
+
+   {change weapon pressed (y axis) up is change down is drop grenade }
+   if (cw and (cw xor ocw) and (jcbuttons[3] = Y_AXIS)) then
+   begin
+      if ( joy.yaxis < joy.ycentre) then fireLbolt:=not(fireLbolt);      
+      if ((joy.yaxis > joy.ycentre) and (player.gren>0) and not(player.flyer)) then 
+      begin
+	 shoot(player.x,player.y,2,pdr+3,0);
+	 player.gren:=player.gren-1;
+      end;
    end;
    
    {use health bottle}

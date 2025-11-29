@@ -511,40 +511,36 @@ begin
 end;
 
 procedure joycal;
-var done       : boolean;
-   jx,jy       : integer;
-   c	       : byte;
-   a	       : char;
-   fa,fb,fc,fd : byte;
-   sel	       : integer;
-   yc	       : boolean;
+var done   : boolean;
+   jx,jy   : integer;
+   c,i	   : byte;
+   a	   : char;
+   funcVal : array[1..4] of byte;
+   sel	   : integer;
 const
-   functs : array[0..4] of string[8] = ('none', 'Fire', 'Jump', 'Weapon', 'Health');
+   functs : array[1..4] of string[8] = ('Fire', 'Jump', 'Weapon', 'Health');
+   buttons: array[1..5] of string[8] = ('Button A', 'Button B', 'Button C', 'Button D', 'Y-Axis');
+   buttonVal: array[1..5] of byte    = (BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D, Y_AXIS);
 begin
-   fa := 0;
-   fb := 0;
-   fc := 0;
-   fd := 0;
    sel := -1;
    for c:= 1 to 4 do
    begin
-     if (jcbuttons[c] = BUTTON_A) then fa := c;
-     if (jcbuttons[c] = BUTTON_B) then fb := c;
-     if (jcbuttons[c] = BUTTON_C) then fc := c;
-     if (jcbuttons[c] = BUTTON_D) then fd := c;
+      funcVal[c] := c;
+      if (jcbuttons[c] = BUTTON_A) then funcVal[c] := 1;
+      if (jcbuttons[c] = BUTTON_B) then funcVal[c] := 2;
+      if (jcbuttons[c] = BUTTON_C) then funcVal[c] := 3;
+      if (jcbuttons[c] = BUTTON_D) then funcVal[c] := 4;
+      if (jcbuttons[c] = Y_AXIS) then funcVal[c] := 5;
    end;
    startmenu;
    textxy(10,10,4,UIColours[9],'centre joystick and press C');
-   textxy(100,80,4,UIColours[7],functs[fa]);
-   textxy(100,90,4,UIColours[7],functs[fb]);
-   textxy(100,100,4,UIColours[7],functs[fc]);
-   textxy(100,110,4,UIColours[7],functs[fd]);
+   for c:= 1 to 4 do
+      textxy(100, 70 + (c*10), 4, UIColours[7], buttons[funcVal[c]]);
    textxy(20,120,4,UIColours[2],'Done');
    spritedraw(6,80+(sel*10),44,xorput);
    done:=false;
    while not(done) do
    begin
-      checkSongChange;
       update;
       jx:=45;
       jy:=45;
@@ -563,25 +559,38 @@ begin
             if a=chr(80) then inc(sel);
             if (sel=-2) then sel := 4;
             if (sel=5) then sel := -1;
-	    if ((a=chr(75)) or (a=chr(77))) then
+	    if (a=chr(77)) then
             begin
                case sel of
                  -1 : usejoy := not(usejoy);
-                  0 : inc(fa);
-                  1 : inc(fb);
-                  2 : inc(fc);
-                  3 : inc(fd);
+                  0 : inc(funcVal[1]);
+                  1 : inc(funcVal[2]);
+                  2 : inc(funcVal[3]);
+                  3 : inc(funcVal[4]);
                   4 : done := true;
                end;
-               if fa=5 then fa:=0;
-               if fb=5 then fb:=0;
-               if fc=5 then fc:=0;
-               if fd=5 then fd:=0;
+               if funcVal[1]=5 then funcVal[1]:=1;
+               if funcVal[2]=6 then funcVal[2]:=1;
+	       if funcVal[3]=6 then funcVal[3]:=1;
+	       if funcVal[4]=5 then funcVal[4]:=1;
+	    end;
+	    if (a=chr(75)) then
+            begin
+               case sel of
+                 -1 : usejoy := not(usejoy);
+                  0 : dec(funcVal[1]);
+                  1 : dec(funcVal[2]);
+                  2 : dec(funcVal[3]);
+                  3 : dec(funcVal[4]);
+                  4 : done := true;
+               end;
+               if funcVal[1]=0 then funcVal[1]:=4;
+               if funcVal[2]=0 then funcVal[2]:=5;
+	       if funcVal[3]=0 then funcVal[3]:=5;
+	       if funcVal[4]=0 then funcVal[4]:=4;
             end;
-            textxy(100,80,4,UIColours[7],functs[fa]);
-            textxy(100,90,4,UIColours[7],functs[fb]);
-            textxy(100,100,4,UIColours[7],functs[fc]);
-            textxy(100,110,4,UIColours[7],functs[fd]);
+	    for c:= 1 to 4 do
+	       textxy(100, 70 + (c*10), 4, UIColours[7], buttons[funcVal[c]]);
             spritedraw(6,80+(sel*10),44,xorput);
          end;
       end;
@@ -598,26 +607,22 @@ begin
       c:= 2;
       if (usejoy) then c:=10;
       textxy(20,70,4,UIColours[c],'Joystick Enabled');
-      c:= 2;
-      if (joy.buttons and BUTTON_A) = 0 then c:=10;
-      textxy(20,80,4,UIColours[c],'Button A');
-      c:= 2;
-      if (joy.buttons and BUTTON_B) =0 then c:=10;
-      textxy(20,90,4,UIColours[c],'Button B');      
-      c:= 2;
-      if (joy.buttons and BUTTON_C) =0 then c:=10;
-      textxy(20,100,4,UIColours[c],'Button C');
-      c:= 2;
-      if (joy.buttons and BUTTON_D) =0 then c:=10;
-      textxy(20,110,4,UIColours[c],'Button D'); 
-   end;
-   for c:= 1 to 4 do
-   begin
-     jcbuttons[c] := 0;
-     if (fa=c) then jcbuttons[c] := BUTTON_A;
-     if (fb=c) then jcbuttons[c] := BUTTON_B;
-     if (fc=c) then jcbuttons[c] := BUTTON_C;
-     if (fd=c) then jcbuttons[c] := BUTTON_D;
+      for c:= 1 to 4 do
+      begin
+	 i:=2;
+	 jcbuttons[c] := buttonVal[funcVal[c]];
+	 if joypressed(c) then i:= 10;
+	 textxy(20,70+(C*10),4,UIColours[i],functs[c]);
+      end;
+      for c:=1 to 4 do
+      begin
+	 i:=2;
+	 if (joy.buttons and buttonVal[c]) = 0 then i:=10;
+	 textxy(200,70+(c*10),4,UIColours[i],buttons[c]);
+      end;
+      i:=2;
+      if not(ycentred) then i:=10;
+      textxy(200,120,4,UIColours[i],buttons[5]);
    end;
    menudone;
    dec(menuDepth);

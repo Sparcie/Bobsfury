@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r218 | andrew | 2025-11-29 16:42:31 +1100 (Sat, 29 Nov 2025) | 4 lines
+
+Upgraded joystick controls to allow for the y-axis to control jumping or weapon functions.
+
+For the weapon function up changes between lightning bolts and normal bullets
+  and down drops a grenade.
+------------------------------------------------------------------------
 r217 | andrew | 2025-11-27 08:32:27 +1100 (Thu, 27 Nov 2025) | 1 line
 
 fixed the singlekeypress function - it needed to include the joystick update function.
