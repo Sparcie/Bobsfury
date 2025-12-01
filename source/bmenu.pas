@@ -31,7 +31,7 @@ var
 
 {simple function to wait for a keypress or joystick interaction - updates the joystick
  yc is ycentre value before calling (so return on change)}
-procedure waitForPress(yc :boolean) ;
+procedure waitForPress(yc :boolean);
 begin
    if joyavail then
    begin
@@ -264,6 +264,7 @@ begin
    assign(infile,'.\epps.lst');
    reset(infile);
    no:=0;
+   yc:=false;
    while not Eof(infile) do
    begin
       no:=no+1;
@@ -390,7 +391,7 @@ begin
 	 rewrite(out);
 	 writeln(out,slots[sel]);
 	 writeln(out,eppath);
-	 t:=nl;
+	 t:= getlevel;
 	 write(out,char(t));
 	 t:=currentScreen;
 	 write(out,char(t));
@@ -477,7 +478,7 @@ begin
 	 readln(out,eppath);
 	 read(out,char(t));
 	 loadepisode(eppath);
-	 nl:=t;
+	 setlevel(t);
 	 read(out,char(t));
 	 changescreen(t);
 	 read(out,char(t));
@@ -939,6 +940,7 @@ begin
    pos:=0;
    s:=gap;
    refresh := true;
+   yc:=false;
    
    mdone:=false;
    while not(mdone) do

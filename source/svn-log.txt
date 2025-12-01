@@ -1,4 +1,29 @@
 ------------------------------------------------------------------------
+r220 | andrew | 2025-12-01 19:40:49 +1100 (Mon, 01 Dec 2025) | 12 lines
+
+I found there was a way to save even more memory in the llist.pas unit.
+
+so I re-wrote much of it to push more of the data onto the heap, with smaller data sizes where I had some waste.
+The memory savings are significant so it was worth it, especially if you have an XT with only 256K.
+
+I also reworked the mechanism to select the current/next level in the episode sequence - it was a little confusing before. This is clearer.
+
+It does however invalidate old savegames - as it will select the incorrect level when you finish the one you saved on.
+If you were at the start of the episode you'll be near the end and vice versa.
+
+I can't imagine this affects many people, but sorry if it affects you!
+
+------------------------------------------------------------------------
+r219 | andrew | 2025-12-01 09:06:06 +1100 (Mon, 01 Dec 2025) | 7 lines
+
+I did a memory usage audit and determined that llist was using more memory than it should reasonably need.
+
+I reduced its foot print by shortening the string lengths (80 to 60) and reducing the maximum number of levels per
+episode to 50.
+
+I think I've saved about 10kb
+
+------------------------------------------------------------------------
 r218 | andrew | 2025-11-29 16:42:31 +1100 (Sat, 29 Nov 2025) | 4 lines
 
 Upgraded joystick controls to allow for the y-axis to control jumping or weapon functions.
