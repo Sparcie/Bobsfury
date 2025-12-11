@@ -19,7 +19,7 @@ procedure leveltitle(title : string);
 
 
 implementation
-uses bobgraph,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl, hiscore
+uses bobgraph,buffer,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl, hiscore
 {$ifndef noAdlib}
  ,fmplayer
 {$endif}
@@ -28,6 +28,13 @@ uses bobgraph,bfont,engine,map,bsound,bsystem,bjoy,keybrd,pgs,pitdbl, hiscore
 var 
    statereset : boolean; {indicates that the monsters array was emptied in order to save (or other function)}
    menudepth  : integer; {stores how many menus deep we are before returning.}
+
+type
+   episodeList = record
+		    epname : array[1..30] of string[25];
+		    epdir  : array[1..30] of string[8];
+		    count  : byte;
+		 end;	   
 
 {simple function to wait for a keypress or joystick interaction - updates the joystick
  yc is ycentre value before calling (so return on change)}
@@ -85,7 +92,7 @@ end;
 
 function saveSlotName( s :integer):string;
 var f,n:string;
-    out:text;
+    infile:reader;
 begin
    if not(checkSaveSlot(s)) then
    begin
@@ -94,11 +101,9 @@ begin
    end;
    str(s,f);
    f:= 'save'+f+'.dat';
-   assign(out,f);
-   reset(out);
-   readln(out,n);
-   close(out);
-   saveSlotName:=n;
+   infile.open(f);
+   saveSlotName := infile.readln;
+   infile.close;
 end;
 
 procedure startmenu;
@@ -249,86 +254,95 @@ begin
    menudone;
 end;
 
+procedure getEpisodes(var list : episodeList);
+var
+   infile : reader;
+begin
+   with list do
+   begin
+      infile.open('.\epps.lst');
+      count := 0;
+      while not(infile.eof) do
+      begin
+	 count := count + 1;
+	 if count > 30 then count :=30;
+	 epname[count] := infile.readln;
+	 epdir[count] := infile.readln;
+      end;
+      infile.close;
+   end;
+end;
+			       
 procedure begingame;
-var infile	 : text;
-    epname	 : array[1..30] of string[25];
-    epdir	 : array[1..30] of string[8];
-    no,x,y,i,sel : integer;
-    bgdone	 : boolean;
-    a		 : char;
-   yc		 : boolean; {joystick y was centred}
-   eptext	 : leveltextptr;
+var list      : episodeList;
+    x,y,i,sel : integer;
+    bgdone    : boolean;
+    a	      : char;
+   yc	      : boolean; {joystick y was centred}
+   eptext     : leveltextptr;
 begin
    new(eptext);
    sel:=1;
-   assign(infile,'.\epps.lst');
-   reset(infile);
-   no:=0;
-   yc:=false;
-   while not Eof(infile) do
-   begin
-      no:=no+1;
-      if no>30 then no:=1;
-      readln(infile,epname[no]);
-      readln(infile,epdir[no]);
-   end;
-   close(infile);
+   getEpisodes(list);
    startmenu;
-   x:=60;
-   y:=30;
-   textxy(50,10,4,UIColours[9],'Pick An Episode To Play :-');
-   for i:= 1 to no do
+   with list do
    begin
-      textxy(x,y+(i*10),4,UIColours[5],epname[i]); 
-   end;
-   bgdone:=false;
-   while (not(bgdone)) do
-   begin
-      textxy(x,y+(sel*10),4,UIColours[13],epname[sel]);
-      waitForPress(yc);
-      textxy(x,y+(sel*10),4,UIColours[5],epname[sel]);
-      a:='z';
-      if keypressed then
-	 a:=readkey;
-      if ((a=char(27)) or joypressed(2)) then bgdone:=true;
-      if a=char(0) then
+      x:=60;
+      y:=30;
+      textxy(50,10,4,UIColours[9],'Pick An Episode To Play :-');
+      for i:= 1 to count do
       begin
-	 a:=readkey;
-	 if a=char(80) then sel:=sel+1;
-	 if a=char(72) then sel:=sel-1;
-	 if sel<1 then sel:=no;
-	 if sel>no then sel:=1;
+	 textxy(x,y+(i*10),4,UIColours[5],epname[i]); 
       end;
-      if (not(ycentred) and yc) then
+      bgdone:=false;
+      while (not(bgdone)) do
       begin
-	 if joy.yaxis>joy.ycentre then sel:=sel+1;
-	 if joy.yaxis<joy.ycentre then sel:=sel-1;
-	 if sel<1 then sel:=no;
-	 if sel>no then sel:=1;
-      end;
-      yc := ycentred;      
-      if ((a=char(13)) or joypressed(1)) then
-      begin
-	 successful:=false;
-	 statereset:=true;
-	 player.lives:=3;
-	 player.health:=100;
-	 player.score:=0;
-	 player.invuln:=0;
-	 bgdone:=true;
-	 player.fullb:=0;
-	 player.gren :=0;
-	 player.lbolt:=0;
-	 player.keys :=0;
-	 player.flyer := false;
-	 engine.clearmonsters;
-	 loadepisode(epdir[sel]);
-	 llist.epname := epname[sel];
-	 if gettext(0,eptext^) then doleveltext(epname[sel],eptext^);
-	 nextlevel;
-	 if gettext(llist.getlevel,eptext^) then doleveltext(getlevelname,eptext^)
-	 else
-	    leveltitle(getlevelname);
+	 textxy(x,y+(sel*10),4,UIColours[13],epname[sel]);
+	 waitForPress(yc);
+	 textxy(x,y+(sel*10),4,UIColours[5],epname[sel]);
+	 a:='z';
+	 if keypressed then
+	    a:=readkey;
+	 if ((a=char(27)) or joypressed(2)) then bgdone:=true;
+	 if a=char(0) then
+	 begin
+	    a:=readkey;
+	    if a=char(80) then sel:=sel+1;
+	    if a=char(72) then sel:=sel-1;
+	    if sel<1 then sel:=count;
+	    if sel>count then sel:=1;
+	 end;
+	 if (not(ycentred) and yc) then
+	 begin
+	    if joy.yaxis>joy.ycentre then sel:=sel+1;
+	    if joy.yaxis<joy.ycentre then sel:=sel-1;
+	    if sel<1 then sel:=count;
+	    if sel>count then sel:=1;
+	 end;
+	 yc := ycentred;      
+	 if ((a=char(13)) or joypressed(1)) then
+	 begin
+	    successful:=false;
+	    statereset:=true;
+	    player.lives:=3;
+	    player.health:=100;
+	    player.score:=0;
+	    player.invuln:=0;
+	    bgdone:=true;
+	    player.fullb:=0;
+	    player.gren :=0;
+	    player.lbolt:=0;
+	    player.keys :=0;
+	    player.flyer := false;
+	    engine.clearmonsters;
+	    loadepisode(epdir[sel]);
+	    llist.epname := epname[sel];
+	    if gettext(0,eptext^) then doleveltext(epname[sel],eptext^);
+	    nextlevel;
+	    if gettext(llist.getlevel,eptext^) then doleveltext(getlevelname,eptext^)
+	    else
+	       leveltitle(getlevelname);
+	 end;
       end;
    end;
    dispose(eptext); 
@@ -336,14 +350,14 @@ begin
 end;
 
 procedure savegame;
-var slots : array[1..9] of string[50];
-   i,sel  : integer;
-   sdone  : boolean;
-   a	  : char;
-   buff	  : array[1..sizeof(playerrec)] of char;
-   out	  : text;
-   t	  : byte;
-   yc	  : boolean;
+var slots  : array[1..9] of string[50];
+   i,sel   : integer;
+   sdone   : boolean;
+   a	   : char;
+   buff	   : array[1..sizeof(playerrec)] of char;
+   outfile : writer;
+   t	   : byte;
+   yc	   : boolean;
 const	  
     slotfile:array[1..9] of string[8] = ('save1','save2','save3','save4','save5','save6','save7','save8','save9');
 begin
@@ -387,21 +401,20 @@ begin
 	 end;	 
 	 map.save(slotfile[sel]+'.map');
 	 move(player,buff,sizeof(playerrec));
-	 assign(out,slotfile[sel]+'.dat');
-	 rewrite(out);
-	 writeln(out,slots[sel]);
-	 writeln(out,eppath);
+	 outfile.open(slotfile[sel]+'.dat');
+	 outfile.writeln(slots[sel]);
+	 outfile.writeln(eppath);
 	 t:= getlevel;
-	 write(out,char(t));
+	 outfile.writeChar(char(t));
 	 t:=currentScreen;
-	 write(out,char(t));
+	 outfile.writeChar(char(t));
 	 t:=getTier;
-	 write(out,char(t));
+	 outfile.writeChar(char(t));
 	 for t:=1 to sizeof(playerrec) do
 	 begin
-	    write(out,buff[t]);
+	    outfile.writeChar(buff[t]);
 	 end;
-	 close(out);
+	 outfile.close;
       end;
       if a=char(0) then 
       begin
@@ -430,7 +443,8 @@ var slots    : array[1..9] of string[50];
    sdone     : boolean;
    a	     : char;
    buff	     : array[1..sizeof(playerrec)] of char;
-   out	     : text;
+   infile    : reader;
+   list	     : episodeList;
    t	     : byte;
    yc	     : boolean;
 const
@@ -472,23 +486,27 @@ begin
 	 engine.clearMonsters;
 	 {loading game here yah!}
 	 map.load(slotfile[sel]+'.map');
-	 assign(out,slotfile[sel]+'.dat');
-	 reset(out);
-	 readln(out,slots[sel]);
-	 readln(out,eppath);
-	 read(out,char(t));
+	 infile.open(slotfile[sel]+'.dat');
+	 slots[sel] := infile.readln;
+	 eppath := infile.readln;	 
 	 loadepisode(eppath);
+	 t := ord(infile.readChar);
 	 setlevel(t);
-	 read(out,char(t));
+	 t := ord(infile.readChar);
 	 changescreen(t);
-	 read(out,char(t));
+	 t := ord(infile.readChar);
 	 setTier(t);
 	 for t:=1 to sizeof(playerrec) do
 	 begin
-	    read(out,buff[t]);
+	    buff[t] := infile.readChar;
 	 end;
-	 close(out);
+	 infile.close;
 	 move(buff,player,sizeof(playerrec));
+	 {read the episode list so we can figure out what the episode is named }
+	 getEpisodes(list);
+	 with list do
+	    for i:= 1 to count do
+	       if eppath[i] = llist.eppath then llist.epname := epname[i];
 	 successful:=false;
       end;
       if a=char(0) then 

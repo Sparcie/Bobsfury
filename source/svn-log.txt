@@ -1,4 +1,22 @@
 ------------------------------------------------------------------------
+r222 | andrew | 2025-12-11 22:10:26 +1100 (Thu, 11 Dec 2025) | 3 lines
+
+I re-wrote much of bconfig so that it is smaller and takes advantage of the buffer.pas buffered reader.
+
+The code has the same functionality but is smaller.
+------------------------------------------------------------------------
+r221 | andrew | 2025-12-11 18:15:42 +1100 (Thu, 11 Dec 2025) | 9 lines
+
+I noticed a problem with the high score mechanism - essentially it doesn't know which table to store a score in if you have loaded a save game.
+
+The reason for this is the load routine did not set the episode name in llist which is used to determine which high score table to use.
+
+So I have re-written segments of bmenu.pas to fix this. I've changed it to use the buffer.pas file reader/writer for reading the episode list and for loading/saving the dat file for savegames.
+I made a function that reads the episode list from disk and have used it to replace reading code (for the episode list) in begingame and have used it in loadgame to determine what the 
+episode name should be.
+
+This should fix the issue without causing more issues with saved games.
+------------------------------------------------------------------------
 r220 | andrew | 2025-12-01 19:40:49 +1100 (Mon, 01 Dec 2025) | 12 lines
 
 I found there was a way to save even more memory in the llist.pas unit.

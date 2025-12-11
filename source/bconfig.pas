@@ -10,14 +10,13 @@ procedure getConf;
 procedure saveConf;
 
 implementation
-uses bobgraph,bsound,bsystem,engine,bjoy,keybrd;
+uses bobgraph,bsound,bsystem,engine,bjoy,keybrd,buffer;
 
 
 procedure getConf;
-var conf:file of char;
-   h,s:boolean;
-   z,i:byte;
-   a:char;
+var
+   infile : reader;
+   z,i	  : byte;
 begin
    if not(checkfile('bob.cfg')) then
    begin
@@ -52,113 +51,87 @@ begin
       volume := $0B;
       exit;
    end;
-   assign(conf,'bob.cfg');
-   reset(conf);
-   read(conf,a);
-   z:= ord(a);
-   graphicsMode := z;
-   read(conf,a);
-   z:= ord(a);
-   s:=true;
-   if z=$00 then s:=false;
-   soundo:=s;
-   read(conf,a);
-   z:= ord(a);
+   infile.open('bob.cfg');
+   graphicsMode := ord(infile.readChar);
+   z:= ord(infile.readChar);
+   soundo:=true;
+   if z=$00 then soundo:=false;
+   z:= ord(infile.readChar);
    gap:=z;
-   read(conf,a);
-   z:= ord(a);
+   z:= ord(infile.readChar);
    diff:=z;
    if diff=255 then diff:=-3;
-   read(conf,a);
+   z:= ord(infile.readchar);
    respawn:=false;
-   if (a=chr($FF)) then respawn:=true;
-   read(conf,a);
-   force:= ord(a);
-   read(conf,a);
-   volume := ord(a);
+   if (z=$FF) then respawn:=true;
+   force:= ord(infile.readChar);
+   volume := ord(infile.readChar);
    usejoy:=true;
-   read(conf,a);
-   z:=ord(a);
+   z:=ord(infile.readChar);
    if (z=$00) then usejoy:=false;
    musico:=true;
-   read(conf,a);
-   z:=ord(a);
+   z:=ord(infile.readChar);
    if (z=$00) then musico:=false;
    if (musico) then musicon;
-   read(conf,a);
-   z:=ord(a);
+   z:=ord(infile.readChar);
    useCustomKeys:=false;
    if (z=$FF) then useCustomKeys:=true;
    {read the keyscan codes (of which there are 7)}
    for i:=1 to 7 do
    begin
-      read(conf,a);
-      z:=ord(a);
-      scancode[i]:= z;
+      scancode[i]:= ord(infile.readChar);
    end;
    {read the joystick button configuration}
    for i:= 1 to 4 do
    begin
-      read(conf,a);
-      jcbuttons[i] := ord(a);
+      jcbuttons[i] := ord(infile.readChar);
    end;
-
-  close(conf);  
+   infile.close;
 end;
 
 procedure saveConf;
-var conf:file of char;
-    h,s:boolean;
-    z,i:byte;
-    a:char;
+var outfile : writer;
+    z,i	    : byte;
+    a	    : char;
 begin
    if not(canWriteTo('bob.cfg')) then
    begin
       writeln('Cannot write config file');
       exit;
    end;
-   assign(conf,'bob.cfg');
-   rewrite(conf);
-   z:=graphicsMode;
-   a:=chr(z);
-   write(conf,a);
+   outfile.open('bob.cfg');
+   outfile.writeChar(chr(graphicsMode));
    z:=$00;
    if soundo then z:=$01;
-   a:=chr(z);
-   write(conf,a);
-   a:=chr(gap);
-   write(conf,a);
+   outfile.writeChar(chr(z));
+   outfile.writeChar(chr(gap));
    z:=diff;
    if diff=-3 then z:=$ff;
-   a:=chr(z);
-   write(conf,a);
-   a:=chr(0);
-   if respawn then a:=chr($FF);   
-   write(conf,a);
-   a:= chr(force);
-   write(conf,a);
-   a:=chr($0f);
-   if (isBlaster) then a:=chr(volume);
-   write(conf,a);
-   a:=chr($00);
-   if usejoy then a:=chr($FF);
-   write(conf,a);
-   a:=chr($00);
-   if musico then a:=chr($FF);
-   write(conf,a);
-   a:=chr($00);
-   if useCustomKeys then a:=chr($FF);
-   write(conf,a);
+   outfile.writeChar(chr(z));   
+   z:=0;
+   if respawn then z:=$FF;
+   outfile.writeChar(chr(z));
+   outfile.writeChar(chr(force));
+   z:=$0f;
+   if (isBlaster) then z:=volume;
+   outfile.writeChar(chr(z));
+   z:=$00;
+   if usejoy then z:=$FF;
+   outfile.writeChar(chr(z));
+   z:=$00;
+   if musico then z:=$FF;
+   outfile.writeChar(chr(z));
+   z:=$00;
+   if useCustomKeys then z:=$FF;
+   outfile.writeChar(chr(z));
    for i:= 1 to 7 do
    begin
-      a := chr(scancode[i]);
-      write(conf,a);
+      outfile.writeChar(chr(scancode[i]));
    end;
    for i:= 1 to 4 do
    begin
-      a:= chr(jcbuttons[i]);
-      write(conf,a);
+      outfile.writeChar( chr(jcbuttons[i]));
    end;
-  close(conf);
+   outfile.close;
 end;
 end.
