@@ -1459,6 +1459,7 @@ var
    t	      : byte;
    scoreTable : tableptr;
    yc	      : boolean;
+   s	      : string[15];
 begin
    while (keypressed) do a:=readkey;
    a:=char(0);
@@ -1472,6 +1473,14 @@ begin
       scoreTable := indexScoreTable(t);
       drawScores(scoreTable);
       textxy(110,20,4,UIColours[9],'press C to clear');
+
+      str(t+1,s);
+      a := s[1];
+      str(tableCount,s);
+      s:= 'Page '+ a + ' of ' + s;
+      textxy(20,180,4,UIColours[9],s);
+
+      textxy(220,180,4,UIColours[9],'Esc to return');
       
       waitForPress(yc);
       

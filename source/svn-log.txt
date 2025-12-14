@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------
+r223 | andrew | 2025-12-14 15:44:25 +1100 (Sun, 14 Dec 2025) | 2 lines
+
+Minor change to the high score screen to show how many high score tables there are and a prompt to press esc to return
+to the menu.
+------------------------------------------------------------------------
 r222 | andrew | 2025-12-11 22:10:26 +1100 (Thu, 11 Dec 2025) | 3 lines
 
 I re-wrote much of bconfig so that it is smaller and takes advantage of the buffer.pas buffered reader.
