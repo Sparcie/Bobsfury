@@ -40,7 +40,7 @@ type
  yc is ycentre value before calling (so return on change)}
 procedure waitForPress(yc :boolean);
 begin
-   if joyavail then
+   if usejoy then
    begin
       if joyavail then update;
       while not( keypressed or joypressed(0) or (ycentred xor yc)) do
@@ -173,7 +173,7 @@ var a : char;
 begin
    dec(menuDepth);
    while (keypressed) do a:=readkey;
-   if joyavail then update;
+   if usejoy then update;
    while (joypressed(0)) do
       if joyavail then update;
 
@@ -244,11 +244,14 @@ begin
    done:=false;
    while not(done) do
    begin
-      if joyavail then update;
+      if usejoy then
+      begin
+	 update;
+	 if joypressed(0) then done:= true;
+      end;
       a:=chr(1);
       if keypressed then a:=readkey;
       if ((a=chr(13)) or (a=' ')) then done:=true;
-      if joypressed(0) then done:= true;
    end;
    engine.clearmonsters;
    menudone;
@@ -303,7 +306,6 @@ begin
 	 a:='z';
 	 if keypressed then
 	    a:=readkey;
-	 if ((a=char(27)) or joypressed(2)) then bgdone:=true;
 	 if a=char(0) then
 	 begin
 	    a:=readkey;
@@ -312,15 +314,21 @@ begin
 	    if sel<1 then sel:=count;
 	    if sel>count then sel:=1;
 	 end;
-	 if (not(ycentred) and yc) then
+	 if a = char(27) then bgdone := true;
+	 if usejoy then
 	 begin
-	    if joy.yaxis>joy.ycentre then sel:=sel+1;
-	    if joy.yaxis<joy.ycentre then sel:=sel-1;
-	    if sel<1 then sel:=count;
-	    if sel>count then sel:=1;
+	    if joypressed(2) then bgdone:=true;
+	    if (not(ycentred) and yc) then
+	    begin
+	       if joy.yaxis>joy.ycentre then sel:=sel+1;
+	       if joy.yaxis<joy.ycentre then sel:=sel-1;
+	       if sel<1 then sel:=count;
+	       if sel>count then sel:=1;
+	    end;
+	    if joypressed(1) then a:=char(13);
 	 end;
 	 yc := ycentred;      
-	 if ((a=char(13)) or joypressed(1)) then
+	 if a=char(13) then
 	 begin
 	    successful:=false;
 	    statereset:=true;
@@ -380,8 +388,21 @@ begin
       a:='z';
       if keypressed then
 	 a:=readkey;
-      if ((a=char(27)) or joypressed(2))  then sdone:=true;
-      if ((a=char(13)) or joypressed(1)) then 
+      if usejoy then
+      begin
+	 if joypressed(2) then sdone:=true;
+	 if joypressed(1) then a:=char(13);
+	 if (not(ycentred) and yc) then
+	 begin
+	    if joy.yaxis>joy.ycentre then sel:=sel+1;
+	    if joy.yaxis<joy.ycentre then sel:=sel-1;
+	    if sel<1 then sel:=9;
+	    if sel>9 then sel:=1;
+	 end;
+	 yc:= ycentred;
+      end;
+      if a=char(27)  then sdone:=true;
+      if a=char(13) then 
       begin
 	 sdone:=true;
 	 inc(statereset);
@@ -424,14 +445,6 @@ begin
 	 if sel=0 then sel:=9;
 	 if sel=10 then sel:=1;
       end;
-      if (not(ycentred) and yc) then
-      begin
-	 if joy.yaxis>joy.ycentre then sel:=sel+1;
-	 if joy.yaxis<joy.ycentre then sel:=sel-1;
-	 if sel<1 then sel:=9;
-	 if sel>9 then sel:=1;
-      end;
-      yc:= ycentred;
    end;
    menudone;
 end;
@@ -478,8 +491,21 @@ begin
       a:='z';
       if keypressed then
 	 a:=readkey;
-      if ((a=char(27)) or joypressed(2)) then sdone:=true;
-      if ((a=char(13)) or joypressed(1)) then 
+      if usejoy then
+      begin
+	 if joypressed(2) then sdone:=true;
+	 if joypressed(1) then a:=char(13);
+	 if (not(ycentred) and yc) then
+	 begin
+	    if joy.yaxis>joy.ycentre then sel:=sel+1;
+	    if joy.yaxis<joy.ycentre then sel:=sel-1;
+	    if sel<1 then sel:=nss;
+	    if sel>nss then sel:=1;
+	 end;
+	 yc:= ycentred;	 
+      end;       
+      if a=char(27) then sdone:=true;
+      if a=char(13) then 
       begin
 	 sdone:=true;
 	 statereset:=true;
@@ -517,14 +543,6 @@ begin
 	 if sel=0 then sel:=nss;
 	 if sel=(nss+1) then sel:=1;
       end;
-      if (not(ycentred) and yc) then
-      begin
-	 if joy.yaxis>joy.ycentre then sel:=sel+1;
-	 if joy.yaxis<joy.ycentre then sel:=sel-1;
-	 if sel<1 then sel:=nss;
-	 if sel>nss then sel:=1;
-      end;
-      yc:= ycentred;
    end;
    menudone;
 end;
@@ -1036,24 +1054,29 @@ begin
       spritedraw(29,33+((pos)*10),44,xorput);
 
       act:= false;
+      if usejoy then
+      begin
+	 if joypressed(1) then act:=true;
+	 if joypressed(2) then mdone:=true;
+	 if (not(ycentred) and yc) then
+	 begin
+	    if joy.yaxis>joy.ycentre then inc(pos);
+	    if joy.yaxis<joy.ycentre then dec(pos);
+	    if pos<0 then pos:=9;
+	    if pos>9 then pos:=0;
+	 end;
+	 yc:= ycentred;
+
+      end;
       
-      if ((a=chr(13)) or joypressed(1)) then act:= true;
+      if a=chr(13) then act:= true;
 
       if (a='S') then
       begin
 	 spriteTest;
 	 refresh := true;
       end;
-      if ((a=chr(27)) or joypressed(2)) then mdone:=true;
-
-      if (not(ycentred) and yc) then
-      begin
-	 if joy.yaxis>joy.ycentre then inc(pos);
-	 if joy.yaxis<joy.ycentre then dec(pos);
-	 if pos<0 then pos:=9;
-	 if pos>9 then pos:=0;
-      end;
-      yc:= ycentred;
+      if a=chr(27) then mdone:=true;
 
       if (a=chr(0)) then
       begin
@@ -1297,15 +1320,17 @@ begin
       a:= 'z';
       if keypressed then
 	 a:=readkey;
-      if ((a=char(27)) or joypressed(2)) then hdone:=true;
-
-      if (not(ycentred) and yc) then
+      if a=char(27) then hdone:=true;
+      if usejoy then
       begin
-	 if joy.yaxis>joy.ycentre then begin inc(page); new:=true; end;
-	 if joy.yaxis<joy.ycentre then begin dec(page); new:=true; end;
+	 if joypressed(2) then hdone:=true;
+	 if (not(ycentred) and yc) then
+	 begin
+	    if joy.yaxis>joy.ycentre then begin inc(page); new:=true; end;
+	    if joy.yaxis<joy.ycentre then begin dec(page); new:=true; end;
+	 end;
+	 yc:= ycentred;
       end;
-      yc:= ycentred;
-      
       if a=char(0) then
       begin
 	 a:=readkey;
@@ -1355,18 +1380,23 @@ begin
    textxy(x,y+60,4,UIColours[5],menu[7]);
    while not(mdone) do
    begin
-      if joyavail then update;
+      if usejoy then update;
       while not(keypressed or joypressed(0) or (ycentred xor yc)) do
       begin
-	 if joyavail then update;
+	 if usejoy then update;
 	 textxy(x,y+((sel-1)*10),4,UIColours[13],menu[sel]);
 	 spritedraw(x-11,y+((sel-1)*10)+3,44,copyput);
       end;        {80 is down 72 is up...13 if an enter key}
       a:='z';
       if keypressed then
 	 a:=readkey;
-      if ((a=chr(27)) or joypressed(2)) then mdone:=true;
-      if ((a=chr(13)) or joypressed(1)) then
+      if usejoy then
+      begin
+	  if joypressed(2) then mdone:=true;
+	  if joypressed(1) then a:= char(13);
+      end;
+      if a=chr(27) then mdone:=true;
+      if a=chr(13) then
       begin {execute selection}
 	 mdone:=true;
 	 case sel of
@@ -1383,7 +1413,7 @@ begin
 	 end;   
       end;
       osel := sel;
-      if (not(ycentred) and yc) then
+      if (usejoy and not(ycentred) and yc) then
       begin
 	 if joy.yaxis>joy.ycentre then inc(sel);
 	 if joy.yaxis<joy.ycentre then dec(sel);
@@ -1487,7 +1517,17 @@ begin
       a:='z';
       if keypressed then
 	 a:=readkey;
-      if ((a=chr(27)) or joypressed(2)) then done:=true;
+      if usejoy then
+      begin
+	  if joypressed(2) then done:=true;
+	  if (not(ycentred) and yc) then
+	  begin
+	      if ((joy.yaxis>joy.ycentre) and (t<tableCount-1)) then inc(t);
+	      if ((joy.yaxis<joy.ycentre) and (t>0)) then dec(t);
+	  end;
+	  yc:= ycentred; 
+      end;
+      if a=chr(27) then done:=true;
       if ((a='c') or (a='C')) then
       begin
 	 for i:=0 to 9 do
@@ -1498,12 +1538,6 @@ begin
 	 saveScores;
       end;
       { deal with pageup/down }
-      if (not(ycentred) and yc) then
-      begin
-	 if ((joy.yaxis>joy.ycentre) and (t<tableCount-1)) then inc(t);
-	 if ((joy.yaxis<joy.ycentre) and (t>0)) then dec(t);
-      end;
-      yc:= ycentred;
       if (a=chr(0)) then
       begin
 	 a := readkey;

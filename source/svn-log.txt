@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r224 | andrew | 2025-12-24 14:28:24 +1100 (Wed, 24 Dec 2025) | 7 lines
+
+Found issue with the menu system. I have had issues where dosbox has given spurious joystick inputs which would cause the menus to misbehave.
+Haven't encountered this problem on real hardware (yet). It happens in dosbox where it thinks there is a joystick and one isn't connected. Particularly
+on the javascript Dosbox running inside chrome/chromium. But also found in dosbox on my debian laptop.
+
+I changed it so that the menus only respond to joystick input if the joystick support is enabled for gameplay. I may add a command line parameter to
+disable the joystick if this continues to be an issue.
+
+------------------------------------------------------------------------
 r223 | andrew | 2025-12-14 15:44:25 +1100 (Sun, 14 Dec 2025) | 2 lines
 
 Minor change to the high score screen to show how many high score tables there are and a prompt to press esc to return
