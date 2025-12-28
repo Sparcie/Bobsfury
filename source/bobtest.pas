@@ -7,7 +7,7 @@ program bob;  {this is almost Bob's fury yah!}
 
 {$M 16384,0,655360} {memory}
 
-uses bobgraph, bfont,engine,bsound,bconfig,bmenu,llist,map,pitdbl,bsystem;
+uses bobgraph, bfont,engine,bsound,bconfig,bmenu,llist,map,pitdbl,bsystem,bjoy;
 
 var
    avail,min : longint;
@@ -46,6 +46,11 @@ begin
       startmap:=true;
       startparam(s2);
    end;
+   if s='-nj' then
+   begin
+      joyavail := false;
+      usejoy:=false;
+   end;
    if ((s= '?') or (s='/?')) then
    begin
       {$ifndef XT}
@@ -78,6 +83,7 @@ begin
       {$ifdef pitdbl}
       writeln(' -np    disable doubling pit speed');
       {$endif}
+      writeln(' -nj    disable joystick');
       writeln(' -c <filename.map>  load a custom level');
       writeln;
       halt(0);

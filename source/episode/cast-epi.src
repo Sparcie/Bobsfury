@@ -12,6 +12,8 @@ Vault
 castl6
 Secret Passage
 castl7
+Portcullis
+castl8
 *----
 You were out for a sunday fly in 
 your starship when you are shot down. 
@@ -64,3 +66,15 @@ to try and get out of the castle.
 This passage hopefully will lead to 
 the jungle outside.
 *
+The castle gate is nearby. You'll need
+to find the key and fight your way out
+past the guardian. Outside the jungle
+awaits.
+*
+You've successfully escaped the castle.
+On the way out you find a slip of paper
+with instructions for the guardian, it
+was signed by someone named Bob.
+
+The sound of demented creatures emanates
+from the jungle ahead.

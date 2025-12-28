@@ -1554,7 +1554,15 @@ var s,z	      : string;
     done      : boolean;
    scoreTable : tableptr;
     a	      : char;
+   endtxt     : leveltextptr;
 begin
+   {check for end text for the episode}
+   new(endtxt);
+   i := getlevel + 1;
+   s := getlevelname;
+   if (gettext(i, endtxt^)) then doleveltext(s,endtxt^);
+   dispose(endtxt);
+   {now check for a high score - get the table }
    scoreTable := currentScoreTable;
    {now find where the score belongs}
    while (keypressed) do a:=readkey;

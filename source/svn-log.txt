@@ -1,4 +1,18 @@
 ------------------------------------------------------------------------
+r225 | andrew | 2025-12-28 14:28:34 +1100 (Sun, 28 Dec 2025) | 11 lines
+
+Finished Castl8 level for the end of the castle episode and have added it to the episode.
+
+Added feature to bmenu endGame to check for end-of-episode text and display it before doing high scores.
+The end-of-episode text is simply an additional leveltext stored in llist, number one after the last level present.
+
+Added command-line parameter for disabling the joystick. See previous commit for reason I've included this.
+
+This revision is a release candidate! I will be testing the castle episode (for any level adjustments needed) and checking
+for any serious bugs.
+
+
+------------------------------------------------------------------------
 r224 | andrew | 2025-12-24 14:28:24 +1100 (Wed, 24 Dec 2025) | 7 lines
 
 Found issue with the menu system. I have had issues where dosbox has given spurious joystick inputs which would cause the menus to misbehave.
