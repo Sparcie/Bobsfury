@@ -532,7 +532,7 @@ begin
 	 getEpisodes(list);
 	 with list do
 	    for i:= 1 to count do
-	       if eppath[i] = llist.eppath then llist.epname := epname[i];
+	       if epdir[i] = llist.eppath then llist.epname := epname[i];
 	 successful:=false;
       end;
       if a=char(0) then 
@@ -1557,11 +1557,14 @@ var s,z	      : string;
    endtxt     : leveltextptr;
 begin
    {check for end text for the episode}
-   new(endtxt);
-   i := getlevel + 1;
-   s := getlevelname;
-   if (gettext(i, endtxt^)) then doleveltext(s,endtxt^);
-   dispose(endtxt);
+   if player.lives>0 then
+   begin
+      new(endtxt);
+      i := getlevel + 1;
+      s := getlevelname;
+      if (gettext(i, endtxt^)) then doleveltext(s,endtxt^);
+      dispose(endtxt);
+   end;
    {now check for a high score - get the table }
    scoreTable := currentScoreTable;
    {now find where the score belongs}

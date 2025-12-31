@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r226 | andrew | 2025-12-31 14:18:05 +1100 (Wed, 31 Dec 2025) | 5 lines
+
+Some fixes for various castle levels (minor changes)
+
+Also a fix to the end game process to make sure that the end game text is not repeated after seen once and isn't shown if you run out of lives.
+
+
+------------------------------------------------------------------------
 r225 | andrew | 2025-12-28 14:28:34 +1100 (Sun, 28 Dec 2025) | 11 lines
 
 Finished Castl8 level for the end of the castle episode and have added it to the episode.

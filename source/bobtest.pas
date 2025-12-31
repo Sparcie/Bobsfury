@@ -171,6 +171,8 @@ begin
 	 {going to insert little ended episode thingy here!}
 	 endGame(player.score);
 	 player.score:=0;
+	 player.lives :=0;
+	 successful:=false;
 	 gamemenu;
       end;
    end;
