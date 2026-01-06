@@ -638,11 +638,11 @@ begin
       begin
 	 {make some descisions to adjust the visible distance 
           of monsters before disappearing - this is to hopefully reduce slowdown}
-	 if ((visibility > 75) and ((freecycle) < 10)) then
-	     visibility := visibility - 2;
-	 if ((visibility < 150) and (freecycle > 50)) then
-	     visibility :=visibility + 2;
-	 {line(315,0,315,162,0);
+	 if ((visibility < 100) and ((freecycle) < 10)) then
+	     visibility := visibility + 1;
+	 if ((visibility > 0) and (freecycle > 50)) then
+	     visibility :=visibility - 1;
+	 {line(315,0,315,visibility+1,0);
 	 line(315,0,315,visibility,1);}
 	 {line(316,0,316,162,0);
 	 line(316,0,316,lo(freecycle),2);}
@@ -1214,12 +1214,16 @@ end;
 function crudeDist(x,y,px,py : integer):word;
 var
    ax,ay : word;
+   v	 : word;
 begin
    ax := abs(x-px);
    ay := abs(y-py);
    crudeDist:=120;
-   if ((ax > visibility) or (ay > visibility)) then crudeDist:= 220;
+   v := 175 - visibility; {min disappear 75}
+   if ((ax > v) or (ay > v)) then crudeDist:= 220;
    if ((ax<75) and (ay<75)) then crudeDist:=90;
+   {check if in range for bomb detonation}
+   if ((ax<20) and (ay<20)) then crudeDist:=10;
 end;
 
 procedure monsterob.move;
@@ -2322,5 +2326,5 @@ begin
    firelbolt:=false;
    boss:=0;
    bossp:=0;
-   visibility := 150;
+   visibility := 0;
 end.

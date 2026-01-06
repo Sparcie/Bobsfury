@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r227 | andrew | 2026-01-06 00:55:22 +1100 (Tue, 06 Jan 2026) | 4 lines
+
+Found issue where bomb would not detonate on 8086 machines (versus 286 and better)
+It was due to the crudeDist mechanism not including detection for when the monster is very close.
+
+Also tinkered with the variable visibility mechanic I have for 8086 to try and reduce slow down. not sure it's a very good solution.
+------------------------------------------------------------------------
 r226 | andrew | 2025-12-31 14:18:05 +1100 (Wed, 31 Dec 2025) | 5 lines
 
 Some fixes for various castle levels (minor changes)
