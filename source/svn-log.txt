@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r228 | andrew | 2026-01-11 23:58:34 +1100 (Sun, 11 Jan 2026) | 5 lines
+
+Changed the bonus system to give different bonus values for hard vs insane difficulty levels. hard gets 1.5 times normal
+bonus and insane gets 2 times normal.
+
+I have added a static ceiling spike that looks like the drop spike but doesn't drop. This will be good to camouflage the
+drop spikes, provide some decoration and a static hazard as needed.
+------------------------------------------------------------------------
 r227 | andrew | 2026-01-06 00:55:22 +1100 (Tue, 06 Jan 2026) | 4 lines
 
 Found issue where bomb would not detonate on 8086 machines (versus 286 and better)

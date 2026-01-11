@@ -71,6 +71,11 @@ procedure checkTimer;
     respawn	       : boolean; {monster respawn?}
     freecycle,maxcycle : word;    {idle cycle count}
     useCustomKeys      : boolean; {use the newer keyboard system}
+    { difficulty level values
+      Easy   5
+      Normal 3
+      Hard   1
+      Insane -3 }
  
 implementation
 
@@ -233,8 +238,9 @@ begin
    if (mcount=0) then bonus := bonus + 2000;
    if (tcount=0) then bonus := bonus + 3000;
    if ((oncount>0) and (offcount = 0)) then bonus := bonus + 1000;
-   if (diff<3) then bonus := bonus * 2;
-   if (diff>3) then bonus := bonus div 2;
+   if (diff=-3) then bonus := bonus shl 1;
+   if (diff=1) then bonus := bonus + (bonus shr 1);
+   if (diff=5) then bonus := bonus shr 1;
    if bonus>0 then
    begin
       bobgraph.bar(90,0,210,22,UIColours[9]);
@@ -353,7 +359,7 @@ begin
 	     d:=true;
 	     player.score:=player.score+300;
 	  end;
-     11,12,13 : 
+     11,12,13,177 : 
           begin
 	     d:=false;
 	     hurtPlayer(10);
