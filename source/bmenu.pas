@@ -1376,7 +1376,10 @@ begin
    textxy(x,y+20,4,UIColours[5],menu[3]);
    textxy(x,y+30,4,UIColours[5],menu[4]);
    textxy(x,y+40,4,UIColours[5],menu[5]);
-   textxy(x,y+50,4,UIColours[5],menu[6]);
+   if tableCount > 0 then
+      textxy(x,y+50,4,UIColours[5],menu[6])
+   else
+      textxy(x,y+50,4,UIColours[8],menu[6]);
    textxy(x,y+60,4,UIColours[5],menu[7]);
    while not(mdone) do
    begin
@@ -1384,7 +1387,10 @@ begin
       while not(keypressed or joypressed(0) or (ycentred xor yc)) do
       begin
 	 if usejoy then update;
-	 textxy(x,y+((sel-1)*10),4,UIColours[13],menu[sel]);
+	 if (not(sel=6) or (tableCount >0)) then 
+	    textxy(x,y+((sel-1)*10),4,UIColours[13],menu[sel])
+	 else
+	    textxy(x,y+((sel-1)*10),4,UIColours[8],menu[sel]);
 	 spritedraw(x-11,y+((sel-1)*10)+3,44,copyput);
       end;        {80 is down 72 is up...13 if an enter key}
       a:='z';
@@ -1427,7 +1433,10 @@ begin
       end;
       if (sel<>osel) then
       begin
-	 textxy(x,y+((osel-1)*10),4,UIColours[5],menu[osel]);
+	 if (not(osel=6) or (tableCount>0)) then
+	    textxy(x,y+((osel-1)*10),4,UIColours[5],menu[osel])
+	 else
+	    textxy(x,y+((osel-1)*10),4,UIColours[8],menu[osel]);
 	 bobgraph.bar(x-11,y,x-1,y+80,0);
 	 if sel<1 then sel:=7;
 	 if sel>7 then sel:=1;

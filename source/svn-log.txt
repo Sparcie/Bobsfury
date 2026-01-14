@@ -1,4 +1,8 @@
 ------------------------------------------------------------------------
+r229 | andrew | 2026-01-14 00:15:15 +1100 (Wed, 14 Jan 2026) | 1 line
+
+Modified the main game menu so that it indicates when there are no high scores by greying out the menu entry for viewing them.
+------------------------------------------------------------------------
 r228 | andrew | 2026-01-11 23:58:34 +1100 (Sun, 11 Jan 2026) | 5 lines
 
 Changed the bonus system to give different bonus values for hard vs insane difficulty levels. hard gets 1.5 times normal
