@@ -1371,6 +1371,8 @@ begin
    menu[5]:='Help';
    menu[6]:='View High Scores';
    menu[7]:='Quit Bob`s Fury';
+   if (tableCount = 0) then 
+      menu[6] := 'No High Scores';
    textxy(x,y,4,UIColours[5],menu[1]);
    textxy(x,y+10,4,UIColours[5],menu[2]);
    textxy(x,y+20,4,UIColours[5],menu[3]);

@@ -1,4 +1,17 @@
 ------------------------------------------------------------------------
+r230 | andrew | 2026-01-20 09:16:37 +1100 (Tue, 20 Jan 2026) | 10 lines
+
+Changed menu Item to say no high scores as CGA did not show a different colour
+
+Added Hercules graphics card detection (experimental)
+
+Added Monochrome encoding to PGS (from gedit project) for encoding black and single colour images better. This is in
+preparation for making hercules graphics support.
+
+Updated graphics data - monochrome encoding saved some bytes even on the colour graphics data.
+
+updated gedit executables (won't appear on github)
+------------------------------------------------------------------------
 r229 | andrew | 2026-01-14 00:15:15 +1100 (Wed, 14 Jan 2026) | 1 line
 
 Modified the main game menu so that it indicates when there are no high scores by greying out the menu entry for viewing them.

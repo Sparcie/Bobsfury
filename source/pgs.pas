@@ -198,6 +198,58 @@ begin
    end;
 end;
 
+procedure loadImageMono(var r : reader; var box:bounds);
+var
+   x,y	: byte; {screen location}
+   data	: byte; {current input}
+   bit	: byte; {current bit we are reading}
+   col	: byte; {colour to draw (in case we're in multi-colour mode)}
+   draw	: byte; {temp variable to store the colour we intend to draw}
+begin
+   col := ord(r.readchar); {read colour}
+   data := ord(r.readchar);  {read first byte}
+   bit := $80;
+   for y := 0 to ssy-1 do
+   begin
+      for x := 0 to ssx-1 do
+      begin
+	 {check if we need a new data byte}
+	 if bit = 0 then
+	 begin
+	    data := ord(r.readchar);
+	    bit:=$80;
+	 end;
+	 draw := 0;
+	 if (data and bit) <> 0 then
+	 begin { set draw colour and check bound box }
+	    draw:= col;
+	    if box.maxx<x then box.maxx:=x+1;
+	    if box.minx>x then box.minx:=x-1;
+	    if box.maxy<y then box.maxy:=y+1;
+	    if box.miny>y then box.miny:=y-1;
+	 end;
+	 {next bit}
+	 bit := bit shr 1;
+
+	 {draw}
+	 case graphicsmode of
+	   {$ifdef CGA}
+	   mCGA	: cga.putpixel(x,y,draw);
+	   {$endif}
+	   {$ifdef EGA}
+	   mEGA	: ega.putpixel(x,y,draw);
+	   {$endif}
+	   {$ifdef VGA}
+	   mVGA	: vga.putpixel(x,y,draw);
+	   {$endif}
+	   {$ifdef VESA}
+	   mVESA: vesa.putpixel(x,y,draw);
+	   {$endif}
+	 end;
+      end;      
+   end;
+end;
+
 procedure loadImageRLE(var r : reader; var box:bounds);
 var
    i,c	 : integer;
@@ -244,8 +296,13 @@ var
    i,c : integer;
    a   : char;
 begin
-   {check for compression}
+   {check encoding}
    a:= r.readChar;
+   if (a=chr($FE)) then
+   begin {monochrome encoding}
+      loadImageMono(r,box);
+      exit;
+   end; {RLE encoding}
    if (a=chr($FF)) then
    begin
       loadImageRLE(r,box);

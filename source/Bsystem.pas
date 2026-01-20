@@ -17,7 +17,7 @@ function canWriteTo(filename : string):boolean;
 
 { detect highest level graphics card
   0 - none
-  1 - Hercules - not implemented
+  1 - Hercules 
   2 - CGA
   3 - EGA
   4 - VGA
@@ -95,8 +95,35 @@ begin
       exit;
    end;
 
-   {Hercules would fit here but not implemented yet.}
+   {Hercules }
 
+   {first check that there is a CRTC chip (there for MDA and HERC}
+   {similar process for CGA just on a different port.}
+   port[$3B4] := $0F; { set the register index to the cursor l register }
+   oldvalue := port[$3B5]; {save the value}
+   port[$3b5] := $4F; {set a value}
+   {delay for a bit}
+   for i:= 1 to 1000 do
+      newvalue := 0;
+   newvalue := port[$3B5];
+   port[$3B5] := oldvalue;
+   if newvalue = $4F then
+   begin {there is a 6845 present in the right place - test if hercules}
+      { Try and detect the VSYNC bit toggle on the status register.
+      MDA does not toggle it.}
+      newvalue := port[$3BA] and $80;
+      oldvalue := newvalue;
+      for i:= 1 to $8000 do
+      begin
+	 newvalue := port[$3BA] and $80;
+	 if (newvalue <> oldvalue) then
+	 begin {the bit has toggled we can confirm hercules}
+	    detectGraphics := 1;
+	    exit;
+	 end;
+	 oldvalue := newvalue;
+      end;
+   end;
 
    {if nothing detected return 0}
    detectGraphics := 0;
