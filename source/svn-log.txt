@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r231 | andrew | 2026-03-15 22:31:26 +1100 (Sun, 15 Mar 2026) | 6 lines
+
+Added new code in preparation for adding the Hercules graphics mode to the game.
+
+I'm debating with myself whether I will add it to the XT build. It will require a lot of memory
+for storing the graphics.
+
+HERCULES.PAS is the new graphics unit - the only functionality missing being selecting the active display and drawing page.
+------------------------------------------------------------------------
 r230 | andrew | 2026-01-20 09:16:37 +1100 (Tue, 20 Jan 2026) | 10 lines
 
 Changed menu Item to say no high scores as CGA did not show a different colour
