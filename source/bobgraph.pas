@@ -25,6 +25,9 @@ uses pgs,map,bsound
 {$ifdef VESA}
 ,vesa
 {$endif}
+{$ifdef HGC}
+,hercules
+{$endif}
 ;
 
 procedure startgraphics;
@@ -62,6 +65,7 @@ const
    mEGA	    = 1; { 640x200 16 colour }
    mVGA	    = 2; { 320x200 256 colour }
    mVESA    = 3; { 640x400 256 colour }
+   mHGC	    = 4; { 640x350 mono Hercules }
    copyput  = 0;
    xorput   = 1;
    transput = 2; {not implemented yet}
@@ -98,6 +102,10 @@ begin
      mVESA : begin
 		x := x shl 1;
 		y := y shl 1;
+	     end;
+     mHGC  : begin
+		x := x shl 1;
+		y := y + (y shr 1);
 	     end;
    end;
 end;
@@ -199,7 +207,7 @@ begin
    inited := false;
    for i:= 0 to 15 do
       UIColours[i] := i;
-   if graphicsMode>3 then graphicsMode:=2;
+   if graphicsMode>4 then graphicsMode:=2;
    {$ifdef CGA}
    if graphicsMode=mCGA then
    begin
@@ -282,6 +290,25 @@ begin
       inited:= true;
    end;
    {$endif}
+   {$ifdef HGC}
+   if graphicsmode=mHGC then
+   begin
+      if gcard<>1 then
+      begin
+	 writeln('Hercules not supported on this machine');
+	 halt(0);
+      end;
+      inithgc;
+      {if memavail > 92000 then
+	 b := vga.setdrawmode(1);}
+      loadpack('gdata.hgc');
+      {if memavail > 65536 then
+	 paging:= vga.setdrawmode(2)
+      else
+	 b := vga.setdrawmode(0);}
+      inited:= true;
+   end;
+   {$endif}  
    if not(inited) then
    begin
       writeln('Graphics mode not supported');
@@ -294,16 +321,19 @@ begin
    iSize := 0;
    case graphicsmode of
      {$ifdef CGA }
-     mCGA : iSize := cga.imagesize(x,y);
+     mCGA  : iSize := cga.imagesize(x,y);
      {$endif}
      {$ifdef EGA }
-     mEGA : iSize := ega.imagesize(x,y);
+     mEGA  : iSize := ega.imagesize(x,y);
      {$endif}
      {$ifdef VGA}
-     mVGA : iSize := vga.imagesize(x,y);
+     mVGA  : iSize := vga.imagesize(x,y);
      {$endif}
      {$ifdef VESA}
-     mVESA: iSize := vesa.imagesize(x,y);
+     mVESA : iSize := vesa.imagesize(x,y);
+     {$endif}
+     {$ifdef HGC}
+     mHGC  : iSize := hercules.imagesize(x,y);
      {$endif}
    end;
 end;
@@ -312,16 +342,19 @@ procedure clearviewport;
 begin
    case graphicsmode of
      {$ifdef CGA }
-     mCGA : cga.cls;
+     mCGA  : cga.cls;
      {$endif}
      {$ifdef EGA }
-     mEGA : ega.cls;
+     mEGA  : ega.cls;
      {$endif}
      {$ifdef VGA }
-     mVGA : vga.cls;
+     mVGA  : vga.cls;
      {$endif}
      {$ifdef VESA }
-     mVESA: vesa.cls;
+     mVESA : vesa.cls;
+     {$endif}
+     {$ifdef HGC}
+     mHGC  : hercules.cls;
      {$endif}
    end;
 end;
@@ -343,10 +376,10 @@ begin
    c:=0;
    while i<16 do
    begin
-      x:=c;
-      y:=i;
+      x:=c*10;
+      y:=i*10;
       adjustcoords(x,y);
-      draw(x*10,y*10,0,objectat(c,i));
+      draw(x,y,0,objectat(c,i));
       c:=c+1;
       if c=31 then
       begin
@@ -357,9 +390,13 @@ begin
 end;
 
 procedure easydraw(c,i:integer);
+var
+   x,y : integer;
 begin
-   adjustcoords(c,i);
-   draw(c*10,i*10,0,objectat(c,i));
+   x:= c *10;
+   y:= i *10;
+   adjustcoords(x,y);
+   draw(x,y,0,objectat(c,i));
    if objectat(c,i) = 0 then
    begin
       bar((c*10),(i),((c+1)*10)-1,((i+1)*10)-1, 0);
@@ -383,12 +420,12 @@ procedure line(x,y,x2,y2,c:integer);
 begin
    case graphicsmode of
      {$ifdef CGA}
-     mCGA : begin
+     mCGA  : begin
 	       cga.line(x,y,x2,y2,c);
 	    end;
      {$endif}
      {$ifdef VGA}
-     mVGA : vga.line(x,y,x2,y2,c);
+     mVGA  : vga.line(x,y,x2,y2,c);
      {$endif}
      {$ifdef EGA}
      mEGA  : begin
@@ -404,6 +441,15 @@ begin
 		x2 := x2 shl 1;
 		y2 := y2 shl 1;
 		vesa.line(x,y,x2,y2,c);
+	     end;
+     {$endif}
+     {$ifdef HGC}
+     mHGC  : begin
+		x:= x shl 1;
+		y:= y + (y shr 1);
+		x2 := x2 shl 1;
+		y2 := y2 + (y2 shr 1);
+		hercules.line(x,y,x2,y2,c);
 	     end;
      {$endif}
    end;
@@ -434,6 +480,15 @@ begin
 		x2 := x2 shl 1;
 		y2 := y2 shl 1;
 		vesa.filledBox(x,y,x2,y2,c);
+	     end;
+     {$endif}
+     {$ifdef HGC}
+     mHGC  : begin
+		x:= x shl 1;
+		y:= y + (y shr 1);
+		x2 := x2 shl 1;
+		y2 := y2 + (y2 shr 1);
+		hercules.filledBox(x,y,x2,y2,c);
 	     end;
      {$endif}
    end;
@@ -509,7 +564,25 @@ begin
 		getmem(saved,memSize);
 		vesa.getImage(sx,sy,(sx+width),(sy+height), saved);
 	    end;
-   {$endif}
+     {$endif}
+     {$ifdef HGC }
+     mVESA : begin
+		sx:=x shl 1;
+		sy:=y + (y shr 1);
+		width := width shl 1;
+		height := height + (height shr 1);
+		isSaved := true;
+		memSize := hercules.imageSize(width+1,height+1);
+		if memsize>maxavail then
+		begin
+		   textscreen;
+		   writeln('out of memory');
+		   halt(0);
+		end;
+		getmem(saved,memSize);
+		hercules.getImage(sx,sy,(sx+width),(sy+height), saved);
+	    end;
+   {$endif} 
    end;
 end; { save }
 
@@ -518,16 +591,19 @@ begin
    if not(issaved) then exit;
    case graphicsmode of
      {$ifdef CGA}
-     mCGA : cga.putimage(sx,sy,saved);
+     mCGA  : cga.putimage(sx,sy,saved);
      {$endif}
      {$ifdef EGA}
-     mEGA : ega.putimage(sx,sy,saved);
+     mEGA  : ega.putimage(sx,sy,saved);
      {$endif}
      {$ifdef VGA}
-     mVGA : vga.putimage(sx,sy,saved);
+     mVGA  : vga.putimage(sx,sy,saved);
      {$endif}
      {$ifdef VESA}
-     mVESA: vesa.putimage(sx,sy,saved);
+     mVESA : vesa.putimage(sx,sy,saved);
+     {$endif}
+     {$ifdef HGC }
+     mHGC  : hercules.putimage(sx,sy,saved);
      {$endif}
    end;
    freemem(saved,memSize);

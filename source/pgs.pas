@@ -24,6 +24,9 @@ uses buffer
 {$ifdef VESA}
 ,vesa
 {$endif}
+{$ifdef HGC}
+,hercules
+{$endif}
 ;
 
 procedure loadpack(name: string);
@@ -39,6 +42,10 @@ procedure initvga;
 {$ifdef VESA}
 procedure initvesa;
 {$ENDIF}
+{$ifdef HGC}
+procedure inithgc;
+{$endif}
+
 procedure textscreen;
 procedure draw(x,y:integer;puttype:word;image:integer);
 procedure unloadpack;
@@ -51,6 +58,7 @@ const
    mEGA	    = 1; { 640x200 16 colour }
    mVGA	    = 2; { 320x200 256 colour }
    mVESA    = 3; { 640x400 256 colour }
+   mHGC	    = 4; { 640x350 hercules monochrome }
    copyput  = 0;
    xorput   = 1;
    transput = 2; {not implemented yet}
@@ -159,6 +167,15 @@ begin
 end;
 {$ENDIF}
 
+{$ifdef HGC}
+procedure inithgc;
+begin
+   hercules.init;
+   graphicsmode := mHGC;
+   inited := true;
+end;
+{$endif}
+
 procedure draw(x,y:integer; puttype:word;image:integer);
 begin
    if not(loaded and (image <=number) and (image>0) ) then exit;
@@ -194,6 +211,14 @@ begin
 		 xorput	 : vesa.putImageXor(x,y,pic[image]);
 	      end;
 	   end;
+     {$endif}
+     {$ifdef HGC}
+     mHGC : begin
+	       case puttype of
+		 copyput : hercules.putimage(x,y,pic[image]);
+		 xorput	 : hercules.putImageXor(x,y,pic[image]);
+	       end;
+	    end;
      {$endif}
    end;
 end;
@@ -234,16 +259,19 @@ begin
 	 {draw}
 	 case graphicsmode of
 	   {$ifdef CGA}
-	   mCGA	: cga.putpixel(x,y,draw);
+	   mCGA	 : cga.putpixel(x,y,draw);
 	   {$endif}
 	   {$ifdef EGA}
-	   mEGA	: ega.putpixel(x,y,draw);
+	   mEGA	 : ega.putpixel(x,y,draw);
 	   {$endif}
 	   {$ifdef VGA}
-	   mVGA	: vga.putpixel(x,y,draw);
+	   mVGA	 : vga.putpixel(x,y,draw);
 	   {$endif}
 	   {$ifdef VESA}
-	   mVESA: vesa.putpixel(x,y,draw);
+	   mVESA : vesa.putpixel(x,y,draw);
+	   {$endif}
+	   {$ifdef HGC }
+	   mHGC	 : hercules.putpixel(x,y,draw);
 	   {$endif}
 	 end;
       end;      
@@ -278,6 +306,9 @@ begin
 	   {$endif}
 	   {$ifdef VESA}
 	   mVESA: vesa.putpixel(i,c,data);
+	   {$endif}
+	   {$ifdef HGC }
+	   mHGC	 : hercules.putpixel(i,c,data);
 	   {$endif}
 	 end;
 	 if data>0 then
@@ -327,6 +358,9 @@ begin
 	   {$ifdef VESA}
 	   mVESA : vesa.putpixel(i,c,ord(a));
 	   {$endif}
+	   {$ifdef HGC }
+	   mHGC	 : hercules.putpixel(i,c,ord(a));
+	   {$endif}
 	 end;
 	 if ord(a)>0 then
 	 begin
@@ -366,6 +400,11 @@ begin
 		vesa.filledBox(0,370, trunc(percent * 2), 380, 246);
 	     end;
      {$endif}
+     {$ifdef HGC }
+     mHGC  : begin
+		hercules.filledBox(0,250, trunc(percent * 2), 255, 3);
+	     end;
+     {$endif }
    end;
 end;
 					 
@@ -421,6 +460,13 @@ begin
 		    vesa.getimage(0,0,ssx-1,ssy-1,pic[num]);
 		 end;
 	   {$endif}
+	   {$ifdef HGC}
+	   mHGC : begin
+		    picsize[num] := hercules.imagesize(ssx,ssy);
+		    getmem(pic[num],picsize[num]);
+		    hercules.getimage(0,0,ssx-1,ssy-1,pic[num]);
+		 end;
+	   {$endif}
 	 end;
 	 drawProgressBar(num,number);
 	 num:=num+1;
@@ -448,16 +494,19 @@ begin
    if not(inited) then exit;
    case graphicsmode of
      {$ifdef CGA}
-     mCGA : cga.shutdown;
+     mCGA  : cga.shutdown;
      {$endif}
      {$ifdef EGA}
-     mEGA : ega.shutdown;
+     mEGA  : ega.shutdown;
      {$endif}
      {$ifdef VGA}
-     mVGA : vga.shutdown;
+     mVGA  : vga.shutdown;
      {$endif}
      {$ifdef VESA}
-     mVESA: vesa.shutdown;
+     mVESA : vesa.shutdown;
+     {$endif}
+     {$ifdef HGC }
+     mHGC  : hercules.shutdown;
      {$endif}
    end;
 end;

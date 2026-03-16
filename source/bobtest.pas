@@ -18,16 +18,19 @@ procedure param(s,s2 : String);
 begin
 
    {$ifdef VESA}
-   if s= '-h' then graphicsMode:=3;
+   if s= '-h' then graphicsMode:= mVESA;
    {$endif}
    {$ifdef VGA}
-   if s= '-l' then graphicsMode:=2;
+   if s= '-l' then graphicsMode:=mVGA;
    {$endif}
    {$ifdef EGA}
-   if s= '-e' then graphicsMode:=1;
+   if s= '-e' then graphicsMode:=mEGA;
    {$endif}
    {$ifdef CGA}
-   if s= '-cga' then graphicsMode:=0;
+   if s= '-cga' then graphicsMode:=mCGA;
+   {$endif}
+   {$ifdef HGC }
+   if s= '-hgc' then graphicsMode := mHGC;
    {$endif}
 
    {$ifndef noAdlib}
@@ -71,6 +74,9 @@ begin
       {$endif}
       {$ifdef CGA}
       writeln(' -cga   CGA graphics mode');
+      {$endif}
+      {$ifdef HGC }
+      writeln(' -hgc   Hercules graphcis mode');
       {$endif}
 
       {$ifndef noAdlib}
@@ -120,7 +126,13 @@ begin
 
    {$ifdef XT}
    {make sure we're using an XT compatible graphics mode}
-   graphicsMode := 0;
+   if not( (graphicsMode=mCGA) or (graphicsMode=mHGC)) then
+   begin
+      case detectGraphics of	
+	2 : graphicsMode := mCGA;
+	1 : graphicsMode := mHGC;
+      end;
+   end;
    {$endif}
 
    writeln('memory:',avail);

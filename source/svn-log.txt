@@ -1,4 +1,27 @@
 ------------------------------------------------------------------------
+r234 | andrew | 2026-03-16 22:50:28 +1100 (Mon, 16 Mar 2026) | 3 lines
+
+Adjusted XT build to autodetect whether it is running on a hercules or CGA.
+
+Previous code only tried CGA graphics.
+------------------------------------------------------------------------
+r233 | andrew | 2026-03-16 22:40:31 +1100 (Mon, 16 Mar 2026) | 4 lines
+
+I've added the Hercules mode to the XT build - it seems to work nearly as well as CGA does, although I think it really
+needs a turbo XT.
+
+I think I've resolved the XOR drawing problem, but a few glitches remain. Also still need to set up the UI colours.
+------------------------------------------------------------------------
+r232 | andrew | 2026-03-16 01:01:19 +1100 (Mon, 16 Mar 2026) | 7 lines
+
+Hercules graphics added to the general build.
+
+Still have some graphical bugs to figure out - particularly in the filled box routine and XOR sprite drawing.
+
+Also need to set up the line patterns used for text in the GUI as many are either invisible or hard to read.
+
+I think it may perform well enough to include in the XT build, but will need to test some more on marty PC.
+------------------------------------------------------------------------
 r231 | andrew | 2026-03-15 22:31:26 +1100 (Sun, 15 Mar 2026) | 6 lines
 
 Added new code in preparation for adding the Hercules graphics mode to the game.

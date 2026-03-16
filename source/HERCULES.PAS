@@ -410,8 +410,12 @@ begin
    dy := (y1 - y)+1;
    ofs := screenOffset(x,y);
    c:= c mod 5; {limit c to one of the fill patterns}
+
+   if dx>$F then
+      leng := (dx shr 3) - 1
+   else
+      leng := 0;
    
-   leng := (dx shr 3) - 1;
    {if (dx < ((x1 and $7) + (8 - (x and $7)) then leng := 0;}
    if (dx < 7 - (x and $7)) then
    begin
@@ -799,7 +803,7 @@ begin
 
    if (y+sizey>352) then 
       sizey := 352-y;
-   rwidth := (((x and $7) + sizex) shr 3); { how many bytes to write }
+   rwidth := ( sizex shr 3) + 1; { how many bytes to write }
 
    
    {check for edge of screen for x}

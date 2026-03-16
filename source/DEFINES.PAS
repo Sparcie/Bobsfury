@@ -7,6 +7,7 @@
 {$ifdef XT}        {build for an XT only}
 {$undef general}
 {$define CGA}
+{$define HGC }
 {$define noAdlib}
 {$define XTKbd}
 {$endif}
@@ -24,5 +25,6 @@
 {$define EGA}
 {$define VGA}
 {$define VESA}
+{$define HGC}
 {$define pitdbl}
 {$endif}
