@@ -843,10 +843,13 @@ begin
       textxy(20,150,4,col,'Joystick found');
    
    {get display information}
-   if graphicsMode=mCGA then t:='CGA';
-   if graphicsMode=mEGA then t:='EGA';
-   if graphicsMode=mVGA then t:='VGA';
-   if graphicsMode=mVESA then t:='VESA';
+   case graphicsMode of
+     mCGA  : t:='CGA';
+     mEGA  : t:='EGA';
+     mVGA  : t:='VGA';
+     mVESA : t:='VESA';
+     mHGC  : t:='Hercules';
+   end;
    s:= 'Driver :' + t;
    textxy(20,70,4,col,s);
    case graphicsmode of
@@ -854,6 +857,7 @@ begin
      mVGA  : t:= '320x200 256 colours';
      mEGA  : t:= '640x200 16 colours';
      mVESA : t:= '640x400 256 colours';
+     mHGC  : t:= '640x350 monochrome';
    end;
    s := 'Mode :' + t;
    textxy(20,80,4,col,s);
@@ -1485,7 +1489,8 @@ begin
    begin
       str(scoreTable^.scorez[i],s);
       c:=15-i;
-      if graphicsMode=0 then c:=(c mod 3)+1;
+      if graphicsMode=mCGA then c:=(c mod 3)+1;
+      if graphicsMode=mHGC then c:= (c mod 2)+3;
       textxy(50,(i*10) +40 ,4,(c),scoreTable^.name[i]);
       textxy(250,(i*10) + 40,4,(c),s);
    end;

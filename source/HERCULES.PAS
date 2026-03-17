@@ -412,7 +412,7 @@ begin
    c:= c mod 5; {limit c to one of the fill patterns}
 
    if dx>$F then
-      leng := (dx shr 3) - 1
+      leng := (dx shr 3) 
    else
       leng := 0;
    

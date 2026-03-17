@@ -1,4 +1,15 @@
 ------------------------------------------------------------------------
+r235 | andrew | 2026-03-17 21:59:56 +1100 (Tue, 17 Mar 2026) | 8 lines
+
+Fixed some minor issues with Hercules graphics. I have adjusted the filled box and the menus are now not leaving anything residual pixels when updated.
+
+The pause and quit pop-up still have an extra thick right border - I still need to figure this one out.
+
+I've added code for setting UI patterns for Hercules and have adjusted the hiscore display to only use two line patterns
+for writing the scores.
+
+I will have to hand re-draw many of the sprites as they are not easily identifiable with the auto-converted images.
+------------------------------------------------------------------------
 r234 | andrew | 2026-03-16 22:50:28 +1100 (Mon, 16 Mar 2026) | 3 lines
 
 Adjusted XT build to autodetect whether it is running on a hercules or CGA.

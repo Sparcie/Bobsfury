@@ -110,6 +110,7 @@ begin
    end;
 end;
 
+{$ifdef CGA}
 procedure cgaUIColour;
 begin
    UIColours[0]:=0;
@@ -129,6 +130,29 @@ begin
    UIColours[14]:=2;
    UIColours[15]:=1;
 end;
+{$endif}
+
+{$ifdef HGC}
+procedure hgcUIColour;
+begin
+   UIColours[0]:=0;
+   UIColours[1]:=0;
+   UIColours[2]:=3;
+   UIColours[3]:=3;
+   UIColours[4]:=3;
+   UIColours[5]:=3;
+   UIColours[6]:=3;
+   UIColours[7]:=3;
+   UIColours[8]:=2;
+   UIColours[9]:=4;
+   UIColours[10]:=4;
+   UIColours[11]:=3;
+   UIColours[12]:=3;
+   UIColours[13]:=4;
+   UIColours[14]:=2;
+   UIColours[15]:=4;
+end;
+{$endif}
 
 procedure UIPage;
 begin
@@ -306,6 +330,7 @@ begin
 	 paging:= vga.setdrawmode(2)
       else
 	 b := vga.setdrawmode(0);}
+      hgcUIColour;
       inited:= true;
    end;
    {$endif}  
@@ -566,7 +591,7 @@ begin
 	    end;
      {$endif}
      {$ifdef HGC }
-     mVESA : begin
+     mHGC : begin
 		sx:=x shl 1;
 		sy:=y + (y shr 1);
 		width := width shl 1;
