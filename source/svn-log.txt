@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r236 | andrew | 2026-03-18 18:50:26 +1100 (Wed, 18 Mar 2026) | 6 lines
+
+attempting to fix the filledBox hercules function.
+
+Looks a bit better in the game, pause and quit pop-up looks ok.
+
+will test it a bit more - it might not size everything correctly
+
+------------------------------------------------------------------------
 r235 | andrew | 2026-03-17 21:59:56 +1100 (Tue, 17 Mar 2026) | 8 lines
 
 Fixed some minor issues with Hercules graphics. I have adjusted the filled box and the menus are now not leaving anything residual pixels when updated.

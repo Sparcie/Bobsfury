@@ -406,13 +406,13 @@ begin
    
    lmask := leadmask[x and $7];
    tmask := trailmask[x1 and $7];
-   dx := x1 - x;
+   dx := (x1 - x)+1;
    dy := (y1 - y)+1;
    ofs := screenOffset(x,y);
    c:= c mod 5; {limit c to one of the fill patterns}
 
    if dx>$F then
-      leng := (dx shr 3) 
+      leng := (x1 shr 3) - (x shr 3) - 1 
    else
       leng := 0;
    
