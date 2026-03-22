@@ -5,8 +5,9 @@ pause
 cgaconv gdata.lrp gdata.cga
 echo CGA Conv
 pause
-hgcconv gdata.cga gdata.hgc
+hgcconv gdata.cga hgcout.pgs
 echo hercules conversion
+copy hgcdata.pgs gdata.hgc
 pause
 copy gdata.* ..\
 copy gdata.* ..\..\

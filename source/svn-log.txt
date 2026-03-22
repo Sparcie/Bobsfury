@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r237 | andrew | 2026-03-22 23:08:55 +1100 (Sun, 22 Mar 2026) | 5 lines
+
+I've changed the Hercules graphics conversion to output to a separate file: HGCOUT.PGS.
+This is to facilitate manually re-working the Hercules graphics for some sprites - I need to do this to make them easier to identify and some of them did not convert well.
+The HGCDATA.PGS file is where I am doing the graphical work.
+
+I am up to image 45 (the blue Bob) in the manual re-work - it will take some time to complete.
+------------------------------------------------------------------------
 r236 | andrew | 2026-03-18 18:50:26 +1100 (Wed, 18 Mar 2026) | 6 lines
 
 attempting to fix the filledBox hercules function.
