@@ -410,19 +410,16 @@ begin
    dy := (y1 - y)+1;
    ofs := screenOffset(x,y);
    c:= c mod 5; {limit c to one of the fill patterns}
-
-   if dx>$F then
-      leng := (x1 shr 3) - (x shr 3) - 1 
-   else
-      leng := 0;
    
    {if (dx < ((x1 and $7) + (8 - (x and $7)) then leng := 0;}
-   if (dx < 7 - (x and $7)) then
+   if ((x1 shr 3) = (x shr 3)) then
    begin
         leng:=0;
         lmask := lmask and tmask;
         tmask := 0;
-   end;
+   end
+   else
+      leng := (x1 shr 3) - (x shr 3) - 1; 
    
    {do the fill - in assembly
     AX - for working

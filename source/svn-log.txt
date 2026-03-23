@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r238 | andrew | 2026-03-23 17:42:03 +1100 (Mon, 23 Mar 2026) | 3 lines
+
+I corrected the filledbox sizing for small sizes as well as large.
+
+This should fix any graphical glitches related to filledBoxes either being too large or too small.
+------------------------------------------------------------------------
 r237 | andrew | 2026-03-22 23:08:55 +1100 (Sun, 22 Mar 2026) | 5 lines
 
 I've changed the Hercules graphics conversion to output to a separate file: HGCOUT.PGS.
