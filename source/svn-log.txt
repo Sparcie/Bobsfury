@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r239 | andrew | 2026-03-24 22:15:21 +1100 (Tue, 24 Mar 2026) | 3 lines
+
+Fixed a problem with automation that failed to update Zip files.
+
+Been hand re-drawing much of the Hercules graphics - am up to image 85 about half way through.
+------------------------------------------------------------------------
 r238 | andrew | 2026-03-23 17:42:03 +1100 (Mon, 23 Mar 2026) | 3 lines
 
 I corrected the filledbox sizing for small sizes as well as large.
