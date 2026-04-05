@@ -1,4 +1,8 @@
 ------------------------------------------------------------------------
+r240 | andrew | 2026-04-05 23:59:04 +1000 (Sun, 05 Apr 2026) | 1 line
+
+Hand drawn some more of the hercules graphics - up to 120 - about 57 to go
+------------------------------------------------------------------------
 r239 | andrew | 2026-03-24 22:15:21 +1100 (Tue, 24 Mar 2026) | 3 lines
 
 Fixed a problem with automation that failed to update Zip files.
