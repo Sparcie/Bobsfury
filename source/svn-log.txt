@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r241 | andrew | 2026-04-12 23:15:29 +1000 (Sun, 12 Apr 2026) | 3 lines
+
+Updated the last of the Hercules graphics that needed updates.
+
+Next step for hercules is to add support for paging. Hercules cards have enough memory for two display pages.
+------------------------------------------------------------------------
 r240 | andrew | 2026-04-05 23:59:04 +1000 (Sun, 05 Apr 2026) | 1 line
 
 Hand drawn some more of the hercules graphics - up to 120 - about 57 to go
