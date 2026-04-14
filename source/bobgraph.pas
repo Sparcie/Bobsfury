@@ -177,6 +177,12 @@ begin
 	       vga.copyToBuffer;
 	    end;
      {$endif}
+     {$ifdef HGC}
+     mHGC : begin
+	       hercules.setVisualPage(1);
+	       hercules.setDrawingPage(1);
+	    end;
+     {$endif}
    end;
 end; { UIPage }
 
@@ -201,6 +207,12 @@ begin
 	       if not(isPaged) then exit;
 	       isPaged:=false;
 	       vga.copyToScreen;
+	    end;
+     {$endif}
+          {$ifdef HGC}
+     mHGC : begin
+	       hercules.setVisualPage(0);
+	       hercules.setDrawingPage(0);
 	    end;
      {$endif}
    end;
@@ -323,13 +335,8 @@ begin
 	 halt(0);
       end;
       inithgc;
-      {if memavail > 92000 then
-	 b := vga.setdrawmode(1);}
+      paging := hercules.pagingSupport; { Hercules has two pages }
       loadpack('gdata.hgc');
-      {if memavail > 65536 then
-	 paging:= vga.setdrawmode(2)
-      else
-	 b := vga.setdrawmode(0);}
       hgcUIColour;
       inited:= true;
    end;

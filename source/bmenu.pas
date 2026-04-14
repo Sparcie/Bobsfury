@@ -871,10 +871,14 @@ begin
    textxy(20,130,4,col,s);
 
    if paging then
+   begin
+      s:='System memory back-buffer enabled';
       if graphicsmode = mEGA then
-	 textxy(20,140,4,col,'EGA page flipping enabled')
-      else
-	 textxy(20,140,4,col,'System memory back-buffer enabled');
+	 s:='EGA page flipping enabled';
+      if graphicsmode = mHGC then
+	 s:='Hercules page flipping enabled';
+      textxy(20,140,4,col,s);
+   end;
 
    {determine the size and number of sprites}
    str(spriteCount,t);

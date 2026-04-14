@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------
+r242 | andrew | 2026-04-14 17:46:06 +1000 (Tue, 14 Apr 2026) | 5 lines
+
+Added Hercules page flipping.
+
+Seems to work well in MartyPC, I am not sure if the detection code for paging support will detect a card that has only 32k VRAM. It should, but I can't test it.
+
+If you have a hercules card like this I'd like to know if it works.
+------------------------------------------------------------------------
 r241 | andrew | 2026-04-12 23:15:29 +1000 (Sun, 12 Apr 2026) | 3 lines
 
 Updated the last of the Hercules graphics that needed updates.

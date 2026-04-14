@@ -41,6 +41,13 @@ procedure getImage(x,y,x1,y1 : word; bitmap : pointer);
 procedure putImage(x,y : word; bitmap : pointer);
 procedure putImageXOR(x,y : word; bitmap : pointer);
 
+{Page swapping/flipping support}
+{ graphics library must be inited before this will work.}
+function pagingSupport:boolean; 
+procedure setVisualPage(p : byte);
+procedure setDrawingPage(p : byte);
+
+
 implementation
 
 uses fixed,gcommon;
@@ -94,6 +101,35 @@ begin
      inited := true;
      cardseg := $B000;
      cls;
+end;
+
+{ graphics library must be inited before this will work.}
+function pagingSupport:boolean; 
+begin
+   pagingSupport := false;
+   if not(inited) then exit;
+   { we test by checking is both pages memory spaces are
+   connected to the same vram}
+   memw[$B800:0000] := $FEED;
+   memw[$B000:0000] := $0000;
+   if memw[$B800:0000] = $FEED then pagingSupport := true;
+end;
+
+{Page swapping/flipping support}
+procedure setVisualPage(p : byte);
+begin
+   case p of
+     0 : port[$3B8] := $0A;
+     1 : port[$3B8] := $8A;
+   end;
+end;
+
+procedure setDrawingPage(p : byte);
+begin
+   case p of
+     0 : cardseg := $B000;
+     1 : cardseg := $B800;
+   end;
 end;
 
 procedure cls;
