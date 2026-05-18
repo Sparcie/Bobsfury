@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r243 | andrew | 2026-05-18 23:29:37 +1000 (Mon, 18 May 2026) | 7 lines
+
+- corrected some text describing graphics modes in a few places
+- changed length of adlib note buffer to be shorter - save memory, also didn't need that much length.
+- modified Hercules unit
+  - added build option to limit image drawing to even x co-ords. This is to save memory,
+    it allows us to store half as many bit shifted copies for drawing. This is enough to
+    make a difference on 256k equipped XTs.
+  - realised I had set the lower screen boundary incorrectly - doesn't cause issues just wanted correctness.
+------------------------------------------------------------------------
 r242 | andrew | 2026-04-14 17:46:06 +1000 (Tue, 14 Apr 2026) | 5 lines
 
 Added Hercules page flipping.

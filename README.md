@@ -14,18 +14,14 @@ Qbasic version of the game I wrote as a teenager.
 
 ### Requirements
 
-The game requires about 256-300K of memory and a graphics card (CGA, EGA, VGA or VESA/SVGA).
+The game requires about 256-300K of memory and a graphics card (Hercules, CGA, EGA, VGA or VESA/SVGA).
 It will run on 8088/8086 machines with best results being on an 8Mhz 8086 or faster. Slower machines
 will work but with inconsistent performance at normal speed. Setting the game speed to slow will
 improve this. Any 286 and faster should work fine.
 
-There is now a XT specific build of the game available, it is limited to CGA and PC speaker sound but
-significantly reduces the memory and processor requirments. You can squeeze this version into 200k of
-available memory.
-
-If you are experiencing slow down, there are a couple of options.
-Some graphics modes are slower than others. The speed of the modes from slowest to fastest is: VESA/SVGA, EGA, VGA, CGA.
-Lesser graphics modes also use less memory which is useful on machines with less RAM.
+There is now a XT specific build of the game available, it is limited to Hercules or CGA and PC speaker sound.
+With CGA you can squeeze this build into about 200k of available memory, Hercules requires more memory.
+The XT build will auto-detect which graphics mode to use.
 
 The game supports Adlib, PC speaker and the OPLxLPT devices which you can select with command line options.  
 The default behaviour is to use Adlib if detected and fall back to PC speaker if it isn't. Disabling Ad-Lib
@@ -41,7 +37,7 @@ what is currently used.
 
 I have done some testing on real hardware, but since what I have is extremely limited I can't guarantee
 it will work perfectly on your system. Dosbox works quite well with pretty much the default settings. If you
-have a problem please report a bug by posting a comment on my blog, twitter or and issue on github.
+have a problem please report a bug by posting a comment on my blog, twitter or an issue on github.
 
 If you have a speed issue with VESA graphics it seems some VESA extensions can cause the issue. As a work
 around you can disable doulbling the pit speed.
@@ -62,7 +58,7 @@ Some things I don't plan on changing.
 
 ### Command Line
 
-   bob /? -e -cga -h -l -n -a -s -c <file.map>
+   bob /? -e -cga -h -l -hgc -np -n -a -s -c <file.map>
    
    /? = shows a list of command line options
    
@@ -70,6 +66,7 @@ Some things I don't plan on changing.
    -cga = CGA graphics mode (320x200x4)
    -l   = VGA graphics mode (320x200x256) (default)
    -h   = VESA/SVGA graphics mode (640x400x256)
+   -hgc = Hercules graphics mode (640x350 mono)
    
    -n   = Force sound to be turned off.
    -a   = Auto detect Adlib or PC Speaker

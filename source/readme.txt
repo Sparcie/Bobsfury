@@ -17,7 +17,7 @@ Here's a list of the pascal source files and a brief description
 
 defines.pas  - sets up conditional defines for each build type - primarily for hardware support selection (this file is included rather than used)
 Bjoy.pas     - Joystick hardware interface
-Bsystem.pas  - contained utility functions that have gradually been superseeded over time. Checkfile (for checking a file exists) is all that remains
+Bsystem.pas  - contained utility functions. Checkfile (for checking a file exists) and some device detection
 RLE.pas      - Run length encoder object - not actually used, but formed the basis of adding RLE compression to graphics and maps
 bconfig.pas  - Loads/saves the configuration file - some very old code!
 bfleu.pas    - level editor
@@ -31,6 +31,7 @@ CGA.pas      - CGA device dependant code for graphics library.
 VGA.pas      - VGA device dependant code for graphics library.
 EGA.pas      - EGA device dependant code for graphics library.
 VESA.pas     - VESA device dependant code for graphics library.
+hercules     - Hercules device dependant code for graphics.
 bobtest.pas  - Main program for the game - interprets parameters and has main loop.
 bsound.pas   - base sound interface for sound effects and music
 buffer.pas   - a simple buffered file reader/writer for text type files
@@ -68,7 +69,7 @@ scache.PAS   - Sound cache - stores sound effects in a ready to use form (notes 
 License
 -------
 I can't imagine why you'd want to use my code, but feel free to as long as it's non-comercial.
-The PC speaker Music unit (music.pas) belongs to J. C. Kessels and was a free to use download - I'd suggest crediting him if you use this. The site I got it from is long gone!
+The PC speaker Music unit (music.pas) belongs to J. C. Kessels and was a free to use download - I'd suggest crediting him if you use this. The site I got it from is long gone.
 
 
 The game itself is freeware. That means I own it but you can play it for free.

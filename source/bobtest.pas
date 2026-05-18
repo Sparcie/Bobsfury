@@ -64,10 +64,10 @@ begin
       writeln('command line options:');
 
       {$ifdef VESA}
-      writeln(' -h     hi resolution mode');
+      writeln(' -h     VESA graphics mode');
       {$endif}
       {$ifdef VGA}
-      writeln(' -l     lo resolution mode');
+      writeln(' -l     VGA graphics mode');
       {$endif}
       {$ifdef EGA}
       writeln(' -e     EGA graphics mode');

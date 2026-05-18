@@ -857,7 +857,7 @@ begin
      mVGA  : t:= '320x200 256 colours';
      mEGA  : t:= '640x200 16 colours';
      mVESA : t:= '640x400 256 colours';
-     mHGC  : t:= '640x350 monochrome';
+     mHGC  : t:= '640x348 monochrome';
    end;
    s := 'Mode :' + t;
    textxy(20,80,4,col,s);

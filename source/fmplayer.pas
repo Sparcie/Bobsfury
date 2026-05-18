@@ -48,7 +48,7 @@ implementation
 
 const clockrate = 18.2; {timer chip rate hz}
 
-type buffer	   = array[0..250,1..9] of note; 
+type buffer	   = array[0..120,1..9] of note; 
      bufferPointer = ^buffer;
    
 var
@@ -134,7 +134,7 @@ begin
 
    buff^[buffhead[channel],channel]:=n;
    inc(buffhead[channel]);
-   if (buffhead[channel]=251) then buffhead[channel]:=0;
+   if (buffhead[channel]=121) then buffhead[channel]:=0;
    inc(buffsize[channel]);
 
 
@@ -152,7 +152,7 @@ begin
    buff^[buffhead[channel],channel].note:=note;
    buff^[buffhead[channel],channel].leng:=len;
    inc(buffhead[channel]);
-   if (buffhead[channel]=251) then buffhead[channel]:=0;
+   if (buffhead[channel]=121) then buffhead[channel]:=0;
    inc(buffsize[channel]);
 
 end;
@@ -180,7 +180,7 @@ end;
 function bufferfull(c :byte) :boolean;
 begin
    bufferfull:=false;
-   if (buffersize(c)=251) then bufferfull:=true;
+   if (buffersize(c)=121) then bufferfull:=true;
 end;
 
 function buffersize(c :byte) :word;
@@ -252,7 +252,7 @@ begin
 	    begin
 	       cnote[i]:=buff^[buffptr[i],i];
 	       inc(buffptr[i]);
-	       if (buffptr[i]=251) then buffptr[i]:=0;
+	       if (buffptr[i]=121) then buffptr[i]:=0;
 	       dec(buffsize[i]);
 	       cncycles[i]:=noteticks(cnote[i].leng)-notesilence(cnote[i].leng,musicKind[i]);
 	       if ((i<7) or not(ryth)) then setnoteon(cnote[i].note,cnote[i].oct,i);

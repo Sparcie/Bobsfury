@@ -2,9 +2,23 @@
   Hercules Graphics unit made for Bob's fury as part of a replacement for
   the BGI. Same interface as the VGA unit so it's easy to use them
   interchangably.
+
+  This unit provides 640x348 which is non-standard for hercules
+  but easier to convert other modes graphics and code for
   
   A Danson 2026
  }
+
+{ has the following build option
+   hgc_even
+     only applies to get and put image
+     it changes the code to only allow images
+     be placed on even x co-ords on screen
+     use if you don't draw to odd x co-ords
+     and want to save on memory
+     used on Bob's Fury for this reason.}
+
+{$define hgc_even }
 
 unit Hercules;
 
@@ -73,7 +87,7 @@ asm
     mov cx, y
     cmp bx, 639
     ja @failed
-    cmp cx, 351
+    cmp cx, 347
     ja @failed
     jmp @done
 @failed:
@@ -592,7 +606,11 @@ end;
  pointer for a given screen area}
 function imageSize(sx,sy:word):word;
 begin
+   {$ifdef hgc_even}
+     imageSize := ((sx shr 3)  + 2  ) * 4 * sy + 6;
+   {$else}
      imageSize := ((sx shr 3)  + 2  ) * 8 * sy + 6;
+   {$endif}
 end;
 
 {gets an image and stores it in a chunk of memory, be sure to allocate enough memory}
@@ -651,7 +669,11 @@ begin
       
    {make 7 shifted copies of the base image to make it faster to draw}
    {any bits that shouldn't contain pixel data should be 0 }
+   {$ifdef hgc_even}
+   for shift:= 1 to 3 do
+   {$else}
    for shift:= 1 to 7 do
+   {$endif}
    begin
        { set our source to the start of the image buffer }
        sseg := seg(bitmap^);
@@ -662,7 +684,11 @@ begin
            for i:= 1 to rowsize do
            begin
                pixels := mem[sseg: sofs];
+	       {$ifdef hgc_even}
+               pixels := swap(pixels) shr (shift shl 1); {shift twice for even copies only}
+	       {$else}
                pixels := swap(pixels) shr shift;
+	       {$endif}
                mem[bseg:bofs] := hi(pixels) or spix;
                spix := lo(pixels); { pixels we will need for the next byte }
                inc(sofs);
@@ -686,6 +712,9 @@ var
    maskE       : byte; { mask for trailing byte(s) }
 begin
    if checkHBounds(x,y) then exit;
+   {$ifdef hgc_even}
+   x := x and $FFFE;
+   {$endif}
    bseg := seg(bitmap^);
    bofs := ofs(bitmap^);
    sizex := memw[bseg:bofs];
@@ -694,11 +723,16 @@ begin
    bheight := sizey;
    bwidth := (sizex shr 3) + 2; {buffer width in bytes}   
    { buffer offset - select which copy of the image to use }
+   {$ifdef hgc_even}
+   bofs := bofs + 4 + (((x and $7) shr 1)  * (bwidth*bheight));
+   {$else}
    bofs := bofs + 4 + ((x and $7) * (bwidth*bheight));
+   {$endif}
+
    tofs := screenOffset(x,y);
 
-   if (y+sizey>352) then 
-      sizey := 352-y;
+   if (y+sizey>348) then 
+      sizey := 348-y;
    rwidth := (((x and $7) + sizex) shr 3); { how many bytes to write }
 
 
@@ -823,6 +857,9 @@ var
    rwidth      : byte; { width of section to copy }
 begin
    if checkHBounds(x,y) then exit;
+   {$ifdef hgc_even}
+   x:= x and $FFFE;
+   {$endif}
    bseg := seg(bitmap^);
    bofs := ofs(bitmap^);
    sizex := memw[bseg:bofs];
@@ -831,11 +868,15 @@ begin
    bheight := sizey;
    bwidth := (sizex shr 3) + 2; {buffer width in bytes}   
    { buffer offset - select which copy of the image to use }
+   {$ifdef hgc_even}
+   bofs := bofs + 4 + (((x and $7) shr 1) * (bwidth*bheight));
+   {$else}
    bofs := bofs + 4 + ((x and $7) * (bwidth*bheight));
+   {$endif}
    tofs := screenOffset(x,y);
 
-   if (y+sizey>352) then 
-      sizey := 352-y;
+   if (y+sizey>348) then 
+      sizey := 348-y;
    rwidth := ( sizex shr 3) + 1; { how many bytes to write }
 
    
@@ -927,7 +968,7 @@ begin
      if checkHBounds(x,y) then exit;
      clip := false;
      if (x< radius) or (y<radius) then clip :=true;
-     if (639-x<radius) or (351-y<radius) then clip := true;
+     if (639-x<radius) or (347-y<radius) then clip := true;
      target := 0;
      a := radius;
      b := 0;
