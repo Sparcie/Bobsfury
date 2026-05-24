@@ -1,4 +1,13 @@
 ------------------------------------------------------------------------
+r244 | andrew | 2026-05-24 16:47:26 +1000 (Sun, 24 May 2026) | 6 lines
+
+modified the drop spike to only drop if the player is lower on the screen as well as the pre-existing conditions.
+
+made a start on the jungle episode. Have created the first level (which might be too hard).
+Also created the story/episode list file and added it to the game.
+
+I re-ordered the episode list to put the newer episodes at the top.
+------------------------------------------------------------------------
 r243 | andrew | 2026-05-18 23:29:37 +1000 (Mon, 18 May 2026) | 7 lines
 
 - corrected some text describing graphics modes in a few places

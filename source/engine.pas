@@ -1449,7 +1449,7 @@ begin
 		 displayed:=true;
 		 ft:=2;
 		 bf:=false;
-		 if ((state=0) and (abs(player.x-x) <30)) then state:=1;
+		 if ((state=0) and (abs(player.x-x) <30) and (player.y>y)) then state:=1;
 		 if state=1 then
 		 begin
 		    delta := movedown(x,y+9,4);
