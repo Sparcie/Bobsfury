@@ -366,7 +366,7 @@ begin
    pages[13,2]:='. = Next item';
    pages[14,2]:='S = Set Special map (larger map)';
    pages[15,2]:='M = Show mini-map';
-   pages[16,2]:='';
+   pages[16,2]:='P = pick item under cursor ';
    pages[1,3]:='Additional Keys';
    pages[2,3]:='PageUp/PageDown ';
    pages[3,3]:='  = Change screens horizontally';
@@ -909,6 +909,10 @@ begin
       end;
       'M' : begin
 	 levelMap;
+      end;
+      'P' : begin
+	 ob := objectat(x,y);
+	 drawSelection;
       end;
       '.' : begin
 	 repeat

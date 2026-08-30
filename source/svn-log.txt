@@ -1,4 +1,11 @@
 ------------------------------------------------------------------------
+r245 | andrew | 2026-08-30 14:12:56 +1000 (Sun, 30 Aug 2026) | 4 lines
+
+Made a start on the second jungle level. I need to get off my butt and start doing some more of these.
+
+Added a pick tile key to the level editor to make it easier to switch to commonly used tiles in the map.
+You can jump directly to tiles already in the map by moving the cursor there and pressing P.
+------------------------------------------------------------------------
 r244 | andrew | 2026-05-24 16:47:26 +1000 (Sun, 24 May 2026) | 6 lines
 
 modified the drop spike to only drop if the player is lower on the screen as well as the pre-existing conditions.
